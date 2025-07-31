@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -9,36 +9,105 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
-import { type PetProfile as PetProfileType, petProfiles as initialPetProfiles } from "@/lib/data"
+
+interface PetProfile {
+  id: string
+  userId: string
+  name: string
+  type: string
+  breed: string
+  age: number
+  weight: number
+  healthTags: string[]
+  createdAt: string
+  updatedAt: string
+}
 
 export default function PetProfilePage() {
-  const [petProfiles, setPetProfiles] = useState<PetProfileType[]>(initialPetProfiles)
-  const [editingPet, setEditingPet] = useState<PetProfileType | null>(null)
+  const [petProfiles, setPetProfiles] = useState<PetProfile[]>([])
+  const [editingPet, setEditingPet] = useState<PetProfile | null>(null)
   const [showForm, setShowForm] = useState(false)
+  const [loading, setLoading] = useState(true)
   const { toast } = useToast()
 
-  const handleSave = (e: React.FormEvent) => {
+  // Fetch pet profiles on component mount
+  useEffect(() => {
+    fetchPetProfiles()
+  }, [])
+
+  const fetchPetProfiles = async () => {
+    try {
+      const response = await fetch('/api/pets')
+      if (response.ok) {
+        const data = await response.json()
+        setPetProfiles(data)
+      }
+    } catch (error) {
+      console.error('Error fetching pet profiles:', error)
+      toast({
+        title: "Error",
+        description: "Failed to load pet profiles",
+        variant: "destructive"
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget as HTMLFormElement)
-    const newPet: PetProfileType = {
-      id: editingPet?.id || `pet_${Date.now()}`,
+    
+    const petData = {
       name: formData.get("name") as string,
-      type: formData.get("type") as "dog" | "cat",
+      type: formData.get("type") as string,
       breed: formData.get("breed") as string,
       age: Number.parseInt(formData.get("age") as string),
-      weight: Number.parseInt(formData.get("weight") as string),
-      healthNotes: formData.get("healthNotes") as string,
+      weight: Number.parseFloat(formData.get("weight") as string),
+      healthTags: (formData.get("healthNotes") as string).split(',').map(tag => tag.trim()).filter(tag => tag)
     }
 
-    if (editingPet) {
-      setPetProfiles(petProfiles.map((p) => (p.id === newPet.id ? newPet : p)))
-      toast({ title: "Pet profile updated!" })
-    } else {
-      setPetProfiles([...petProfiles, newPet])
-      toast({ title: "New pet profile created!" })
+    try {
+      if (editingPet) {
+        // Update existing pet
+        const response = await fetch(`/api/pets/${editingPet.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(petData)
+        })
+        
+        if (response.ok) {
+          await fetchPetProfiles() // Refresh the list
+          toast({ title: "Pet profile updated!" })
+        } else {
+          throw new Error('Failed to update pet profile')
+        }
+      } else {
+        // Create new pet
+        const response = await fetch('/api/pets', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(petData)
+        })
+        
+        if (response.ok) {
+          await fetchPetProfiles() // Refresh the list
+          toast({ title: "New pet profile created!" })
+        } else {
+          throw new Error('Failed to create pet profile')
+        }
+      }
+      
+      setShowForm(false)
+      setEditingPet(null)
+    } catch (error) {
+      console.error('Error saving pet profile:', error)
+      toast({
+        title: "Error",
+        description: "Failed to save pet profile",
+        variant: "destructive"
+      })
     }
-    setShowForm(false)
-    setEditingPet(null)
   }
 
   const handleCancel = () => {
@@ -46,15 +115,32 @@ export default function PetProfilePage() {
     setEditingPet(null)
   }
 
-  const handleEdit = (pet: PetProfileType) => {
+  const handleEdit = (pet: PetProfile) => {
     setEditingPet(pet)
     setShowForm(true)
   }
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this pet profile?")) {
-      setPetProfiles(petProfiles.filter((p) => p.id !== id))
-      toast({ title: "Pet profile deleted." })
+      try {
+        const response = await fetch(`/api/pets/${id}`, {
+          method: 'DELETE'
+        })
+        
+        if (response.ok) {
+          await fetchPetProfiles() // Refresh the list
+          toast({ title: "Pet profile deleted." })
+        } else {
+          throw new Error('Failed to delete pet profile')
+        }
+      } catch (error) {
+        console.error('Error deleting pet profile:', error)
+        toast({
+          title: "Error",
+          description: "Failed to delete pet profile",
+          variant: "destructive"
+        })
+      }
     }
   }
 
@@ -106,28 +192,29 @@ export default function PetProfilePage() {
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="age">Age (Years)</Label>
-                  <Input id="age" name="age" type="number" defaultValue={editingPet?.age || 0} min="0" required />
-                </div>
-                <div>
-                  <Label htmlFor="weight">Weight (lbs)</Label>
-                  <Input
-                    id="weight"
-                    name="weight"
-                    type="number"
-                    defaultValue={editingPet?.weight || 0}
-                    min="0"
-                    required
-                  />
-                </div>
+                              <div>
+                <Label htmlFor="age">Age (Years)</Label>
+                <Input id="age" name="age" type="number" defaultValue={editingPet?.age || 0} min="0" required />
+              </div>
+              <div>
+                <Label htmlFor="weight">Weight (lbs)</Label>
+                <Input
+                  id="weight"
+                  name="weight"
+                  type="number"
+                  step="0.1"
+                  defaultValue={editingPet?.weight || 0}
+                  min="0"
+                  required
+                />
+              </div>
               </div>
               <div>
                 <Label htmlFor="healthNotes">Health Notes / Allergies</Label>
                 <Textarea
                   id="healthNotes"
                   name="healthNotes"
-                  defaultValue={editingPet?.healthNotes || ""}
+                  defaultValue={editingPet?.healthTags?.join(', ') || ""}
                   placeholder="e.g., Allergic to chicken, needs grain-free food"
                 />
               </div>
@@ -142,14 +229,20 @@ export default function PetProfilePage() {
         </Card>
       )}
 
-      <div className="space-y-4">
-        {petProfiles.length === 0 ? (
-          <Card>
-            <CardContent className="py-8 text-center text-gray-500">
-              No pet profiles added yet. Click "Add New Pet" to get started!
-            </CardContent>
-          </Card>
-        ) : (
+      {loading ? (
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Loading pet profiles...</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {petProfiles.length === 0 ? (
+            <Card>
+              <CardContent className="py-8 text-center text-gray-500">
+                No pet profiles added yet. Click "Add New Pet" to get started!
+              </CardContent>
+            </Card>
+          ) : (
           petProfiles.map((pet) => (
             <Card key={pet.id}>
               <CardHeader>
@@ -172,17 +265,18 @@ export default function PetProfilePage() {
                   </div>
                 </div>
               </CardHeader>
-              {pet.healthNotes && (
+              {pet.healthTags && pet.healthTags.length > 0 && (
                 <CardContent>
                   <p className="text-sm text-gray-700">
-                    <span className="font-medium">Health Notes:</span> {pet.healthNotes}
+                    <span className="font-medium">Health Notes:</span> {pet.healthTags.join(', ')}
                   </p>
                 </CardContent>
               )}
             </Card>
           ))
         )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }

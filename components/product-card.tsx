@@ -6,10 +6,22 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge"
 import { useCart } from "@/contexts/cart-context"
 import { useToast } from "@/hooks/use-toast"
-import type { Product } from "@/lib/data"
 import { useState } from "react"
 import { Minus, Plus } from "lucide-react"
 import { Input } from "@/components/ui/input"
+
+interface Product {
+  id: string
+  name: string
+  description: string
+  price: number
+  category: string
+  petType: string
+  image: string
+  featured: boolean
+  createdAt: string
+  updatedAt: string
+}
 
 interface ProductCardProps {
   product: Product
@@ -40,9 +52,9 @@ export function ProductCard({ product }: ProductCardProps) {
           />
           <Badge
             className="absolute top-2 right-2 capitalize"
-            variant={product.category === "dog" ? "default" : "secondary"}
+            variant={product.petType === "Dog" ? "default" : "secondary"}
           >
-            {product.category}
+            {product.petType}
           </Badge>
         </div>
       </CardHeader>

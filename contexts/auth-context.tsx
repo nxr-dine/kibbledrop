@@ -1,29 +1,46 @@
 "use client"
 
-import { createContext, useContext, useState, type ReactNode } from "react"
+import { createContext, useContext, type ReactNode } from "react"
+import { useSession, signIn, signOut } from "next-auth/react"
 
 interface AuthContextType {
   isLoggedIn: boolean
-  login: () => void
-  logout: () => void
+  user: any
+  login: (email: string, password: string) => Promise<void>
+  logout: () => Promise<void>
+  isLoading: boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isLoggedIn, setIsLoggedIn] = useState(false) // Simulate login state
+  const { data: session, status } = useSession()
 
-  const login = () => {
-    setIsLoggedIn(true)
-    console.log("User logged in (simulated)")
+  const login = async (email: string, password: string) => {
+    const result = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    })
+
+    if (result?.error) {
+      throw new Error(result.error)
+    }
   }
 
-  const logout = () => {
-    setIsLoggedIn(false)
-    console.log("User logged out (simulated)")
+  const logout = async () => {
+    await signOut({ redirect: false })
   }
 
-  return <AuthContext.Provider value={{ isLoggedIn, login, logout }}>{children}</AuthContext.Provider>
+  const value = {
+    isLoggedIn: !!session,
+    user: session?.user,
+    login,
+    logout,
+    isLoading: status === "loading",
+  }
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {

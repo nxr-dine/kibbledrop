@@ -1,11 +1,51 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Package, Users, DollarSign, TrendingUp } from "lucide-react"
-import { products, orders } from "@/lib/data"
+import { prisma } from "@/lib/prisma"
 
-export default function AdminPage() {
-  const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0)
-  const activeSubscriptions = orders.filter((order) => order.status === "active").length
+async function getAdminData() {
+  try {
+    const [products, subscriptions, users] = await Promise.all([
+      prisma.product.findMany(),
+      prisma.subscription.findMany({
+        include: {
+          items: {
+            include: {
+              product: true
+            }
+          }
+        }
+      }),
+      prisma.user.findMany()
+    ])
+
+    const totalRevenue = subscriptions.reduce((sum, sub) => {
+      return sum + sub.items.reduce((itemSum, item) => itemSum + (item.product.price * item.quantity), 0)
+    }, 0)
+
+    const activeSubscriptions = subscriptions.filter(sub => sub.status === "active").length
+
+    return {
+      products,
+      subscriptions,
+      users,
+      totalRevenue,
+      activeSubscriptions
+    }
+  } catch (error) {
+    console.error('Error fetching admin data:', error)
+    return {
+      products: [],
+      subscriptions: [],
+      users: [],
+      totalRevenue: 0,
+      activeSubscriptions: 0
+    }
+  }
+}
+
+export default async function AdminPage() {
+  const { products, subscriptions, users, totalRevenue, activeSubscriptions } = await getAdminData()
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -34,7 +74,7 @@ export default function AdminPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{activeSubscriptions}</div>
-            <p className="text-xs text-muted-foreground">Monthly subscribers</p>
+            <p className="text-xs text-muted-foreground">Active subscribers</p>
           </CardContent>
         </Card>
 
@@ -75,7 +115,7 @@ export default function AdminPage() {
                 <li key={product.id} className="flex justify-between items-center text-sm">
                   <span>{product.name}</span>
                   <Badge variant="outline" className="capitalize">
-                    {product.category}
+                    {product.petType}
                   </Badge>
                   <span className="font-semibold">${product.price.toFixed(2)}</span>
                 </li>
@@ -86,22 +126,24 @@ export default function AdminPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Orders ({orders.length})</CardTitle>
-            <CardDescription>Recent customer orders.</CardDescription>
+            <CardTitle>Subscriptions ({subscriptions.length})</CardTitle>
+            <CardDescription>Recent customer subscriptions.</CardDescription>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
-              {orders.map((order) => (
-                <li key={order.id} className="flex justify-between items-center text-sm">
-                  <span>Order #{order.id}</span>
+              {subscriptions.map((subscription) => (
+                <li key={subscription.id} className="flex justify-between items-center text-sm">
+                  <span>Subscription #{subscription.id}</span>
                   <Badge
                     variant={
-                      order.status === "active" ? "default" : order.status === "delivered" ? "secondary" : "outline"
+                      subscription.status === "active" ? "default" : subscription.status === "paused" ? "secondary" : "outline"
                     }
                   >
-                    {order.status}
+                    {subscription.status}
                   </Badge>
-                  <span className="font-semibold">${order.total.toFixed(2)}</span>
+                  <span className="font-semibold">
+                    ${subscription.items.reduce((total, item) => total + (item.product.price * item.quantity), 0).toFixed(2)}
+                  </span>
                 </li>
               ))}
             </ul>

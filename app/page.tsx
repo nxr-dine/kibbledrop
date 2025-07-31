@@ -3,10 +3,28 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Heart, Truck, Calendar, Star } from "lucide-react"
-import { products } from "@/lib/data"
+import { prisma } from "@/lib/prisma"
 
-export default function HomePage() {
-  const featuredProducts = products.filter((product) => product.featured)
+async function getFeaturedProducts() {
+  try {
+    const products = await prisma.product.findMany({
+      where: {
+        featured: true
+      },
+      take: 4,
+      orderBy: {
+        createdAt: 'desc'
+      }
+    })
+    return products
+  } catch (error) {
+    console.error('Error fetching featured products:', error)
+    return []
+  }
+}
+
+export default async function HomePage() {
+  const featuredProducts = await getFeaturedProducts()
 
   return (
     <div className="min-h-screen">
@@ -49,7 +67,7 @@ export default function HomePage() {
           </div>
 
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            <Link href="/dashboard/products?category=dog" className="group">
+            <Link href="/dashboard/products?petType=Dog" className="group">
               <Card className="overflow-hidden hover:shadow-lg transition-shadow">
                 <div className="relative h-64">
                   <Image
@@ -67,7 +85,7 @@ export default function HomePage() {
               </Card>
             </Link>
 
-            <Link href="/dashboard/products?category=cat" className="group">
+            <Link href="/dashboard/products?petType=Cat" className="group">
               <Card className="overflow-hidden hover:shadow-lg transition-shadow">
                 <div className="relative h-64">
                   <Image

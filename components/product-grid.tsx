@@ -1,5 +1,17 @@
 import { ProductCard } from "./product-card"
-import type { Product } from "@/lib/data"
+
+interface Product {
+  id: string
+  name: string
+  description: string
+  price: number
+  category: string
+  petType: string
+  image: string
+  featured: boolean
+  createdAt: string
+  updatedAt: string
+}
 
 interface ProductGridProps {
   products: Product[]

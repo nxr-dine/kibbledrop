@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ShoppingCart, Menu, Home, PawPrint, ListOrdered, LogIn, LogOut, Package } from "lucide-react"
+import { ShoppingCart, Menu, Home, PawPrint, ListOrdered, LogIn, LogOut, Package, User } from "lucide-react"
 import { useCart } from "@/contexts/cart-context"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
@@ -17,40 +17,47 @@ export function Navbar() {
   const { isLoggedIn, logout } = useAuth() // Use auth context
 
   const navItems = [
-    { href: "/", label: "Home", icon: Home },
-    { href: "/dashboard/products", label: "Products", icon: Package },
-    { href: "/dashboard/subscription/manage", label: "My Subscription", icon: ListOrdered },
+    { href: "/", label: "Home", icon: Home, exact: true },
+    { href: "/dashboard/products", label: "Products", icon: Package, exact: false },
+    { href: "/dashboard/pet-profile", label: "Pet Profile", icon: PawPrint, exact: false },
+    { href: "/dashboard/subscription/manage", label: "My Subscription", icon: ListOrdered, exact: false },
     // Admin link removed as per request
   ]
 
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center">
+          <Link href="/" className="flex items-center flex-shrink-0">
             <span className="text-2xl font-bold text-orange-600">KibbleDrop</span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium transition-colors flex items-center gap-2",
-                  pathname.startsWith(item.href) && "text-orange-600 font-semibold",
-                )}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.label}
-              </Link>
-            ))}
+          {/* Desktop Navigation - Centered */}
+          <div className="hidden md:flex items-center space-x-8 absolute left-1/2 transform -translate-x-1/2">
+            {navItems.map((item) => {
+              const isActive = item.exact 
+                ? pathname === item.href 
+                : pathname.startsWith(item.href) && (item.href === "/" ? pathname === "/" : true)
+              
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium transition-colors flex items-center gap-2",
+                    isActive && "text-orange-600 font-semibold",
+                  )}
+                >
+                  <item.icon className="h-4 w-4" />
+                  {item.label}
+                </Link>
+              )
+            })}
           </div>
 
           {/* Right side buttons */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 flex-shrink-0">
             {/* Cart */}
             <Link href="/cart">
               <Button variant="outline" size="sm" className="relative bg-transparent">
@@ -68,8 +75,8 @@ export function Navbar() {
               {isLoggedIn ? (
                 <>
                   <Button asChild variant="ghost" size="sm">
-                    <Link href="/dashboard/pet-profile" className="flex items-center gap-1">
-                      <PawPrint className="h-4 w-4" /> Pet Profile
+                    <Link href="/dashboard" className="flex items-center gap-1">
+                      <User className="h-4 w-4" /> Account
                     </Link>
                   </Button>
                   <Button onClick={logout} size="sm">
@@ -101,26 +108,32 @@ export function Navbar() {
         {isMobileMenuOpen && (
           <div className="md:hidden border-t border-gray-200 py-4">
             <div className="flex flex-col space-y-2">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium flex items-center gap-2",
-                    pathname.startsWith(item.href) && "text-orange-600 font-semibold",
-                  )}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <item.icon className="h-4 w-4" />
-                  {item.label}
-                </Link>
-              ))}
+              {navItems.map((item) => {
+                const isActive = item.exact 
+                  ? pathname === item.href 
+                  : pathname.startsWith(item.href) && (item.href === "/" ? pathname === "/" : true)
+                
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium flex items-center gap-2",
+                      isActive && "text-orange-600 font-semibold",
+                    )}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    {item.label}
+                  </Link>
+                )
+              })}
               <div className="flex space-x-2 px-3 pt-2">
                 {isLoggedIn ? (
                   <>
                     <Button asChild variant="ghost" size="sm" className="flex-1">
-                      <Link href="/dashboard/pet-profile" className="flex items-center justify-center gap-1">
-                        <PawPrint className="h-4 w-4" /> Pet Profile
+                      <Link href="/dashboard" className="flex items-center justify-center gap-1">
+                        <User className="h-4 w-4" /> Account
                       </Link>
                     </Button>
                     <Button onClick={logout} size="sm" className="flex-1">

@@ -10,8 +10,10 @@ interface CategoryFilterProps {
 export function CategoryFilter({ selectedCategory, onCategoryChange }: CategoryFilterProps) {
   const categories = [
     { value: "all", label: "All Products" },
-    { value: "dog", label: "Dog Food" },
-    { value: "cat", label: "Cat Food" },
+    { value: "Dog", label: "Dog Food" },
+    { value: "Cat", label: "Cat Food" },
+    { value: "Food", label: "Food" },
+    { value: "Treats", label: "Treats" },
   ]
 
   return (

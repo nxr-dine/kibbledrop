@@ -1,35 +1,37 @@
-"use client"
-
-import { useState, useMemo } from "react"
-import { ProductGrid } from "@/components/product-grid"
-import { CategoryFilter } from "@/components/category-filter"
-import { products } from "@/lib/data"
+import ClientProductsPage from "./client-page"
+import { prisma } from "@/lib/prisma"
 
 interface ProductsPageProps {
-  searchParams?: { category?: string }
+  searchParams?: { category?: string; petType?: string }
 }
 
-export default function ProductsPage({ searchParams }: ProductsPageProps) {
-  const [selectedCategory, setSelectedCategory] = useState<string>(searchParams?.category || "all")
-
-  const filteredProducts = useMemo(() => {
-    if (selectedCategory === "all") {
-      return products
+async function getProducts(category?: string, petType?: string) {
+  try {
+    const where: any = {}
+    
+    if (category && category !== 'all') {
+      where.category = category
     }
-    return products.filter((product) => product.category === selectedCategory)
-  }, [selectedCategory])
+    
+    if (petType && petType !== 'all') {
+      where.petType = petType
+    }
+    
+    const products = await prisma.product.findMany({
+      where,
+      orderBy: {
+        createdAt: 'desc'
+      }
+    })
+    return products
+  } catch (error) {
+    console.error('Error fetching products:', error)
+    return []
+  }
+}
 
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Pet Food Products</h1>
-          <p className="text-gray-600 mt-2">Premium nutrition delivered monthly</p>
-        </div>
-        <CategoryFilter selectedCategory={selectedCategory} onCategoryChange={setSelectedCategory} />
-      </div>
+export default async function ProductsPage({ searchParams }: ProductsPageProps) {
+  const products = await getProducts(searchParams?.category, searchParams?.petType)
 
-      <ProductGrid products={filteredProducts} />
-    </div>
-  )
+  return <ClientProductsPage initialProducts={products} />
 }

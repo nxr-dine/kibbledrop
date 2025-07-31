@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator"
 import { Eye, EyeOff, Check } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
+import { signIn } from "next-auth/react"
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -22,15 +23,67 @@ export default function RegisterPage() {
     email: "",
     password: "",
     confirmPassword: "",
-    agreeToTerms: false,
   })
   const { toast } = useToast()
   const router = useRouter()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("Registration attempt:", formData)
+    console.log("=== FORM SUBMISSION STARTED ===")
+    
+    console.log("Form submitted with data:", {
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      passwordLength: formData.password.length,
+      confirmPasswordLength: formData.confirmPassword.length,
+    })
+    
+    // Validate required fields
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
+      console.log("Missing required fields")
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      })
+      return
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(formData.email)) {
+      console.log("Invalid email format")
+      toast({
+        title: "Error",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      })
+      return
+    }
+    
+    // Validate password requirements
+    const passwordRequirements = [
+      formData.password.length >= 8,
+      /[A-Z]/.test(formData.password),
+      /[a-z]/.test(formData.password),
+      /\d/.test(formData.password)
+    ]
+    
+    console.log("Password requirements check:", passwordRequirements)
+    
+    if (passwordRequirements.some(req => !req)) {
+      console.log("Password requirements not met")
+      toast({
+        title: "Error",
+        description: "Password must be at least 8 characters with uppercase, lowercase, and number.",
+        variant: "destructive",
+      })
+      return
+    }
+    
     if (formData.password !== formData.confirmPassword) {
+      console.log("Password mismatch error")
       toast({
         title: "Error",
         description: "Passwords do not match.",
@@ -38,21 +91,83 @@ export default function RegisterPage() {
       })
       return
     }
-    if (!formData.agreeToTerms) {
+    
+
+
+    try {
+      console.log("Starting registration process...")
+      
+      const requestBody = {
+        name: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email,
+        password: formData.password,
+      }
+      
+      console.log("Sending request body:", requestBody)
+      console.log("Request URL:", "/api/auth/register")
+      
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      })
+
+      console.log("Response received:", {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries())
+      })
+
+      const data = await response.json()
+      console.log("Registration response data:", data)
+
+      if (!response.ok) {
+        console.error("Registration failed with status:", response.status)
+        throw new Error(data.error || "Registration failed")
+      }
+
+      console.log("Registration successful, attempting auto-login...")
+      
+      // Automatically sign in the user after successful registration
+      const signInResult = await signIn("credentials", {
+        email: formData.email,
+        password: formData.password,
+        redirect: false,
+      })
+
+      console.log("Sign-in result:", signInResult)
+
+      if (signInResult?.error) {
+        // If auto-login fails, redirect to login page
+        console.log("Auto-login failed, redirecting to login")
+        toast({
+          title: "Account Created!",
+          description: "Please sign in with your new account.",
+        })
+        router.push("/login")
+      } else {
+        // If auto-login succeeds, redirect to dashboard
+        console.log("Auto-login successful, redirecting to dashboard")
+        toast({
+          title: "Success!",
+          description: "Account created successfully. Welcome to KibbleDrop!",
+        })
+        
+        // Add a small delay to ensure session is established
+        setTimeout(() => {
+          router.push("/dashboard")
+        }, 1000)
+      }
+    } catch (error) {
+      console.error("Registration error:", error)
       toast({
-        title: "Error",
-        description: "You must agree to the Terms of Service and Privacy Policy.",
+        title: "Registration Failed",
+        description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
         variant: "destructive",
       })
-      return
     }
-
-    toast({
-      title: "Registration Attempt",
-      description: "This is a frontend-only preview. Registration data logged to console. Redirecting to login.",
-    })
-    // Simulate successful registration and redirect to login
-    router.push("/login")
   }
 
   const passwordRequirements = [
@@ -177,27 +292,7 @@ export default function RegisterPage() {
               )}
             </div>
 
-            <div className="flex items-center">
-              <input
-                id="agreeToTerms"
-                name="agreeToTerms"
-                type="checkbox"
-                checked={formData.agreeToTerms}
-                onChange={(e) => setFormData({ ...formData, agreeToTerms: e.target.checked })}
-                className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
-                required
-              />
-              <Label htmlFor="agreeToTerms" className="ml-2 text-sm">
-                I agree to the{" "}
-                <Link href="#" className="text-orange-600 hover:text-orange-500">
-                  Terms of Service
-                </Link>{" "}
-                and{" "}
-                <Link href="#" className="text-orange-600 hover:text-orange-500">
-                  Privacy Policy
-                </Link>
-              </Label>
-            </div>
+
 
             <Button type="submit" className="w-full">
               Create account

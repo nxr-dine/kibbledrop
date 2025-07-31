@@ -24,16 +24,27 @@ export default function LoginPage() {
   const router = useRouter()
   const { login } = useAuth() // Use login from auth context
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("Login attempt:", formData)
-    toast({
-      title: "Login Attempt",
-      description: "This is a frontend-only preview. Login data logged to console.",
-    })
-    // Simulate successful login and redirect
-    login() // Call login function
-    router.push("/dashboard")
+    
+    try {
+      await login(formData.email, formData.password)
+      
+      toast({
+        title: "Success!",
+        description: "Welcome back to KibbleDrop!",
+      })
+      
+      // Redirect to dashboard after successful login
+      router.push("/dashboard")
+    } catch (error) {
+      console.error("Login error:", error)
+      toast({
+        title: "Login Failed",
+        description: error instanceof Error ? error.message : "Invalid email or password. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
 
   return (

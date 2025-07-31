@@ -1,14 +1,11 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
 import "./globals.css"
 import { Navbar } from "@/components/navbar"
-import { CartProvider } from "@/contexts/cart-context"
-import { Toaster } from "@/components/ui/toaster"
-import { ToastProvider } from "@/hooks/use-toast"
-import { AuthProvider } from "@/contexts/auth-context" // Import AuthProvider
+import { Providers } from "@/components/providers"
 
-const inter = Inter({ subsets: ["latin"] })
+// Using system fonts to avoid Google Fonts connection issues
+const inter = { className: "font-sans" }
 
 export const metadata: Metadata = {
   title: "KibbleDrop - Premium Pet Food Delivery",
@@ -24,17 +21,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <AuthProvider>
-          {" "}
-          {/* Wrap with AuthProvider */}
-          <CartProvider>
-            <ToastProvider>
-              <Navbar />
-              <main className="min-h-screen bg-gray-50">{children}</main>
-              <Toaster />
-            </ToastProvider>
-          </CartProvider>
-        </AuthProvider>
+        <Providers>
+          <Navbar />
+          <main className="min-h-screen bg-gray-50">{children}</main>
+        </Providers>
       </body>
     </html>
   )
