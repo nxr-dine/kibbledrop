@@ -4,24 +4,39 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ShoppingCart, Menu, Home, PawPrint, ListOrdered, LogIn, LogOut, Package, User } from "lucide-react"
+import { ShoppingCart, Menu, Home, PawPrint, ListOrdered, LogIn, LogOut, Package, User, Settings } from "lucide-react"
+import { useCartStore } from "@/lib/cart"
 import { useCart } from "@/contexts/cart-context"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/contexts/auth-context" // Import useAuth
 
 export function Navbar() {
   const pathname = usePathname()
-  const { state } = useCart()
+  const { getItemCount, fetchCart } = useCartStore()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const { isLoggedIn, logout } = useAuth() // Use auth context
+  const [isMounted, setIsMounted] = useState(false)
+  const { isLoggedIn, logout, user } = useAuth() // Use auth context
+
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  // Fetch cart when user logs in
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchCart()
+    }
+  }, [isLoggedIn, fetchCart])
 
   const navItems = [
     { href: "/", label: "Home", icon: Home, exact: true },
     { href: "/dashboard/products", label: "Products", icon: Package, exact: false },
     { href: "/dashboard/pet-profile", label: "Pet Profile", icon: PawPrint, exact: false },
     { href: "/dashboard/subscription/manage", label: "My Subscription", icon: ListOrdered, exact: false },
-    // Admin link removed as per request
+    // Admin link - only show for admin users
+    ...(user?.role === 'admin' ? [{ href: "/admin", label: "Admin", icon: Settings, exact: false }] : [])
   ]
 
   return (
@@ -62,9 +77,9 @@ export function Navbar() {
             <Link href="/cart">
               <Button variant="outline" size="sm" className="relative bg-transparent">
                 <ShoppingCart className="h-4 w-4" />
-                {state.items.length > 0 && (
+                {isMounted && getItemCount() > 0 && (
                   <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs">
-                    {state.items.length}
+                    {getItemCount()}
                   </Badge>
                 )}
               </Button>
@@ -72,7 +87,7 @@ export function Navbar() {
 
             {/* Auth buttons */}
             <div className="hidden md:flex items-center space-x-2">
-              {isLoggedIn ? (
+              {isMounted && isLoggedIn ? (
                 <>
                   <Button asChild variant="ghost" size="sm">
                     <Link href="/dashboard" className="flex items-center gap-1">
@@ -83,12 +98,14 @@ export function Navbar() {
                     <LogOut className="h-4 w-4 mr-1" /> Logout
                   </Button>
                 </>
-              ) : (
+              ) : isMounted ? (
                 <Button asChild size="sm">
                   <Link href="/login" className="flex items-center gap-1">
                     <LogIn className="h-4 w-4" /> Login
                   </Link>
                 </Button>
+              ) : (
+                <div className="h-8 w-16 bg-gray-200 animate-pulse rounded" />
               )}
             </div>
 
@@ -129,7 +146,7 @@ export function Navbar() {
                 )
               })}
               <div className="flex space-x-2 px-3 pt-2">
-                {isLoggedIn ? (
+                {isMounted && isLoggedIn ? (
                   <>
                     <Button asChild variant="ghost" size="sm" className="flex-1">
                       <Link href="/dashboard" className="flex items-center justify-center gap-1">
@@ -140,12 +157,14 @@ export function Navbar() {
                       <LogOut className="h-4 w-4 mr-1" /> Logout
                     </Button>
                   </>
-                ) : (
+                ) : isMounted ? (
                   <Button asChild size="sm" className="flex-1">
                     <Link href="/login" className="flex items-center justify-center gap-1">
                       <LogIn className="h-4 w-4" /> Login
                     </Link>
                   </Button>
+                ) : (
+                  <div className="flex-1 h-8 bg-gray-200 animate-pulse rounded" />
                 )}
               </div>
             </div>

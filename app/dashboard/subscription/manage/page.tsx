@@ -4,11 +4,15 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Calendar, Package, Truck, Pause, Play, XCircle } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Calendar, Package, Truck, Pause, Play, XCircle, SkipForward, Edit, CalendarDays } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface Subscription {
   id: string
@@ -22,6 +26,8 @@ interface Subscription {
   postalCode: string
   instructions?: string
   nextDeliveryDate: string
+  customDeliveryDate?: string
+  skippedDeliveries?: string[]
   stripeCustomerId?: string
   stripeSubscriptionId?: string
   createdAt: string
@@ -44,6 +50,10 @@ interface SubscriptionItem {
 export default function ManageSubscriptionPage() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedSubscription, setSelectedSubscription] = useState<Subscription | null>(null)
+  const [customDeliveryDate, setCustomDeliveryDate] = useState("")
+  const [modifyItemsOpen, setModifyItemsOpen] = useState(false)
+  const [modifiedItems, setModifiedItems] = useState<any[]>([])
   const { toast } = useToast()
   const router = useRouter()
   const { isLoggedIn } = useAuth()
@@ -113,6 +123,100 @@ export default function ManageSubscriptionPage() {
       toast({
         title: "Error",
         description: "Failed to update subscription",
+        variant: "destructive"
+      })
+    }
+  }
+
+  const handleSkipDelivery = async (subscriptionId: string) => {
+    try {
+      const response = await fetch(`/api/subscription/${subscriptionId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ skipNextDelivery: true })
+      })
+      
+      if (response.ok) {
+        await fetchSubscriptions() // Refresh the list
+        toast({
+          title: "Delivery Skipped",
+          description: "Your next delivery has been skipped successfully.",
+        })
+      } else {
+        throw new Error('Failed to skip delivery')
+      }
+    } catch (error) {
+      console.error('Error skipping delivery:', error)
+      toast({
+        title: "Error",
+        description: "Failed to skip delivery",
+        variant: "destructive"
+      })
+    }
+  }
+
+  const handleCustomDeliveryDate = async (subscriptionId: string) => {
+    if (!customDeliveryDate) {
+      toast({
+        title: "Error",
+        description: "Please select a delivery date",
+        variant: "destructive"
+      })
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/subscription/${subscriptionId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customDeliveryDate })
+      })
+      
+      if (response.ok) {
+        await fetchSubscriptions() // Refresh the list
+        setCustomDeliveryDate("")
+        setSelectedSubscription(null)
+        toast({
+          title: "Delivery Date Updated",
+          description: "Your delivery date has been updated successfully.",
+        })
+      } else {
+        throw new Error('Failed to update delivery date')
+      }
+    } catch (error) {
+      console.error('Error updating delivery date:', error)
+      toast({
+        title: "Error",
+        description: "Failed to update delivery date",
+        variant: "destructive"
+      })
+    }
+  }
+
+  const handleModifyItems = async (subscriptionId: string) => {
+    try {
+      const response = await fetch(`/api/subscription/${subscriptionId}/items`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: modifiedItems })
+      })
+      
+      if (response.ok) {
+        await fetchSubscriptions() // Refresh the list
+        setModifyItemsOpen(false)
+        setModifiedItems([])
+        toast({
+          title: "Items Updated",
+          description: "Your subscription items have been updated successfully.",
+        })
+      } else {
+        throw new Error('Failed to update items')
+      }
+    } catch (error) {
+      console.error('Error updating items:', error)
+      toast({
+        title: "Error",
+        description: "Failed to update items",
         variant: "destructive"
       })
     }
@@ -213,11 +317,77 @@ export default function ManageSubscriptionPage() {
                           </div>
                         )}
 
+                        {/* Skipped Deliveries */}
+                        {subscription.skippedDeliveries && subscription.skippedDeliveries.length > 0 && (
+                          <div className="text-sm text-gray-500">
+                            Skipped deliveries: {subscription.skippedDeliveries.length}
+                          </div>
+                        )}
+
                         {/* Actions */}
-                        <div className="flex gap-2 pt-2">
-                          <Button variant="outline" size="sm">
-                            Modify Items
+                        <div className="flex gap-2 pt-2 flex-wrap">
+                          <Dialog open={modifyItemsOpen} onOpenChange={setModifyItemsOpen}>
+                            <DialogTrigger asChild>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedSubscription(subscription)
+                                  setModifiedItems(subscription.items.map(item => ({
+                                    productId: item.productId,
+                                    quantity: item.quantity
+                                  })))
+                                }}
+                              >
+                                <Edit className="h-4 w-4 mr-2" /> Modify Items
+                              </Button>
+                            </DialogTrigger>
+                          </Dialog>
+
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => setSelectedSubscription(subscription)}
+                              >
+                                <CalendarDays className="h-4 w-4 mr-2" /> Change Date
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Change Delivery Date</DialogTitle>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                <div>
+                                  <Label htmlFor="customDate">New Delivery Date</Label>
+                                  <Input
+                                    id="customDate"
+                                    type="date"
+                                    value={customDeliveryDate}
+                                    onChange={(e) => setCustomDeliveryDate(e.target.value)}
+                                    min={new Date().toISOString().split('T')[0]}
+                                  />
+                                </div>
+                                <Button 
+                                  onClick={() => handleCustomDeliveryDate(subscription.id)}
+                                  className="w-full"
+                                >
+                                  Update Delivery Date
+                                </Button>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => handleSkipDelivery(subscription.id)}
+                            disabled={subscription.status !== "active"}
+                          >
+                            <SkipForward className="h-4 w-4 mr-2" /> Skip Next
                           </Button>
+
                           {subscription.status === "active" ? (
                             <Button variant="outline" size="sm" onClick={() => handleUpdateStatus(subscription.id, "paused")}>
                               <Pause className="h-4 w-4 mr-2" /> Pause
@@ -297,6 +467,45 @@ export default function ManageSubscriptionPage() {
               </div>
             )}
           </div>
+
+          {/* Modify Items Dialog */}
+          <Dialog open={modifyItemsOpen} onOpenChange={setModifyItemsOpen}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Modify Subscription Items</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                {selectedSubscription?.items.map((item, index) => (
+                  <div key={index} className="space-y-2">
+                    <Label>{item.product.name}</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        min="0"
+                        value={modifiedItems[index]?.quantity || 0}
+                        onChange={(e) => {
+                          const newItems = [...modifiedItems]
+                          newItems[index] = {
+                            ...newItems[index],
+                            productId: item.productId,
+                            quantity: parseInt(e.target.value) || 0
+                          }
+                          setModifiedItems(newItems)
+                        }}
+                      />
+                      <span className="text-sm text-gray-600">x ${item.product.price}</span>
+                    </div>
+                  </div>
+                ))}
+                <Button 
+                  onClick={() => selectedSubscription && handleModifyItems(selectedSubscription.id)}
+                  className="w-full"
+                >
+                  Update Items
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </>
       )}
     </div>

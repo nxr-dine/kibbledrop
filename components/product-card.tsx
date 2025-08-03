@@ -4,10 +4,10 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { useCart } from "@/contexts/cart-context"
+import { useCartStore } from "@/lib/cart"
 import { useToast } from "@/hooks/use-toast"
 import { useState } from "react"
-import { Minus, Plus } from "lucide-react"
+import { Minus, Plus, ShoppingCart } from "lucide-react"
 import { Input } from "@/components/ui/input"
 
 interface Product {
@@ -28,16 +28,29 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const { dispatch } = useCart()
+  const { addItem, getItem, isLoading } = useCartStore()
   const { toast } = useToast()
   const [quantity, setQuantity] = useState(1)
+  const [isAdding, setIsAdding] = useState(false)
+  const cartItem = getItem(product.id)
 
-  const addToCart = () => {
-    dispatch({ type: "ADD_ITEM", payload: { ...product, quantity } })
-    toast({
-      title: "Added to cart",
-      description: `${quantity}x ${product.name} added to your subscription.`,
-    })
+  const addToCart = async () => {
+    setIsAdding(true)
+    try {
+      await addItem(product, quantity)
+      toast({
+        title: "Added to cart",
+        description: `${quantity}x ${product.name} added to your cart.`,
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add item to cart. Please try again.",
+        variant: "destructive"
+      })
+    } finally {
+      setIsAdding(false)
+    }
   }
 
   return (
@@ -56,6 +69,11 @@ export function ProductCard({ product }: ProductCardProps) {
           >
             {product.petType}
           </Badge>
+          {product.featured && (
+            <Badge className="absolute top-2 left-2 bg-orange-600 text-white">
+              Featured
+            </Badge>
+          )}
         </div>
       </CardHeader>
 
@@ -64,7 +82,7 @@ export function ProductCard({ product }: ProductCardProps) {
         <p className="text-gray-600 text-sm mb-4 line-clamp-3">{product.description}</p>
         <div className="mt-auto">
           <p className="text-2xl font-bold text-orange-600">${product.price.toFixed(2)}</p>
-          <p className="text-sm text-gray-500">per month</p>
+          <p className="text-sm text-gray-500">per item</p>
         </div>
       </CardContent>
 
@@ -89,8 +107,13 @@ export function ProductCard({ product }: ProductCardProps) {
             <Plus className="h-4 w-4" />
           </Button>
         </div>
-        <Button onClick={addToCart} className="w-full">
-          Add to Subscription
+        <Button 
+          onClick={addToCart} 
+          disabled={isAdding || isLoading}
+          className={`w-full ${cartItem ? 'bg-green-600 hover:bg-green-700' : ''}`}
+        >
+          <ShoppingCart className="h-4 w-4 mr-2" />
+          {isAdding ? 'Adding...' : cartItem ? `In Cart (${cartItem.quantity})` : 'Add to Cart'}
         </Button>
       </CardFooter>
     </Card>

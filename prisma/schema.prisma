@@ -44,12 +44,15 @@ model User {
   emailVerified DateTime?
   password      String?
   image         String?
+  role          String    @default("customer") // customer, admin
   accounts      Account[]
   sessions      Session[]
   petProfiles   PetProfile[]
   subscriptions Subscription[]
+  orders        Order[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  cart          Cart?
 }
 
 model VerificationToken {
@@ -88,6 +91,8 @@ model Product {
   updatedAt   DateTime @updatedAt
   
   subscriptionItems SubscriptionItem[]
+  orderItems        OrderItem[]
+  cartItems         CartItem[]
 }
 
 model Subscription {
@@ -104,6 +109,8 @@ model Subscription {
   stripeCustomerId String?
   stripeSubscriptionId String?
   nextDelivery   DateTime?
+  skippedDeliveries String[] // Array of skipped delivery dates
+  customDeliveryDate DateTime? // Custom delivery date if different from calculated
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   
@@ -120,4 +127,65 @@ model SubscriptionItem {
   
   subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
   product      Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Order {
+  id                String   @id @default(cuid())
+  userId            String
+  status            String   // pending, processing, shipped, delivered, canceled
+  subtotal          Float
+  shipping          Float
+  total             Float
+  deliveryName      String
+  deliveryPhone     String
+  deliveryAddress   String
+  city              String
+  postalCode        String
+  instructions      String?
+  deliveryMethod    String   // standard, express
+  trackingNumber    String?
+  estimatedDelivery DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items OrderItem[]
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Float
+  createdAt DateTime @default(now())
+  
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  // Relations
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  cartId    String
+  productId String
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, productId])
 }
