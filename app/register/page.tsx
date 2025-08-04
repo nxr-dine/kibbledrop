@@ -11,7 +11,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Eye, EyeOff } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
-import { signIn } from "next-auth/react"
+import { useAuth } from "@/contexts/auth-context"
+import { useEffect } from "react"
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -25,6 +26,15 @@ export default function RegisterPage() {
   })
   const { toast } = useToast()
   const router = useRouter()
+  const { login, isLoggedIn, isLoading } = useAuth()
+
+  // Only redirect if user is already logged in when page loads
+  useEffect(() => {
+    if (isLoggedIn && !isLoading) {
+      console.log("User already logged in, redirecting to dashboard...")
+      router.replace("/dashboard")
+    }
+  }, [isLoggedIn, isLoading, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -110,15 +120,19 @@ export default function RegisterPage() {
       console.log("Registration successful, attempting auto-login...")
       
       // Automatically sign in the user after successful registration
-      const signInResult = await signIn("credentials", {
-        email: formData.email,
-        password: formData.password,
-        redirect: false,
-      })
-
-      console.log("Sign-in result:", signInResult)
-
-      if (signInResult?.error) {
+      try {
+        await login(formData.email, formData.password)
+        
+        console.log("Auto-login successful, account created")
+        toast({
+          title: "Success!",
+          description: "Account created successfully. Welcome to KibbleDrop!",
+        })
+        
+        console.log("Registration successful, redirecting to dashboard...")
+        // Redirect after successful registration
+        router.replace("/dashboard")
+      } catch (error) {
         // If auto-login fails, redirect to login page
         console.log("Auto-login failed, redirecting to login")
         toast({
@@ -126,18 +140,6 @@ export default function RegisterPage() {
           description: "Please sign in with your new account.",
         })
         router.push("/login")
-      } else {
-        // If auto-login succeeds, redirect to dashboard
-        console.log("Auto-login successful, redirecting to dashboard")
-        toast({
-          title: "Success!",
-          description: "Account created successfully. Welcome to KibbleDrop!",
-        })
-        
-        // Add a small delay to ensure session is established
-        setTimeout(() => {
-          router.push("/dashboard")
-        }, 1000)
       }
     } catch (error) {
       console.error("Registration error:", error)
@@ -167,6 +169,7 @@ export default function RegisterPage() {
                   value={formData.firstName}
                   onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                   placeholder="John"
+                  autoComplete="given-name"
                   required
                 />
               </div>
@@ -178,6 +181,7 @@ export default function RegisterPage() {
                   value={formData.lastName}
                   onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                   placeholder="Doe"
+                  autoComplete="family-name"
                   required
                 />
               </div>
@@ -191,6 +195,7 @@ export default function RegisterPage() {
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 placeholder="Enter your email"
+                autoComplete="email"
                 required
               />
             </div>
@@ -204,6 +209,7 @@ export default function RegisterPage() {
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   placeholder="Create a password"
+                  autoComplete="new-password"
                   required
                 />
                 <Button
@@ -231,6 +237,7 @@ export default function RegisterPage() {
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                   placeholder="Confirm your password"
+                  autoComplete="new-password"
                   required
                 />
                 <Button

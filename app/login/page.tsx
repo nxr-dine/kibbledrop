@@ -12,6 +12,7 @@ import { Eye, EyeOff } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context" // Import useAuth
+import { useEffect } from "react"
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -21,21 +22,32 @@ export default function LoginPage() {
   })
   const { toast } = useToast()
   const router = useRouter()
-  const { login } = useAuth() // Use login from auth context
+  const { login, isLoggedIn, isLoading } = useAuth() // Use login from auth context
+
+  // Only redirect if user is already logged in when page loads
+  useEffect(() => {
+    if (isLoggedIn && !isLoading) {
+      console.log("User already logged in, redirecting to dashboard...")
+      router.replace("/dashboard")
+    }
+  }, [isLoggedIn, isLoading, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     try {
+      console.log("Starting login process...")
       await login(formData.email, formData.password)
       
+      console.log("Login successful, showing toast...")
       toast({
         title: "Success!",
         description: "Welcome back to KibbleDrop!",
       })
       
-      // Redirect to dashboard after successful login
-      router.push("/dashboard")
+      console.log("Login successful, redirecting to dashboard...")
+      // Redirect after successful login
+      router.replace("/dashboard")
     } catch (error) {
       console.error("Login error:", error)
       toast({
@@ -63,6 +75,7 @@ export default function LoginPage() {
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 placeholder="Enter your email"
+                autoComplete="email"
                 required
               />
             </div>
@@ -76,6 +89,7 @@ export default function LoginPage() {
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   placeholder="Enter your password"
+                  autoComplete="current-password"
                   required
                 />
                 <Button

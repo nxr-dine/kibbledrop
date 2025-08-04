@@ -7,7 +7,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = env("STORAGE_DATABASE_URL")
 }
 
 model Account {
@@ -44,6 +44,8 @@ model User {
   emailVerified DateTime?
   password      String?
   image         String?
+  phone         String?
+  address       String?
   role          String    @default("customer") // customer, admin
   accounts      Account[]
   sessions      Session[]
