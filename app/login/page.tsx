@@ -27,9 +27,17 @@ export default function LoginPage() {
 
   // Redirect if user is already logged in when page loads
   useEffect(() => {
+    console.log("[LoginPage] useEffect: isLoggedIn=", isLoggedIn, "isLoading=", isLoading)
     if (isLoggedIn && !isLoading) {
-      console.log("User already logged in, redirecting to dashboard...")
+      console.log("[LoginPage] Detected logged in, redirecting to dashboard (router.replace)...")
       router.replace("/dashboard")
+      // Fallback: force hard redirect if router.replace does not work
+      setTimeout(() => {
+        if (window.location.pathname !== "/dashboard") {
+          console.log("[LoginPage] Fallback: Forcing hard redirect to /dashboard")
+          window.location.href = "/dashboard"
+        }
+      }, 1500)
     }
   }, [isLoggedIn, isLoading, router])
 
