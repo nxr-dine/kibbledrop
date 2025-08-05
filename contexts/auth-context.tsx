@@ -33,13 +33,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error(result.error)
     }
 
-    // Force session update
+    // Force session update and wait for it to complete
+    console.log("Forcing session update...")
     await update()
     
-    // Wait a bit more for session to be established
-    await new Promise(resolve => setTimeout(resolve, 500))
+    // Wait for session to be fully established
+    console.log("Waiting for session to establish...")
+    await new Promise(resolve => setTimeout(resolve, 1000))
     
-    console.log("Login completed, session should be updated")
+    // Double-check session status
+    const currentSession = await getSession()
+    console.log("Current session after login:", currentSession)
+    
+    if (!currentSession) {
+      throw new Error("Session not established after login")
+    }
+    
+    console.log("Login completed, session established successfully")
   }
 
   const logout = async () => {

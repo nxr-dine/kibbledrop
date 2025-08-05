@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Eye, EyeOff } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
-import { useAuth } from "@/contexts/auth-context" // Import useAuth
+import { useAuth } from "@/contexts/auth-context"
 import { useEffect } from "react"
 
 export default function LoginPage() {
@@ -20,11 +20,12 @@ export default function LoginPage() {
     email: "",
     password: "",
   })
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
-  const { login, isLoggedIn, isLoading } = useAuth() // Use login from auth context
+  const { login, isLoggedIn, isLoading } = useAuth()
 
-  // Only redirect if user is already logged in when page loads
+  // Redirect if user is already logged in when page loads
   useEffect(() => {
     if (isLoggedIn && !isLoading) {
       console.log("User already logged in, redirecting to dashboard...")
@@ -32,8 +33,18 @@ export default function LoginPage() {
     }
   }, [isLoggedIn, isLoading, router])
 
+  // Handle redirect after successful login
+  useEffect(() => {
+    if (isLoggedIn && !isLoading && isSubmitting) {
+      console.log("Login successful, redirecting to dashboard...")
+      setIsSubmitting(false)
+      router.replace("/dashboard")
+    }
+  }, [isLoggedIn, isLoading, isSubmitting, router])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setIsSubmitting(true)
     
     try {
       console.log("Starting login process...")
@@ -45,11 +56,11 @@ export default function LoginPage() {
         description: "Welcome back to KibbleDrop!",
       })
       
-      console.log("Login successful, redirecting to dashboard...")
-      // Redirect after successful login
-      router.replace("/dashboard")
+      // Don't redirect here - let the useEffect handle it
+      console.log("Login completed, waiting for session to establish...")
     } catch (error) {
       console.error("Login error:", error)
+      setIsSubmitting(false)
       toast({
         title: "Login Failed",
         description: error instanceof Error ? error.message : "Invalid email or password. Please try again.",

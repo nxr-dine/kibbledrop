@@ -24,11 +24,12 @@ export default function RegisterPage() {
     password: "",
     confirmPassword: "",
   })
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
   const { login, isLoggedIn, isLoading } = useAuth()
 
-  // Only redirect if user is already logged in when page loads
+  // Redirect if user is already logged in when page loads
   useEffect(() => {
     if (isLoggedIn && !isLoading) {
       console.log("User already logged in, redirecting to dashboard...")
@@ -36,8 +37,18 @@ export default function RegisterPage() {
     }
   }, [isLoggedIn, isLoading, router])
 
+  // Handle redirect after successful registration and auto-login
+  useEffect(() => {
+    if (isLoggedIn && !isLoading && isSubmitting) {
+      console.log("Registration and auto-login successful, redirecting to dashboard...")
+      setIsSubmitting(false)
+      router.replace("/dashboard")
+    }
+  }, [isLoggedIn, isLoading, isSubmitting, router])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setIsSubmitting(true)
     console.log("=== FORM SUBMISSION STARTED ===")
     
     console.log("Form submitted with data:", {
@@ -51,6 +62,7 @@ export default function RegisterPage() {
     // Validate required fields
     if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
       console.log("Missing required fields")
+      setIsSubmitting(false)
       toast({
         title: "Error",
         description: "Please fill in all required fields.",
@@ -63,6 +75,7 @@ export default function RegisterPage() {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(formData.email)) {
       console.log("Invalid email format")
+      setIsSubmitting(false)
       toast({
         title: "Error",
         description: "Please enter a valid email address.",
@@ -73,6 +86,7 @@ export default function RegisterPage() {
     
     if (formData.password !== formData.confirmPassword) {
       console.log("Password mismatch error")
+      setIsSubmitting(false)
       toast({
         title: "Error",
         description: "Passwords do not match.",
@@ -80,8 +94,6 @@ export default function RegisterPage() {
       })
       return
     }
-    
-
 
     try {
       console.log("Starting registration process...")
@@ -114,6 +126,7 @@ export default function RegisterPage() {
 
       if (!response.ok) {
         console.error("Registration failed with status:", response.status)
+        setIsSubmitting(false)
         throw new Error(data.error || "Registration failed")
       }
 
@@ -129,12 +142,12 @@ export default function RegisterPage() {
           description: "Account created successfully. Welcome to KibbleDrop!",
         })
         
-        console.log("Registration successful, redirecting to dashboard...")
-        // Redirect after successful registration
-        router.replace("/dashboard")
+        // Don't redirect here - let the useEffect handle it
+        console.log("Registration and auto-login completed, waiting for session to establish...")
       } catch (error) {
         // If auto-login fails, redirect to login page
         console.log("Auto-login failed, redirecting to login")
+        setIsSubmitting(false)
         toast({
           title: "Account Created!",
           description: "Please sign in with your new account.",
@@ -143,6 +156,7 @@ export default function RegisterPage() {
       }
     } catch (error) {
       console.error("Registration error:", error)
+      setIsSubmitting(false)
       toast({
         title: "Registration Failed",
         description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
