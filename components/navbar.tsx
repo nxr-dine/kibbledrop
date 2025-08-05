@@ -124,7 +124,7 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Navigation Overlay */}
+                {/* Mobile Navigation Overlay */}
       {isMobileMenuOpen && (
         <>
           {/* Backdrop */}
@@ -136,8 +136,7 @@ export function Navbar() {
           {/* Mobile Menu */}
           <div
             id="mobile-menu"
-            className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-lg transition-transform duration-300 md:hidden"
-            style={{ minHeight: '100vh' }}
+            className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-lg transition-transform duration-300 md:hidden max-h-screen overflow-y-auto"
             role="dialog"
             aria-modal="true"
           >

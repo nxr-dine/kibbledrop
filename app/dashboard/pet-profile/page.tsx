@@ -9,8 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
-import { Camera, Upload, X } from "lucide-react"
+import { Camera, Upload, X, AlertTriangle } from "lucide-react"
 
 interface PetProfile {
   id: string
@@ -33,6 +34,7 @@ export default function PetProfilePage() {
   const [loading, setLoading] = useState(true)
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string>("")
+  const [petToDelete, setPetToDelete] = useState<PetProfile | null>(null)
   const { toast } = useToast()
 
   // Fetch pet profiles on component mount
@@ -162,27 +164,36 @@ export default function PetProfilePage() {
     setShowForm(true)
   }
 
-  const handleDelete = async (id: string) => {
-    if (confirm("Are you sure you want to delete this pet profile?")) {
-      try {
-        const response = await fetch(`/api/pets/${id}`, {
-          method: 'DELETE'
+  const handleDelete = async (pet: PetProfile) => {
+    setPetToDelete(pet)
+  }
+
+  const confirmDelete = async () => {
+    if (!petToDelete) return
+
+    try {
+      const response = await fetch(`/api/pets/${petToDelete.id}`, {
+        method: 'DELETE'
+      })
+      
+      if (response.ok) {
+        await fetchPetProfiles() // Refresh the list
+        toast({ 
+          title: "Pet profile deleted",
+          description: `${petToDelete.name}'s profile has been permanently removed.`
         })
-        
-        if (response.ok) {
-          await fetchPetProfiles() // Refresh the list
-          toast({ title: "Pet profile deleted." })
-        } else {
-          throw new Error('Failed to delete pet profile')
-        }
-      } catch (error) {
-        console.error('Error deleting pet profile:', error)
-        toast({
-          title: "Error",
-          description: "Failed to delete pet profile",
-          variant: "destructive"
-        })
+      } else {
+        throw new Error('Failed to delete pet profile')
       }
+    } catch (error) {
+      console.error('Error deleting pet profile:', error)
+      toast({
+        title: "Error",
+        description: "Failed to delete pet profile",
+        variant: "destructive"
+      })
+    } finally {
+      setPetToDelete(null)
     }
   }
 
@@ -364,9 +375,33 @@ export default function PetProfilePage() {
                     <Button variant="outline" size="sm" onClick={() => handleEdit(pet)}>
                       Edit
                     </Button>
-                    <Button variant="destructive" size="sm" onClick={() => handleDelete(pet.id)}>
-                      Delete
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive" size="sm">
+                          Delete
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle className="flex items-center gap-2">
+                            <AlertTriangle className="h-5 w-5 text-red-600" />
+                            Delete Pet Profile
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete <strong>{pet.name}</strong>'s profile? This action cannot be undone and will permanently remove all information about {pet.name}.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction 
+                            onClick={() => handleDelete(pet)}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            Delete Profile
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </div>
               </CardHeader>
@@ -382,6 +417,30 @@ export default function PetProfilePage() {
         )}
         </div>
       )}
+
+      {/* Confirmation Dialog for Pet Deletion */}
+      <AlertDialog open={!!petToDelete} onOpenChange={() => setPetToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-600" />
+              Delete Pet Profile
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete <strong>{petToDelete?.name}</strong>'s profile? This action cannot be undone and will permanently remove all information about {petToDelete?.name}.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete Profile
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

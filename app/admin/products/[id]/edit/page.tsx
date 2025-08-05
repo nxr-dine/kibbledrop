@@ -1,33 +1,53 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
-import { ArrowLeft, Save, Loader2 } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { ArrowLeft, Save, Loader2, Upload, X } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import Image from "next/image";
 
 interface Product {
-  id: string
-  name: string
-  description: string
-  price: number
-  category: string
-  petType: string
-  image: string
-  featured: boolean
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  petType: string;
+  image: string;
+  featured: boolean;
 }
 
-export default function EditProductPage({ params }: { params: { id: string } }) {
-  const [loading, setLoading] = useState(false)
-  const [fetching, setFetching] = useState(true)
-  const [product, setProduct] = useState<Product | null>(null)
+export default function EditProductPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string>("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [product, setProduct] = useState<Product | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -35,22 +55,105 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
     category: "",
     petType: "",
     image: "",
-    featured: false
-  })
-  
-  const router = useRouter()
-  const { toast } = useToast()
+    featured: false,
+  });
+
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload a JPEG, PNG, or WebP image.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (5MB limit)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      toast({
+        title: "File too large",
+        description: "Please upload an image smaller than 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadingImage(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Upload failed");
+      }
+
+      const result = await response.json();
+
+      // Update form data with the uploaded image URL
+      setFormData((prev) => ({
+        ...prev,
+        image: result.url,
+      }));
+
+      // Set preview
+      setImagePreview(result.url);
+
+      toast({
+        title: "Image uploaded successfully",
+        description: "Your product image has been uploaded.",
+      });
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast({
+        title: "Upload failed",
+        description:
+          error instanceof Error ? error.message : "Failed to upload image",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setFormData((prev) => ({
+      ...prev,
+      image: "",
+    }));
+    setImagePreview("");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   // Fetch product data on component mount
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await fetch(`/api/admin/products/${params.id}`)
+        const response = await fetch(`/api/admin/products/${params.id}`);
         if (!response.ok) {
-          throw new Error("Product not found")
+          throw new Error("Product not found");
         }
-        const productData = await response.json()
-        setProduct(productData)
+        const productData = await response.json();
+        setProduct(productData);
         setFormData({
           name: productData.name,
           description: productData.description,
@@ -58,27 +161,31 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
           category: productData.category,
           petType: productData.petType,
           image: productData.image,
-          featured: productData.featured
-        })
+          featured: productData.featured,
+        });
+        // Set image preview if image exists
+        if (productData.image) {
+          setImagePreview(productData.image);
+        }
       } catch (error) {
-        console.error("Error fetching product:", error)
+        console.error("Error fetching product:", error);
         toast({
           title: "Error",
           description: "Failed to load product. Please try again.",
           variant: "destructive",
-        })
-        router.push("/admin/products")
+        });
+        router.push("/admin/products");
       } finally {
-        setFetching(false)
+        setFetching(false);
       }
-    }
+    };
 
-    fetchProduct()
-  }, [params.id, router, toast])
+    fetchProduct();
+  }, [params.id, router, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
 
     try {
       const response = await fetch(`/api/admin/products/${params.id}`, {
@@ -88,40 +195,40 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
         },
         body: JSON.stringify({
           ...formData,
-          price: parseFloat(formData.price)
+          price: parseFloat(formData.price),
         }),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error("Failed to update product")
+        throw new Error("Failed to update product");
       }
 
-      const updatedProduct = await response.json()
-      
+      const updatedProduct = await response.json();
+
       toast({
         title: "Product Updated!",
         description: `${updatedProduct.name} has been updated successfully.`,
-      })
+      });
 
-      router.push("/admin/products")
+      router.push("/admin/products");
     } catch (error) {
-      console.error("Error updating product:", error)
+      console.error("Error updating product:", error);
       toast({
         title: "Error",
         description: "Failed to update product. Please try again.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
-    }))
-  }
+      [field]: value,
+    }));
+  };
 
   if (fetching) {
     return (
@@ -131,7 +238,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
           <span className="ml-2">Loading product...</span>
         </div>
       </div>
-    )
+    );
   }
 
   if (!product) {
@@ -144,7 +251,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
           </Button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -165,7 +272,9 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
       <Card>
         <CardHeader>
           <CardTitle>Product Information</CardTitle>
-          <CardDescription>Update the details for {product.name}</CardDescription>
+          <CardDescription>
+            Update the details for {product.name}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -201,7 +310,9 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
               <Textarea
                 id="description"
                 value={formData.description}
-                onChange={(e) => handleInputChange("description", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("description", e.target.value)
+                }
                 placeholder="Describe the product, its benefits, and ingredients..."
                 rows={4}
                 required
@@ -211,7 +322,12 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="category">Category *</Label>
-                <Select value={formData.category} onValueChange={(value) => handleInputChange("category", value)}>
+                <Select
+                  value={formData.category}
+                  onValueChange={(value) =>
+                    handleInputChange("category", value)
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
@@ -226,7 +342,10 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
 
               <div className="space-y-2">
                 <Label htmlFor="petType">Pet Type *</Label>
-                <Select value={formData.petType} onValueChange={(value) => handleInputChange("petType", value)}>
+                <Select
+                  value={formData.petType}
+                  onValueChange={(value) => handleInputChange("petType", value)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select pet type" />
                   </SelectTrigger>
@@ -240,16 +359,72 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="image">Image URL</Label>
-              <Input
-                id="image"
-                type="url"
-                value={formData.image}
-                onChange={(e) => handleInputChange("image", e.target.value)}
-                placeholder="https://example.com/image.jpg"
+              <Label>Product Image</Label>
+
+              {imagePreview ? (
+                <div className="space-y-4">
+                  <div className="relative w-full max-w-sm">
+                    <Image
+                      src={imagePreview}
+                      alt="Product preview"
+                      width={300}
+                      height={300}
+                      className="rounded-lg border object-cover"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      className="absolute top-2 right-2"
+                      onClick={handleRemoveImage}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingImage}
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Change Image
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                    <Upload className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                    <p className="text-sm text-gray-600 mb-4">
+                      Click to upload product image or drag and drop
+                    </p>
+                    <p className="text-xs text-gray-500 mb-4">
+                      JPEG, PNG, or WebP (max 5MB)
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadingImage}
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      {uploadingImage ? "Uploading..." : "Choose Image"}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/jpg,image/png,image/webp"
+                onChange={handleFileUpload}
+                className="hidden"
               />
+
               <p className="text-sm text-gray-600">
-                Leave empty to use current image
+                Upload a high-quality image of your product. Leave empty to keep
+                current image.
               </p>
             </div>
 
@@ -257,13 +432,19 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
               <Switch
                 id="featured"
                 checked={formData.featured}
-                onCheckedChange={(checked) => handleInputChange("featured", checked)}
+                onCheckedChange={(checked) =>
+                  handleInputChange("featured", checked)
+                }
               />
               <Label htmlFor="featured">Featured Product</Label>
             </div>
 
             <div className="flex gap-4 pt-6">
-              <Button type="submit" disabled={loading} className="flex items-center gap-2">
+              <Button
+                type="submit"
+                disabled={loading}
+                className="flex items-center gap-2"
+              >
                 <Save className="h-4 w-4" />
                 {loading ? "Updating..." : "Update Product"}
               </Button>
@@ -275,5 +456,5 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
         </CardContent>
       </Card>
     </div>
-  )
-} 
+  );
+}

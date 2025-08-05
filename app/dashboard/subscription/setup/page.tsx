@@ -32,16 +32,16 @@ export default function SubscriptionSetupPage() {
   const finalTotal = subtotal + tax
 
   const handleProceedToDelivery = () => {
-    // In a real app, you'd save the selected frequency here
-    console.log("Selected delivery frequency:", deliveryFrequency)
+    // Save the selected frequency to localStorage for the next step
+    localStorage.setItem('subscriptionFrequency', deliveryFrequency)
     router.push("/dashboard/delivery")
   }
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Set Up Your Subscription</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8">Set Up Your Subscription</h1>
 
-      <div className="grid lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
         {/* Selected Products */}
         <div>
           <Card>
@@ -52,15 +52,15 @@ export default function SubscriptionSetupPage() {
             <CardContent className="space-y-4">
               {state.items.map((item) => (
                 <div key={item.id} className="flex justify-between items-center">
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">{item.name}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">{item.name}</p>
                     <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
                   </div>
-                  <p className="font-semibold">${(item.price * item.quantity).toFixed(2)}</p>
+                  <p className="font-semibold text-sm sm:text-base ml-2">${(item.price * item.quantity).toFixed(2)}</p>
                 </div>
               ))}
               <Separator />
-              <div className="flex justify-between text-lg font-bold">
+              <div className="flex justify-between text-base sm:text-lg font-bold">
                 <span>Monthly Subtotal:</span>
                 <span className="text-orange-600">${subtotal.toFixed(2)}</span>
               </div>
@@ -86,15 +86,15 @@ export default function SubscriptionSetupPage() {
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="weekly" id="weekly" />
-                  <Label htmlFor="weekly">Weekly Delivery</Label>
+                  <Label htmlFor="weekly" className="text-sm sm:text-base">Weekly Delivery</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="bi-weekly" id="bi-weekly" />
-                  <Label htmlFor="bi-weekly">Bi-Weekly Delivery</Label>
+                  <Label htmlFor="bi-weekly" className="text-sm sm:text-base">Bi-Weekly Delivery</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="monthly" id="monthly" />
-                  <Label htmlFor="monthly">Monthly Delivery (Recommended)</Label>
+                  <Label htmlFor="monthly" className="text-sm sm:text-base">Monthly Delivery (Recommended)</Label>
                 </div>
               </RadioGroup>
 
@@ -114,7 +114,7 @@ export default function SubscriptionSetupPage() {
                   <span>${tax.toFixed(2)}</span>
                 </div>
                 <Separator />
-                <div className="flex justify-between text-lg font-bold">
+                <div className="flex justify-between text-base sm:text-lg font-bold">
                   <span>Estimated Total:</span>
                   <span className="text-orange-600">
                     ${finalTotal.toFixed(2)}/

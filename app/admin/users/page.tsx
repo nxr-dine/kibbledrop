@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Plus, Edit, Trash2, Eye, Search, Loader2, User, Mail, Calendar } from "lucide-react"
+import { Plus, Trash2, Eye, Search, Loader2, User, Mail, Calendar } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 interface User {
@@ -204,11 +204,6 @@ export default function AdminUsersPage() {
                           <Button asChild variant="ghost" size="sm">
                             <Link href={`/admin/users/${user.id}`}>
                               <Eye className="h-4 w-4" />
-                            </Link>
-                          </Button>
-                          <Button asChild variant="ghost" size="sm">
-                            <Link href={`/admin/users/${user.id}/edit`}>
-                              <Edit className="h-4 w-4" />
                             </Link>
                           </Button>
                           <Button 

@@ -1,20 +1,36 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
-import { ArrowLeft, Save } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { useState, useRef } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { ArrowLeft, Save, Upload, X } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import Image from "next/image";
 
 export default function CreateProductPage() {
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string>("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -22,15 +38,98 @@ export default function CreateProductPage() {
     category: "",
     petType: "",
     image: "",
-    featured: false
-  })
-  
-  const router = useRouter()
-  const { toast } = useToast()
+    featured: false,
+  });
+
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload a JPEG, PNG, or WebP image.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (5MB limit)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      toast({
+        title: "File too large",
+        description: "Please upload an image smaller than 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadingImage(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Upload failed");
+      }
+
+      const result = await response.json();
+
+      // Update form data with the uploaded image URL
+      setFormData((prev) => ({
+        ...prev,
+        image: result.url,
+      }));
+
+      // Set preview
+      setImagePreview(result.url);
+
+      toast({
+        title: "Image uploaded successfully",
+        description: "Your product image has been uploaded.",
+      });
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast({
+        title: "Upload failed",
+        description:
+          error instanceof Error ? error.message : "Failed to upload image",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setFormData((prev) => ({
+      ...prev,
+      image: "",
+    }));
+    setImagePreview("");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
 
     try {
       const response = await fetch("/api/admin/products", {
@@ -40,40 +139,40 @@ export default function CreateProductPage() {
         },
         body: JSON.stringify({
           ...formData,
-          price: parseFloat(formData.price)
+          price: parseFloat(formData.price),
         }),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error("Failed to create product")
+        throw new Error("Failed to create product");
       }
 
-      const product = await response.json()
-      
+      const product = await response.json();
+
       toast({
         title: "Product Created!",
         description: `${product.name} has been added to your catalog.`,
-      })
+      });
 
-      router.push("/admin/products")
+      router.push("/admin/products");
     } catch (error) {
-      console.error("Error creating product:", error)
+      console.error("Error creating product:", error);
       toast({
         title: "Error",
         description: "Failed to create product. Please try again.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
-    }))
-  }
+      [field]: value,
+    }));
+  };
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -85,15 +184,21 @@ export default function CreateProductPage() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Create New Product</h1>
-          <p className="text-gray-600 mt-2">Add a new product to your catalog</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Create New Product
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Add a new product to your catalog
+          </p>
         </div>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>Product Information</CardTitle>
-          <CardDescription>Fill in the details for your new product</CardDescription>
+          <CardDescription>
+            Fill in the details for your new product
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -129,7 +234,9 @@ export default function CreateProductPage() {
               <Textarea
                 id="description"
                 value={formData.description}
-                onChange={(e) => handleInputChange("description", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("description", e.target.value)
+                }
                 placeholder="Describe the product, its benefits, and ingredients..."
                 rows={4}
                 required
@@ -139,7 +246,12 @@ export default function CreateProductPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="category">Category *</Label>
-                <Select value={formData.category} onValueChange={(value) => handleInputChange("category", value)}>
+                <Select
+                  value={formData.category}
+                  onValueChange={(value) =>
+                    handleInputChange("category", value)
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
@@ -154,7 +266,10 @@ export default function CreateProductPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="petType">Pet Type *</Label>
-                <Select value={formData.petType} onValueChange={(value) => handleInputChange("petType", value)}>
+                <Select
+                  value={formData.petType}
+                  onValueChange={(value) => handleInputChange("petType", value)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select pet type" />
                   </SelectTrigger>
@@ -168,16 +283,72 @@ export default function CreateProductPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="image">Image URL</Label>
-              <Input
-                id="image"
-                type="url"
-                value={formData.image}
-                onChange={(e) => handleInputChange("image", e.target.value)}
-                placeholder="https://example.com/image.jpg"
+              <Label>Product Image</Label>
+
+              {imagePreview ? (
+                <div className="space-y-4">
+                  <div className="relative w-full max-w-sm">
+                    <Image
+                      src={imagePreview}
+                      alt="Product preview"
+                      width={300}
+                      height={300}
+                      className="rounded-lg border object-cover"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      className="absolute top-2 right-2"
+                      onClick={handleRemoveImage}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingImage}
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Change Image
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                    <Upload className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                    <p className="text-sm text-gray-600 mb-4">
+                      Click to upload product image or drag and drop
+                    </p>
+                    <p className="text-xs text-gray-500 mb-4">
+                      JPEG, PNG, or WebP (max 5MB)
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadingImage}
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      {uploadingImage ? "Uploading..." : "Choose Image"}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/jpg,image/png,image/webp"
+                onChange={handleFileUpload}
+                className="hidden"
               />
+
               <p className="text-sm text-gray-600">
-                Leave empty to use a placeholder image
+                Upload a high-quality image of your product. Leave empty to use
+                a placeholder image.
               </p>
             </div>
 
@@ -185,13 +356,19 @@ export default function CreateProductPage() {
               <Switch
                 id="featured"
                 checked={formData.featured}
-                onCheckedChange={(checked) => handleInputChange("featured", checked)}
+                onCheckedChange={(checked) =>
+                  handleInputChange("featured", checked)
+                }
               />
               <Label htmlFor="featured">Featured Product</Label>
             </div>
 
             <div className="flex gap-4 pt-6">
-              <Button type="submit" disabled={loading} className="flex items-center gap-2">
+              <Button
+                type="submit"
+                disabled={loading}
+                className="flex items-center gap-2"
+              >
                 <Save className="h-4 w-4" />
                 {loading ? "Creating..." : "Create Product"}
               </Button>
@@ -203,5 +380,5 @@ export default function CreateProductPage() {
         </CardContent>
       </Card>
     </div>
-  )
-} 
+  );
+}

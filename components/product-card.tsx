@@ -92,7 +92,7 @@ export function ProductCard({ product }: ProductCardProps) {
             variant="outline"
             size="icon"
             onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
-            className="h-8 w-8"
+            className="h-8 w-8 sm:h-10 sm:w-10"
           >
             <Minus className="h-4 w-4" />
           </Button>
@@ -100,10 +100,10 @@ export function ProductCard({ product }: ProductCardProps) {
             type="number"
             value={quantity}
             onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
-            className="w-16 text-center"
+            className="w-16 sm:w-20 text-center text-sm sm:text-base"
             min="1"
           />
-          <Button variant="outline" size="icon" onClick={() => setQuantity((prev) => prev + 1)} className="h-8 w-8">
+          <Button variant="outline" size="icon" onClick={() => setQuantity((prev) => prev + 1)} className="h-8 w-8 sm:h-10 sm:w-10">
             <Plus className="h-4 w-4" />
           </Button>
         </div>

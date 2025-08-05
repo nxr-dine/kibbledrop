@@ -27,4 +27,7 @@ yarn-error.log*
 next-env.d.ts
 /lib/generated/prisma
 
+# uploads
+/public/uploads/
+
 .vercel

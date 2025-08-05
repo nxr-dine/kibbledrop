@@ -78,12 +78,12 @@ export default function CartPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Shopping Cart</h1>
           <p className="text-gray-600 mt-2">{items.length} item{items.length !== 1 ? 's' : ''} in your cart</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <Button asChild variant="outline">
             <Link href="/dashboard/products">
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -105,7 +105,7 @@ export default function CartPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               {items.map((item) => (
-                <div key={item.id} className="flex items-center gap-4 p-4 border rounded-lg">
+                <div key={item.id} className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 border rounded-lg">
                   <div className="relative h-20 w-20 flex-shrink-0">
                     <Image
                       src={item.image}
@@ -117,50 +117,52 @@ export default function CartPage() {
                   
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium text-gray-900 truncate">{item.name}</h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="outline">{item.category}</Badge>
-                      <Badge variant="secondary">{item.petType}</Badge>
+                    <div className="flex flex-wrap items-center gap-2 mt-1">
+                      <Badge variant="outline" className="text-xs">{item.category}</Badge>
+                      <Badge variant="secondary" className="text-xs">{item.petType}</Badge>
                     </div>
                     <p className="text-sm text-gray-600 mt-1">${item.price.toFixed(2)} each</p>
                   </div>
                   
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleQuantityChange(item, item.quantity - 1)}
-                      disabled={updating === item.productId}
-                    >
-                      <Minus className="h-3 w-3" />
-                    </Button>
-                    <Input
-                      type="number"
-                      min="1"
-                      value={item.quantity}
-                      onChange={(e) => handleQuantityChange(item, parseInt(e.target.value) || 1)}
-                      className="w-16 text-center"
-                      disabled={updating === item.productId}
-                    />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleQuantityChange(item, item.quantity + 1)}
-                      disabled={updating === item.productId}
-                    >
-                      <Plus className="h-3 w-3" />
-                    </Button>
-                  </div>
-                  
-                  <div className="text-right">
-                    <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRemoveItem(item)}
-                      className="text-red-600 hover:text-red-700 mt-1"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                  <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleQuantityChange(item, item.quantity - 1)}
+                        disabled={updating === item.productId}
+                      >
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                      <Input
+                        type="number"
+                        min="1"
+                        value={item.quantity}
+                        onChange={(e) => handleQuantityChange(item, parseInt(e.target.value) || 1)}
+                        className="w-16 text-center"
+                        disabled={updating === item.productId}
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleQuantityChange(item, item.quantity + 1)}
+                        disabled={updating === item.productId}
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 sm:flex-col sm:items-end">
+                      <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveItem(item)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}

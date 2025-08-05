@@ -84,16 +84,20 @@ export default function ManageSubscriptionPage() {
 
   const fetchSubscriptions = async () => {
     try {
+      setLoading(true)
       const response = await fetch('/api/subscription')
       if (response.ok) {
         const data = await response.json()
         setSubscriptions(data)
+      } else {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to fetch subscriptions')
       }
     } catch (error) {
       console.error('Error fetching subscriptions:', error)
       toast({
         title: "Error",
-        description: "Failed to load subscriptions",
+        description: error instanceof Error ? error.message : "Failed to load subscriptions",
         variant: "destructive"
       })
     } finally {
@@ -242,7 +246,17 @@ export default function ManageSubscriptionPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Manage Your Subscriptions</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Manage Your Subscriptions</h1>
+        <Button 
+          onClick={fetchSubscriptions} 
+          disabled={loading}
+          variant="outline"
+          size="sm"
+        >
+          {loading ? "Refreshing..." : "Refresh"}
+        </Button>
+      </div>
 
       {loading ? (
         <div className="text-center py-8">
@@ -253,7 +267,7 @@ export default function ManageSubscriptionPage() {
         <>
           {/* Active/Paused Subscriptions */}
           <div className="mb-12">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6">Your Active & Paused Subscriptions</h2>
+            <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-6">Your Active & Paused Subscriptions</h2>
             {activeSubscriptions.length === 0 ? (
               <Card>
                 <CardContent className="text-center py-8">
@@ -272,11 +286,11 @@ export default function ManageSubscriptionPage() {
                     className={`border-l-4 ${subscription.status === "active" ? "border-l-green-500" : "border-l-yellow-500"}`}
                   >
                     <CardHeader>
-                      <div className="flex justify-between items-start">
+                      <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                         <div>
-                          <CardTitle className="flex items-center gap-2">
-                            Subscription #{subscription.id}
-                            <Badge variant={getStatusColor(subscription.status)}>
+                          <CardTitle className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                            <span className="text-sm sm:text-base">Subscription #{subscription.id}</span>
+                            <Badge variant={getStatusColor(subscription.status)} className="text-xs">
                               {subscription.status === "active" ? "Active" : "Paused"}
                             </Badge>
                           </CardTitle>
@@ -285,7 +299,7 @@ export default function ManageSubscriptionPage() {
                           </CardDescription>
                         </div>
                         <div className="text-right">
-                          <p className="text-2xl font-bold text-orange-600">
+                          <p className="text-xl sm:text-2xl font-bold text-orange-600">
                             ${subscription.items.reduce((total, item) => total + (item.product.price * item.quantity), 0).toFixed(2)}
                           </p>
                           <p className="text-sm text-gray-600">per {subscription.frequency}</p>
@@ -325,7 +339,7 @@ export default function ManageSubscriptionPage() {
                         )}
 
                         {/* Actions */}
-                        <div className="flex gap-2 pt-2 flex-wrap">
+                        <div className="flex flex-wrap gap-2 pt-2">
                           <Dialog open={modifyItemsOpen} onOpenChange={setModifyItemsOpen}>
                             <DialogTrigger asChild>
                               <Button 
@@ -411,7 +425,7 @@ export default function ManageSubscriptionPage() {
 
           {/* Cancelled Subscriptions */}
           <div>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6">Cancelled Subscriptions</h2>
+            <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-6">Cancelled Subscriptions</h2>
             {pastSubscriptions.length === 0 ? (
               <Card>
                 <CardContent className="text-center py-8">
@@ -424,18 +438,18 @@ export default function ManageSubscriptionPage() {
                 {pastSubscriptions.map((subscription) => (
                   <Card key={subscription.id}>
                     <CardHeader>
-                      <div className="flex justify-between items-start">
+                      <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                         <div>
-                          <CardTitle className="flex items-center gap-2">
-                            Subscription #{subscription.id}
-                            <Badge variant={getStatusColor(subscription.status)}>{subscription.status}</Badge>
+                          <CardTitle className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                            <span className="text-sm sm:text-base">Subscription #{subscription.id}</span>
+                            <Badge variant={getStatusColor(subscription.status)} className="text-xs">{subscription.status}</Badge>
                           </CardTitle>
                           <CardDescription className="mt-1">
                             Cancelled on {new Date(subscription.updatedAt).toLocaleDateString()}
                           </CardDescription>
                         </div>
                         <div className="text-right">
-                          <p className="text-xl font-bold">
+                          <p className="text-lg sm:text-xl font-bold">
                             ${subscription.items.reduce((total, item) => total + (item.product.price * item.quantity), 0).toFixed(2)}
                           </p>
                           <p className="text-sm text-gray-600">total</p>
@@ -453,7 +467,7 @@ export default function ManageSubscriptionPage() {
                           </div>
                         ))}
                       </div>
-                      <div className="flex gap-2 pt-3">
+                      <div className="flex flex-wrap gap-2 pt-3">
                         <Button variant="outline" size="sm">
                           Reorder
                         </Button>
@@ -470,7 +484,7 @@ export default function ManageSubscriptionPage() {
 
           {/* Modify Items Dialog */}
           <Dialog open={modifyItemsOpen} onOpenChange={setModifyItemsOpen}>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-md mx-4">
               <DialogHeader>
                 <DialogTitle>Modify Subscription Items</DialogTitle>
               </DialogHeader>

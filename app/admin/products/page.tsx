@@ -103,9 +103,9 @@ export default function AdminProductsPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Product Management</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Product Management</h1>
           <p className="text-gray-600 mt-2">Manage your product catalog</p>
         </div>
         <Button asChild>
@@ -131,7 +131,7 @@ export default function AdminProductsPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full min-w-[800px]">
                 <thead>
                   <tr className="border-b">
                     <th className="text-left py-3 px-4 font-medium">Product</th>
@@ -154,21 +154,21 @@ export default function AdminProductsPage() {
                         </div>
                       </td>
                       <td className="py-4 px-4">
-                        <Badge variant="outline">{product.category}</Badge>
+                        <Badge variant="outline" className="text-xs">{product.category}</Badge>
                       </td>
                       <td className="py-4 px-4">
-                        <Badge variant="secondary">{product.petType}</Badge>
+                        <Badge variant="secondary" className="text-xs">{product.petType}</Badge>
                       </td>
                       <td className="py-4 px-4 font-medium">
                         ${product.price.toFixed(2)}
                       </td>
                       <td className="py-4 px-4">
-                        <Badge variant={product.featured ? "default" : "outline"}>
+                        <Badge variant={product.featured ? "default" : "outline"} className="text-xs">
                           {product.featured ? "Featured" : "Active"}
                         </Badge>
                       </td>
                       <td className="py-4 px-4">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1 sm:gap-2">
                           <Button asChild variant="ghost" size="sm">
                             <Link href={`/admin/products/${product.id}`}>
                               <Eye className="h-4 w-4" />

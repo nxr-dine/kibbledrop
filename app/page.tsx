@@ -32,24 +32,24 @@ export default async function HomePage() {
       <section className="bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
           <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-6">
               Fresh Pet Food,
               <br />
               <span className="text-orange-200">Delivered Monthly</span>
             </h1>
-            <p className="text-xl md:text-2xl mb-8 opacity-90 max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl md:text-2xl mb-8 opacity-90 max-w-3xl mx-auto">
               Premium nutrition for your furry friends, delivered fresh to your door every month. No more last-minute
               pet store runs.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="lg" className="bg-white text-orange-600 hover:bg-gray-100">
+              <Button asChild size="lg" className="bg-white text-orange-600 hover:bg-gray-100 w-full sm:w-auto">
                 <Link href="/register">Get Started</Link>
               </Button>
               <Button
                 asChild
                 size="lg"
                 variant="outline"
-                className="border-white text-white hover:bg-white hover:text-orange-600 bg-transparent"
+                className="border-white text-white hover:bg-white hover:text-orange-600 bg-transparent w-full sm:w-auto"
               >
                 <Link href="/dashboard/products">Browse Products</Link>
               </Button>
@@ -66,7 +66,7 @@ export default async function HomePage() {
             <p className="text-lg text-gray-600">Premium nutrition tailored for your pet's needs</p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-4xl mx-auto">
             <Link href="/dashboard/products?petType=Dog" className="group">
               <Card className="overflow-hidden hover:shadow-lg transition-shadow">
                 <div className="relative h-64">
@@ -114,7 +114,7 @@ export default async function HomePage() {
             <p className="text-lg text-gray-600">Our most popular pet food subscriptions</p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-4xl mx-auto">
             {featuredProducts.map((product) => (
               <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                 <div className="relative h-48">
@@ -146,7 +146,7 @@ export default async function HomePage() {
             <p className="text-lg text-gray-600">Everything your pet needs, delivered with care</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             <Card className="text-center">
               <CardHeader>
                 <Heart className="h-12 w-12 text-orange-600 mx-auto mb-4" />

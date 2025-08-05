@@ -24,6 +24,7 @@ export function CategoryFilter({ selectedCategory, onCategoryChange }: CategoryF
           variant={selectedCategory === category.value ? "default" : "outline"}
           size="sm"
           onClick={() => onCategoryChange(category.value)}
+          className="text-xs sm:text-sm whitespace-nowrap"
         >
           {category.label}
         </Button>

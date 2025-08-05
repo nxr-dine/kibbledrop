@@ -148,7 +148,7 @@ export default function CheckoutPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="firstName">First Name *</Label>
                   <Input
@@ -168,7 +168,7 @@ export default function CheckoutPage() {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="email">Email *</Label>
                   <Input
@@ -211,7 +211,7 @@ export default function CheckoutPage() {
                   required
                 />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
                   <Label htmlFor="city">City *</Label>
                   <Input
@@ -230,7 +230,7 @@ export default function CheckoutPage() {
                     required
                   />
                 </div>
-                <div>
+                <div className="sm:col-span-2 lg:col-span-1">
                   <Label htmlFor="postalCode">Postal Code *</Label>
                   <Input
                     id="postalCode"
@@ -296,7 +296,7 @@ export default function CheckoutPage() {
 
         {/* Order Summary */}
         <div className="lg:col-span-1">
-          <Card className="sticky top-24">
+          <Card className="sticky top-24 max-h-[calc(100vh-6rem)] overflow-y-auto">
             <CardHeader>
               <CardTitle>Order Summary</CardTitle>
               <CardDescription>{items.length} item{items.length !== 1 ? 's' : ''}</CardDescription>

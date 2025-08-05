@@ -109,10 +109,10 @@ export default function DashboardPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2">
             Welcome back, {user?.name?.split(' ')[0] || 'User'}! 🐾
           </h1>
-          <p className="text-lg text-gray-600">Here's what's happening with your KibbleDrop account</p>
+          <p className="text-base sm:text-lg text-gray-600">Here's what's happening with your KibbleDrop account</p>
         </div>
 
         {/* User Account Information */}
@@ -189,7 +189,7 @@ export default function DashboardPage() {
 
 
         {/* Main Actions Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <Card className="shadow-lg border-0 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-3 text-lg">

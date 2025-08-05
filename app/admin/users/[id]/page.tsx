@@ -62,7 +62,8 @@ export default function AdminUserDetailPage({ params }: { params: { id: string }
     }
   }
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status?: string) => {
+    if (!status) return "bg-gray-100 text-gray-800"
     switch (status) {
       case "active": return "bg-green-100 text-green-800"
       case "suspended": return "bg-red-100 text-red-800"
@@ -70,7 +71,8 @@ export default function AdminUserDetailPage({ params }: { params: { id: string }
     }
   }
 
-  const getRoleColor = (role: string) => {
+  const getRoleColor = (role?: string) => {
+    if (!role) return "bg-gray-100 text-gray-800"
     switch (role) {
       case "admin": return "bg-purple-100 text-purple-800"
       case "customer": return "bg-blue-100 text-blue-800"
@@ -192,13 +194,13 @@ export default function AdminUserDetailPage({ params }: { params: { id: string }
               <div className="flex items-center justify-between">
                 <span className="font-medium">Status</span>
                 <Badge className={getStatusColor(user.status)}>
-                  {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
+                  {user.status ? user.status.charAt(0).toUpperCase() + user.status.slice(1) : 'Unknown'}
                 </Badge>
               </div>
               <div className="flex items-center justify-between">
                 <span className="font-medium">Role</span>
                 <Badge className={getRoleColor(user.role)}>
-                  {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                  {user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Unknown'}
                 </Badge>
               </div>
               <div className="flex items-center justify-between">
@@ -235,7 +237,7 @@ export default function AdminUserDetailPage({ params }: { params: { id: string }
                       <div className="text-right">
                         <p className="font-medium">${order.total.toFixed(2)}</p>
                         <Badge className={getStatusColor(order.status)}>
-                          {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                          {order.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1) : 'Unknown'}
                         </Badge>
                       </div>
                     </div>
