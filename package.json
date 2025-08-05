@@ -12,6 +12,7 @@
     "start": "next start",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
+    "create-admin": "tsx scripts/create-admin.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {
