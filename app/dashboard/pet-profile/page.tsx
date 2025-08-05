@@ -18,7 +18,7 @@ interface PetProfile {
   name: string
   type: string
   breed: string
-  birthday: string
+  birthday?: string | null
   weight: number
   image?: string
   healthTags: string[]
@@ -59,7 +59,8 @@ export default function PetProfilePage() {
     }
   }
 
-  const calculateAge = (birthday: string) => {
+  const calculateAge = (birthday: string | null) => {
+    if (!birthday) return "Unknown"
     const birthDate = new Date(birthday)
     const today = new Date()
     const ageInMs = today.getTime() - birthDate.getTime()
