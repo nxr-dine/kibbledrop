@@ -242,16 +242,7 @@ export default function AccountPage() {
                   <div className="flex-1 text-center sm:text-left w-full">
                     <h2 className="text-2xl sm:text-3xl font-bold mb-2">{userProfile?.name || user?.name || "User"}</h2>
                     <p className="text-orange-100 text-base sm:text-lg mb-3 break-all">{userProfile?.email || user?.email}</p>
-                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-4 justify-center sm:justify-start">
-                      <Badge className="bg-white/10 text-white border-white/20">
-                        <Shield className="h-3 w-3 mr-1" />
-                        {userProfile?.role || user?.role === 'admin' ? 'Administrator' : 'Customer'}
-                      </Badge>
-                      <Badge className="bg-green-600/20 text-green-100 border-green-400/30">
-                        <CheckCircle className="h-3 w-3 mr-1" />
-                        Active Account
-                      </Badge>
-                    </div>
+                    {/* Removed badges for role and active account */}
                   </div>
                 </div>
               </div>
