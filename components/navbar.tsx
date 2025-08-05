@@ -42,14 +42,14 @@ export function Navbar() {
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-16 w-full">
           {/* Logo */}
           <Link href="/" className="flex items-center flex-shrink-0">
             <span className="text-2xl font-bold text-orange-600">KibbleDrop</span>
           </Link>
 
-          {/* Desktop Navigation - Centered */}
-          <div className="hidden md:flex items-center space-x-8 absolute left-1/2 transform -translate-x-1/2">
+          {/* Desktop Navigation - Centered, use flex-grow for centering */}
+          <div className="hidden md:flex flex-grow justify-center items-center space-x-8">
             {navItems.map((item) => {
               const isActive = item.exact 
                 ? pathname === item.href 
