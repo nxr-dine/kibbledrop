@@ -118,8 +118,8 @@ export default function DashboardPage() {
         {/* User Account Information */}
         <Card className="mb-8 overflow-hidden border-0 shadow-xl bg-white">
           <div className="bg-orange-600 p-6 text-white">
-            <div className="flex items-center gap-6">
-              <div className="relative">
+            <div className="flex flex-col sm:flex-row items-center sm:items-center gap-4 sm:gap-6">
+              <div className="relative mb-4 sm:mb-0">
                 <Avatar className="h-20 w-20 border-4 border-white shadow-lg">
                   <AvatarImage src={user?.image || ""} alt={user?.name || "User"} />
                   <AvatarFallback className="text-xl font-bold bg-white text-orange-600">
@@ -130,23 +130,15 @@ export default function DashboardPage() {
                   <CheckCircle className="h-3 w-3 text-white" />
                 </div>
               </div>
-              <div className="flex-1">
+              <div className="flex-1 w-full text-center sm:text-left">
                 <h2 className="text-2xl font-bold mb-1">{user?.name || "User"}</h2>
                 <p className="text-orange-100 mb-3">{user?.email}</p>
-                <div className="flex items-center gap-4">
-                  <Badge className="bg-white/10 text-white border-white/20">
-                    <Shield className="h-3 w-3 mr-1" />
-                    {user?.role === 'admin' ? 'Administrator' : 'Customer'}
-                  </Badge>
-                  <Badge className="bg-green-600/20 text-green-100 border-green-400/30">
-                    <CheckCircle className="h-3 w-3 mr-1" />
-                    Active Account
-                  </Badge>
-                </div>
               </div>
-              <Button variant="outline" size="lg" asChild className="bg-white/10 border-white text-white hover:bg-white hover:text-orange-600">
-                <Link href="/dashboard/account">View Account</Link>
-              </Button>
+              <div className="w-full sm:w-auto">
+                <Button variant="outline" size="lg" asChild className="w-full sm:w-auto bg-white/10 border-white text-white hover:bg-white hover:text-orange-600">
+                  <Link href="/dashboard/account">View Account</Link>
+                </Button>
+              </div>
             </div>
           </div>
           

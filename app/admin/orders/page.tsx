@@ -318,7 +318,7 @@ export default function AdminOrdersPage() {
                 <div key={order.id} className="border rounded-lg p-6 hover:bg-gray-50 transition-colors">
                   <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div className="flex-1">
-                      <div className="flex items-start justify-between mb-4">
+                      <div className="flex flex-col sm:flex-row items-start justify-between mb-4 gap-4">
                         <div className="flex items-center gap-3">
                           <Button
                             variant="ghost"
@@ -337,7 +337,7 @@ export default function AdminOrdersPage() {
                             <p className="text-sm text-gray-600">{formatDate(order.createdAt)}</p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 mt-2 sm:mt-0">
                           <Badge className={getStatusColor(order.status)}>
                             {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                           </Badge>
@@ -348,7 +348,6 @@ export default function AdminOrdersPage() {
                           </Button>
                         </div>
                       </div>
-
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
                           <h4 className="font-medium text-sm mb-2">Customer</h4>
@@ -362,7 +361,6 @@ export default function AdminOrdersPage() {
                           <p className="text-sm text-gray-600">{order.city}</p>
                         </div>
                       </div>
-
                       <div>
                         <h4 className="font-medium text-sm mb-2">Items ({order.items.length})</h4>
                         <div className="flex flex-wrap gap-2">
@@ -374,10 +372,9 @@ export default function AdminOrdersPage() {
                         </div>
                       </div>
                     </div>
-
-                    <div className="lg:w-48">
+                    <div className="w-full lg:w-48 mt-4 lg:mt-0">
                       <div className="bg-gray-50 p-4 rounded-lg">
-                        <div className="text-right">
+                        <div className="text-right lg:text-right">
                           <p className="text-2xl font-bold">${order.total.toFixed(2)}</p>
                           <p className="text-sm text-gray-600">Total</p>
                         </div>

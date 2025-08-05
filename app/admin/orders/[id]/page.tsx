@@ -325,7 +325,7 @@ Payment Status: ${invoice.paymentStatus}
             <CardContent>
               <div className="space-y-4">
                 {order.items.map((item) => (
-                  <div key={item.id} className="flex items-center gap-4 p-4 border rounded-lg">
+                  <div key={item.id} className="flex flex-col sm:flex-row items-center gap-4 p-4 border rounded-lg">
                     <div className="relative h-16 w-16 flex-shrink-0">
                       <Image
                         src={item.product.image}
@@ -334,14 +334,14 @@ Payment Status: ${invoice.paymentStatus}
                         className="object-cover rounded-md"
                       />
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 w-full text-center sm:text-left">
                       <h4 className="font-medium">{item.product.name}</h4>
-                      <div className="flex items-center gap-2 mt-1">
+                      <div className="flex flex-wrap items-center gap-2 mt-1 justify-center sm:justify-start">
                         <Badge variant="outline">{item.product.category}</Badge>
                         <Badge variant="secondary">{item.product.petType}</Badge>
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right w-full sm:w-auto">
                       <p className="font-medium">Qty: {item.quantity}</p>
                       <p className="text-sm text-gray-600">${item.price.toFixed(2)} each</p>
                       <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
