@@ -8,7 +8,9 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useToast } from "@/hooks/use-toast"
+import { Camera, Upload, X } from "lucide-react"
 
 interface PetProfile {
   id: string
@@ -16,8 +18,9 @@ interface PetProfile {
   name: string
   type: string
   breed: string
-  age: number
+  birthday: string
   weight: number
+  image?: string
   healthTags: string[]
   createdAt: string
   updatedAt: string
@@ -28,6 +31,8 @@ export default function PetProfilePage() {
   const [editingPet, setEditingPet] = useState<PetProfile | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [selectedImage, setSelectedImage] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string>("")
   const { toast } = useToast()
 
   // Fetch pet profiles on component mount
@@ -54,6 +59,26 @@ export default function PetProfilePage() {
     }
   }
 
+  const calculateAge = (birthday: string) => {
+    const birthDate = new Date(birthday)
+    const today = new Date()
+    const ageInMs = today.getTime() - birthDate.getTime()
+    const ageInYears = ageInMs / (1000 * 60 * 60 * 24 * 365.25)
+    return Math.floor(ageInYears)
+  }
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setSelectedImage(file)
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget as HTMLFormElement)
@@ -62,9 +87,22 @@ export default function PetProfilePage() {
       name: formData.get("name") as string,
       type: formData.get("type") as string,
       breed: formData.get("breed") as string,
-      age: Number.parseInt(formData.get("age") as string),
+      birthday: formData.get("birthday") as string,
       weight: Number.parseFloat(formData.get("weight") as string),
       healthTags: (formData.get("healthNotes") as string).split(',').map(tag => tag.trim()).filter(tag => tag)
+    }
+
+    // Create a new FormData for file upload
+    const uploadData = new FormData()
+    uploadData.append('name', petData.name)
+    uploadData.append('type', petData.type)
+    uploadData.append('breed', petData.breed)
+    uploadData.append('birthday', petData.birthday)
+    uploadData.append('weight', petData.weight.toString())
+    uploadData.append('healthTags', JSON.stringify(petData.healthTags))
+    
+    if (selectedImage) {
+      uploadData.append('image', selectedImage)
     }
 
     try {
@@ -72,8 +110,7 @@ export default function PetProfilePage() {
         // Update existing pet
         const response = await fetch(`/api/pets/${editingPet.id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(petData)
+          body: uploadData
         })
         
         if (response.ok) {
@@ -86,8 +123,7 @@ export default function PetProfilePage() {
         // Create new pet
         const response = await fetch('/api/pets', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(petData)
+          body: uploadData
         })
         
         if (response.ok) {
@@ -100,6 +136,8 @@ export default function PetProfilePage() {
       
       setShowForm(false)
       setEditingPet(null)
+      setSelectedImage(null)
+      setImagePreview("")
     } catch (error) {
       console.error('Error saving pet profile:', error)
       toast({
@@ -113,10 +151,13 @@ export default function PetProfilePage() {
   const handleCancel = () => {
     setShowForm(false)
     setEditingPet(null)
+    setSelectedImage(null)
+    setImagePreview("")
   }
 
   const handleEdit = (pet: PetProfile) => {
     setEditingPet(pet)
+    setImagePreview(pet.image || "")
     setShowForm(true)
   }
 
@@ -168,6 +209,55 @@ export default function PetProfilePage() {
                 <Label htmlFor="name">Pet Name</Label>
                 <Input id="name" name="name" defaultValue={editingPet?.name || ""} required />
               </div>
+              
+              {/* Image Upload */}
+              <div>
+                <Label htmlFor="image">Pet Photo</Label>
+                <div className="flex items-center gap-4 mt-2">
+                  <div className="relative">
+                    <Avatar className="h-20 w-20">
+                      <AvatarImage src={imagePreview || editingPet?.image || ""} alt="Pet" />
+                      <AvatarFallback className="bg-gray-100">
+                        <Camera className="h-8 w-8 text-gray-400" />
+                      </AvatarFallback>
+                    </Avatar>
+                    {imagePreview && (
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full"
+                        onClick={() => {
+                          setSelectedImage(null)
+                          setImagePreview("")
+                        }}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <Input
+                      id="image"
+                      name="image"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => document.getElementById('image')?.click()}
+                      className="w-full"
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      {imagePreview ? "Change Photo" : "Upload Photo"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="type">Type</Label>
@@ -192,22 +282,28 @@ export default function PetProfilePage() {
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                <Label htmlFor="age">Age (Years)</Label>
-                <Input id="age" name="age" type="number" defaultValue={editingPet?.age || 0} min="0" required />
-              </div>
-              <div>
-                <Label htmlFor="weight">Weight (lbs)</Label>
-                <Input
-                  id="weight"
-                  name="weight"
-                  type="number"
-                  step="0.1"
-                  defaultValue={editingPet?.weight || 0}
-                  min="0"
-                  required
-                />
-              </div>
+                <div>
+                  <Label htmlFor="birthday">Birthday</Label>
+                  <Input 
+                    id="birthday" 
+                    name="birthday" 
+                    type="date" 
+                    defaultValue={editingPet?.birthday ? new Date(editingPet.birthday).toISOString().split('T')[0] : ""} 
+                    required 
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="weight">Weight (lbs)</Label>
+                  <Input
+                    id="weight"
+                    name="weight"
+                    type="number"
+                    step="0.1"
+                    defaultValue={editingPet?.weight || 0}
+                    min="0"
+                    required
+                  />
+                </div>
               </div>
               <div>
                 <Label htmlFor="healthNotes">Health Notes / Allergies</Label>
@@ -247,13 +343,21 @@ export default function PetProfilePage() {
             <Card key={pet.id}>
               <CardHeader>
                 <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle>
-                      {pet.name} ({pet.type})
-                    </CardTitle>
-                    <CardDescription className="mt-1">
-                      {pet.breed} • {pet.age} years old • {pet.weight} lbs
-                    </CardDescription>
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-16 w-16">
+                      <AvatarImage src={pet.image || ""} alt={pet.name} />
+                      <AvatarFallback className="bg-gray-100">
+                        <Camera className="h-6 w-6 text-gray-400" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <CardTitle>
+                        {pet.name} ({pet.type})
+                      </CardTitle>
+                      <CardDescription className="mt-1">
+                        {pet.breed} • {calculateAge(pet.birthday)} years old • {pet.weight} lbs
+                      </CardDescription>
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <Button variant="outline" size="sm" onClick={() => handleEdit(pet)}>

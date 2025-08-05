@@ -1,20 +1,27 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { prisma } from "@/lib/prisma"
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const body = await request.json()
-    const { name, type, breed, age, weight, healthTags } = body
+    const formData = await request.formData()
+    const name = formData.get("name") as string
+    const type = formData.get("type") as string
+    const breed = formData.get("breed") as string
+    const birthday = formData.get("birthday") as string
+    const weight = parseFloat(formData.get("weight") as string)
+    const healthTags = JSON.parse(formData.get("healthTags") as string || "[]")
+    const imageFile = formData.get("image") as File | null
 
     // Verify the pet belongs to the user
     const existingPet = await prisma.petProfile.findFirst({
@@ -28,6 +35,17 @@ export async function PUT(
       return NextResponse.json({ error: "Pet not found" }, { status: 404 })
     }
 
+    // Handle image upload (for now, we'll store the image data as base64)
+    // In production, you'd want to upload to a service like Cloudinary, AWS S3, etc.
+    let imageUrl = existingPet.image // Keep existing image if no new one
+    if (imageFile) {
+      const bytes = await imageFile.arrayBuffer()
+      const buffer = Buffer.from(bytes)
+      const base64 = buffer.toString('base64')
+      const mimeType = imageFile.type
+      imageUrl = `data:${mimeType};base64,${base64}`
+    }
+
     const updatedPet = await prisma.petProfile.update({
       where: {
         id: params.id
@@ -36,8 +54,9 @@ export async function PUT(
         name,
         type,
         breed,
-        age: parseInt(age),
-        weight: parseFloat(weight),
+        birthday: new Date(birthday),
+        weight,
+        image: imageUrl,
         healthTags: healthTags || []
       }
     })
@@ -57,7 +76,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })

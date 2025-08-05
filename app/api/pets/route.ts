@@ -38,14 +38,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const body = await request.json()
-    const { name, type, breed, age, weight, healthTags } = body
+    const formData = await request.formData()
+    const name = formData.get("name") as string
+    const type = formData.get("type") as string
+    const breed = formData.get("breed") as string
+    const birthday = formData.get("birthday") as string
+    const weight = parseFloat(formData.get("weight") as string)
+    const healthTags = JSON.parse(formData.get("healthTags") as string || "[]")
+    const imageFile = formData.get("image") as File | null
 
-    if (!name || !type || !breed || !age || !weight) {
+    if (!name || !type || !breed || !birthday || !weight) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       )
+    }
+
+    // Handle image upload (for now, we'll store the image data as base64)
+    // In production, you'd want to upload to a service like Cloudinary, AWS S3, etc.
+    let imageUrl = null
+    if (imageFile) {
+      const bytes = await imageFile.arrayBuffer()
+      const buffer = Buffer.from(bytes)
+      const base64 = buffer.toString('base64')
+      const mimeType = imageFile.type
+      imageUrl = `data:${mimeType};base64,${base64}`
     }
 
     const pet = await prisma.petProfile.create({
@@ -54,8 +71,9 @@ export async function POST(request: NextRequest) {
         name,
         type,
         breed,
-        age: parseInt(age),
-        weight: parseFloat(weight),
+        birthday: new Date(birthday),
+        weight,
+        image: imageUrl,
         healthTags: healthTags || []
       }
     })

@@ -71,8 +71,9 @@ model PetProfile {
   name        String
   type        String // e.g., Dog, Cat
   breed       String
-  age         Int
+  birthday    DateTime // Pet's birthday
   weight      Float
+  image       String? // Pet's image URL
   healthTags  String[] // e.g., ["allergies", "special diet"]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

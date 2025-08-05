@@ -211,7 +211,7 @@ async function main() {
         name: "Buddy",
         type: "Dog",
         breed: "Golden Retriever",
-        age: 3,
+        birthday: new Date(Date.now() - 3 * 365 * 24 * 60 * 60 * 1000), // 3 years ago
         weight: 65.5,
         healthTags: ["active", "healthy"],
       }
@@ -222,7 +222,7 @@ async function main() {
         name: "Luna",
         type: "Cat",
         breed: "Siamese",
-        age: 2,
+        birthday: new Date(Date.now() - 2 * 365 * 24 * 60 * 60 * 1000), // 2 years ago
         weight: 8.2,
         healthTags: ["indoor", "allergies"],
       }
@@ -233,7 +233,7 @@ async function main() {
         name: "Max",
         type: "Dog",
         breed: "German Shepherd",
-        age: 5,
+        birthday: new Date(Date.now() - 5 * 365 * 24 * 60 * 60 * 1000), // 5 years ago
         weight: 75.0,
         healthTags: ["working dog", "high energy"],
       }
@@ -244,7 +244,7 @@ async function main() {
         name: "Whiskers",
         type: "Cat",
         breed: "Persian",
-        age: 7,
+        birthday: new Date(Date.now() - 7 * 365 * 24 * 60 * 60 * 1000), // 7 years ago
         weight: 12.5,
         healthTags: ["senior", "special diet"],
       }
@@ -255,7 +255,7 @@ async function main() {
         name: "Rocky",
         type: "Dog",
         breed: "Labrador Retriever",
-        age: 1,
+        birthday: new Date(Date.now() - 1 * 365 * 24 * 60 * 60 * 1000), // 1 year ago
         weight: 45.0,
         healthTags: ["puppy", "growing"],
       }
