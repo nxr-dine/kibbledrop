@@ -34,8 +34,24 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
+    console.log("Session data:", session)
+    console.log("User ID from session:", session?.user?.id)
+    
     if (!session?.user?.id) {
+      console.log("No user ID in session")
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    // Verify user exists in database
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id }
+    })
+
+    console.log("User found in database:", user)
+
+    if (!user) {
+      console.error("User not found in database:", session.user.id)
+      return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
     const formData = await request.formData()
@@ -65,6 +81,9 @@ export async function POST(request: NextRequest) {
       imageUrl = `data:${mimeType};base64,${base64}`
     }
 
+    console.log("Creating pet profile for user:", session.user.id)
+    console.log("Pet data:", { name, type, breed, birthday, weight })
+
     const pet = await prisma.petProfile.create({
       data: {
         userId: session.user.id,
@@ -78,6 +97,7 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    console.log("Pet created successfully:", pet)
     return NextResponse.json(pet, { status: 201 })
   } catch (error) {
     console.error("Error creating pet:", error)
