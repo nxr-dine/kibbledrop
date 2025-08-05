@@ -30,4 +30,13 @@ next-env.d.ts
 # uploads
 /public/uploads/
 
+# documentation with sensitive information
+ADMIN_VERIFICATION.md
+CLIENT_SETUP_GUIDE.md
+CLIENT_EMAIL_TEMPLATE.md
+ADMIN_DOCUMENTATION.md
+
+# admin creation scripts
+/scripts/create-admin.ts
+
 .vercel
