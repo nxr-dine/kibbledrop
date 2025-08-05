@@ -176,7 +176,7 @@ export function Navbar() {
                 {isMounted && isLoggedIn ? (
                   <>
                     <Button asChild variant="ghost" size="lg" className="w-full justify-center">
-                      <Link href="/dashboard" className="flex items-center gap-2">
+                      <Link href="/dashboard" className="flex items-center gap-2" onClick={() => setIsMobileMenuOpen(false)}>
                         <User className="h-5 w-5" /> Account
                       </Link>
                     </Button>
@@ -186,7 +186,7 @@ export function Navbar() {
                   </>
                 ) : isMounted ? (
                   <Button asChild size="lg" className="w-full justify-center">
-                    <Link href="/login" className="flex items-center gap-2">
+                    <Link href="/login" className="flex items-center gap-2" onClick={() => setIsMobileMenuOpen(false)}>
                       <LogIn className="h-5 w-5" /> Login
                     </Link>
                   </Button>
