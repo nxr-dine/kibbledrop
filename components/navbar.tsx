@@ -54,7 +54,6 @@ export function Navbar() {
               const isActive = item.exact 
                 ? pathname === item.href 
                 : pathname.startsWith(item.href) && (item.href === "/" ? pathname === "/" : true)
-              
               return (
                 <Link
                   key={item.href}
@@ -114,63 +113,91 @@ export function Navbar() {
               variant="ghost"
               size="sm"
               className="md:hidden"
+              aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-menu"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
-              <Menu className="h-4 w-4" />
+              <Menu className="h-5 w-5" />
             </Button>
           </div>
         </div>
+      </div>
 
-        {/* Mobile Navigation */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 py-4">
-            <div className="flex flex-col space-y-2">
+      {/* Mobile Navigation Overlay */}
+      {isMobileMenuOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-40 bg-black bg-opacity-40 transition-opacity md:hidden"
+            aria-hidden="true"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+          {/* Mobile Menu */}
+          <div
+            id="mobile-menu"
+            className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-lg transition-transform duration-300 md:hidden"
+            style={{ minHeight: '100vh' }}
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="flex items-center justify-between h-16 px-4">
+              <span className="text-2xl font-bold text-orange-600">KibbleDrop</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                aria-label="Close menu"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+            </div>
+            <div className="flex flex-col space-y-2 px-4 pb-6">
               {navItems.map((item) => {
                 const isActive = item.exact 
                   ? pathname === item.href 
                   : pathname.startsWith(item.href) && (item.href === "/" ? pathname === "/" : true)
-                
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      "text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium flex items-center gap-2",
-                      isActive && "text-orange-600 font-semibold",
+                      "text-gray-700 hover:text-orange-600 px-4 py-3 rounded-lg text-base font-medium flex items-center gap-3 transition-colors",
+                      isActive && "text-orange-600 font-semibold bg-orange-50",
                     )}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    <item.icon className="h-4 w-4" />
+                    <item.icon className="h-5 w-5" />
                     {item.label}
                   </Link>
                 )
               })}
-              <div className="flex space-x-2 px-3 pt-2">
+              <div className="flex flex-col gap-2 pt-4">
                 {isMounted && isLoggedIn ? (
                   <>
-                    <Button asChild variant="ghost" size="sm" className="flex-1">
-                      <Link href="/dashboard" className="flex items-center justify-center gap-1">
-                        <User className="h-4 w-4" /> Account
+                    <Button asChild variant="ghost" size="lg" className="w-full justify-center">
+                      <Link href="/dashboard" className="flex items-center gap-2">
+                        <User className="h-5 w-5" /> Account
                       </Link>
                     </Button>
-                    <Button onClick={logout} size="sm" className="flex-1">
-                      <LogOut className="h-4 w-4 mr-1" /> Logout
+                    <Button onClick={logout} size="lg" className="w-full justify-center">
+                      <LogOut className="h-5 w-5 mr-1" /> Logout
                     </Button>
                   </>
                 ) : isMounted ? (
-                  <Button asChild size="sm" className="flex-1">
-                    <Link href="/login" className="flex items-center justify-center gap-1">
-                      <LogIn className="h-4 w-4" /> Login
+                  <Button asChild size="lg" className="w-full justify-center">
+                    <Link href="/login" className="flex items-center gap-2">
+                      <LogIn className="h-5 w-5" /> Login
                     </Link>
                   </Button>
                 ) : (
-                  <div className="flex-1 h-8 bg-gray-200 animate-pulse rounded" />
+                  <div className="h-10 w-full bg-gray-200 animate-pulse rounded" />
                 )}
               </div>
             </div>
           </div>
-        )}
-      </div>
+        </>
+      )}
     </nav>
   )
 }
