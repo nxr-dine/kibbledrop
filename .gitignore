@@ -37,6 +37,6 @@ CLIENT_EMAIL_TEMPLATE.md
 ADMIN_DOCUMENTATION.md
 
 # admin creation scripts
-/scripts/create-admin.ts
+/scripts/
 
 .vercel
