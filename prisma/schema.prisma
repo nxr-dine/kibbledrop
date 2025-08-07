@@ -91,6 +91,14 @@ model Product {
   image       String
   featured    Boolean  @default(false)
   
+  // New filtering fields
+  brand       String? // Product brand
+  weight      String? // Product weight (e.g., "2kg", "500g")
+  species     String? // Dog or Cat (same as petType but more explicit)
+  lifeStage   String? // adult, kitten, puppy, senior
+  productType String? // Cat Treat, Dog Treat, Dry Cat Food, etc.
+  foodType    String? // dry, wet
+  
   // Nutrition Facts
   protein     String?  @default("Min 28%")
   fat         String?  @default("Min 15%")

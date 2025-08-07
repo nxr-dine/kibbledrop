@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { ProductGrid } from "@/components/product-grid"
-import { CategoryFilter } from "@/components/category-filter"
+import { ProductFilter } from "@/components/product-filter"
 import { useRouter, useSearchParams } from "next/navigation"
 
 interface Product {
@@ -16,6 +16,13 @@ interface Product {
   featured: boolean
   createdAt: string
   updatedAt: string
+  // New filtering fields
+  brand?: string
+  weight?: string
+  species?: string
+  lifeStage?: string
+  productType?: string
+  foodType?: string
 }
 
 interface ClientProductsPageProps {
@@ -28,20 +35,29 @@ export default function ClientProductsPage({ initialProducts }: ClientProductsPa
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const handleCategoryChange = async (category: string) => {
+  // Parse current filters from URL
+  const currentFilters = {
+    category: searchParams.get('category') || undefined,
+    petType: searchParams.get('petType') || undefined,
+    brand: searchParams.get('brand') || undefined,
+    weight: searchParams.get('weight') || undefined,
+    species: searchParams.get('species') || searchParams.get('petType') || undefined,
+    lifeStage: searchParams.get('lifeStage') || undefined,
+    productType: searchParams.get('productType') || undefined,
+    foodType: searchParams.get('foodType') || undefined,
+  }
+
+  const handleFiltersChange = async (filters: any) => {
     setLoading(true)
     
-    const params = new URLSearchParams(searchParams)
-    if (category === 'all') {
-      params.delete('petType')
-      params.delete('category')
-    } else if (category === 'Dog' || category === 'Cat') {
-      params.set('petType', category)
-      params.delete('category')
-    } else {
-      params.set('category', category)
-      params.delete('petType')
-    }
+    const params = new URLSearchParams()
+    
+    // Add filters to URL params
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value && value !== 'all') {
+        params.set(key, value as string)
+      }
+    })
     
     router.push(`/products?${params.toString()}`)
     
@@ -58,16 +74,15 @@ export default function ClientProductsPage({ initialProducts }: ClientProductsPa
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Pet Food Products</h1>
-          <p className="text-gray-600 mt-2">Premium nutrition delivered monthly</p>
-        </div>
-        <CategoryFilter 
-          selectedCategory={searchParams.get('petType') || searchParams.get('category') || "all"} 
-          onCategoryChange={handleCategoryChange} 
-        />
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Pet Food Products</h1>
+        <p className="text-gray-600">Premium nutrition delivered monthly</p>
       </div>
+
+      <ProductFilter 
+        filters={currentFilters}
+        onFiltersChange={handleFiltersChange} 
+      />
 
       {loading ? (
         <div className="text-center py-8">

@@ -16,6 +16,13 @@ interface Product {
   featured: boolean;
   createdAt: string;
   updatedAt: string;
+  // New filtering fields
+  brand?: string;
+  weight?: string;
+  species?: string;
+  lifeStage?: string;
+  productType?: string;
+  foodType?: string;
 }
 
 interface ProductCardProps {

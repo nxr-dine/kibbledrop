@@ -39,6 +39,13 @@ export default function CreateProductPage() {
     petType: "",
     image: "",
     featured: false,
+    // New filtering fields
+    brand: "",
+    weight: "",
+    species: "",
+    lifeStage: "",
+    productType: "",
+    foodType: "",
     // Nutrition Facts
     protein: "Min 28%",
     fat: "Min 15%",
@@ -178,10 +185,19 @@ export default function CreateProductPage() {
   };
 
   const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setFormData((prev) => {
+      const newData = {
+        ...prev,
+        [field]: value,
+      };
+      
+      // Automatically set species when petType changes
+      if (field === "petType" && (value === "Dog" || value === "Cat")) {
+        newData.species = value as string;
+      }
+      
+      return newData;
+    });
   };
 
   return (
@@ -360,6 +376,115 @@ export default function CreateProductPage() {
                 Upload a high-quality image of your product. Leave empty to use
                 a placeholder image.
               </p>
+            </div>
+
+            {/* Additional Product Information */}
+            <div className="space-y-4">
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold mb-4">Product Details</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="brand">Brand</Label>
+                    <Select
+                      value={formData.brand}
+                      onValueChange={(value) => handleInputChange("brand", value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select brand" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Royal Canin">Royal Canin</SelectItem>
+                        <SelectItem value="Hill's">Hill's</SelectItem>
+                        <SelectItem value="Purina">Purina</SelectItem>
+                        <SelectItem value="Blue Buffalo">Blue Buffalo</SelectItem>
+                        <SelectItem value="Orijen">Orijen</SelectItem>
+                        <SelectItem value="Acana">Acana</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="weight">Weight</Label>
+                    <Select
+                      value={formData.weight}
+                      onValueChange={(value) => handleInputChange("weight", value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select weight" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="300g">300g</SelectItem>
+                        <SelectItem value="500g">500g</SelectItem>
+                        <SelectItem value="1kg">1kg</SelectItem>
+                        <SelectItem value="1.5kg">1.5kg</SelectItem>
+                        <SelectItem value="2kg">2kg</SelectItem>
+                        <SelectItem value="3kg">3kg</SelectItem>
+                        <SelectItem value="5kg">5kg</SelectItem>
+                        <SelectItem value="7kg">7kg</SelectItem>
+                        <SelectItem value="10kg">10kg</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="lifeStage">Life Stage</Label>
+                    <Select
+                      value={formData.lifeStage}
+                      onValueChange={(value) => handleInputChange("lifeStage", value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select life stage" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="kitten">Kitten</SelectItem>
+                        <SelectItem value="puppy">Puppy</SelectItem>
+                        <SelectItem value="adult">Adult</SelectItem>
+                        <SelectItem value="senior">Senior</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="productType">Product Type</Label>
+                    <Select
+                      value={formData.productType}
+                      onValueChange={(value) => handleInputChange("productType", value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select product type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Cat Treat">Cat Treat</SelectItem>
+                        <SelectItem value="Dog Treat">Dog Treat</SelectItem>
+                        <SelectItem value="Dry Cat Food">Dry Cat Food</SelectItem>
+                        <SelectItem value="Dry Dog Food">Dry Dog Food</SelectItem>
+                        <SelectItem value="Wet Cat Food">Wet Cat Food</SelectItem>
+                        <SelectItem value="Wet Dog Food">Wet Dog Food</SelectItem>
+                        <SelectItem value="Hygiene">Hygiene</SelectItem>
+                        <SelectItem value="Litter">Litter</SelectItem>
+                        <SelectItem value="Tick & Flea Cats">Tick & Flea Cats</SelectItem>
+                        <SelectItem value="Tick & Flea Dogs">Tick & Flea Dogs</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="foodType">Food Type</Label>
+                    <Select
+                      value={formData.foodType}
+                      onValueChange={(value) => handleInputChange("foodType", value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select food type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="dry">Dry</SelectItem>
+                        <SelectItem value="wet">Wet</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Nutrition Facts Section */}

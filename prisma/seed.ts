@@ -76,6 +76,12 @@ async function main() {
         petType: "Dog",
         image: "/placeholder.svg?height=300&width=300&text=Dog+Food",
         featured: true,
+        brand: "Royal Canin",
+        weight: "2kg",
+        species: "Dog",
+        lifeStage: "adult",
+        productType: "Dry Dog Food",
+        foodType: "dry",
       }
     }),
     prisma.product.create({
@@ -87,6 +93,12 @@ async function main() {
         petType: "Cat",
         image: "/placeholder.svg?height=300&width=300&text=Cat+Food",
         featured: true,
+        brand: "Blue Buffalo",
+        weight: "1.5kg",
+        species: "Cat",
+        lifeStage: "adult",
+        productType: "Dry Cat Food",
+        foodType: "dry",
       }
     }),
     prisma.product.create({
@@ -98,6 +110,12 @@ async function main() {
         petType: "Dog",
         image: "/placeholder.svg?height=300&width=300&text=Puppy+Food",
         featured: false,
+        brand: "Hill's",
+        weight: "1kg",
+        species: "Dog",
+        lifeStage: "puppy",
+        productType: "Dry Dog Food",
+        foodType: "dry",
       }
     }),
     prisma.product.create({
@@ -109,6 +127,12 @@ async function main() {
         petType: "Cat",
         image: "/placeholder.svg?height=300&width=300&text=Senior+Cat",
         featured: false,
+        brand: "Purina",
+        weight: "2kg",
+        species: "Cat",
+        lifeStage: "senior",
+        productType: "Dry Cat Food",
+        foodType: "dry",
       }
     }),
     prisma.product.create({
@@ -120,6 +144,12 @@ async function main() {
         petType: "Dog",
         image: "/placeholder.svg?height=300&width=300&text=Large+Breed",
         featured: false,
+        brand: "Orijen",
+        weight: "5kg",
+        species: "Dog",
+        lifeStage: "adult",
+        productType: "Dry Dog Food",
+        foodType: "dry",
       }
     }),
     prisma.product.create({
@@ -131,6 +161,12 @@ async function main() {
         petType: "Cat",
         image: "/placeholder.svg?height=300&width=300&text=Indoor+Cat",
         featured: false,
+        brand: "Acana",
+        weight: "1kg",
+        species: "Cat",
+        lifeStage: "adult",
+        productType: "Dry Cat Food",
+        foodType: "dry",
       }
     }),
     prisma.product.create({
@@ -142,6 +178,12 @@ async function main() {
         petType: "Dog",
         image: "/placeholder.svg?height=300&width=300&text=Dog+Treats",
         featured: false,
+        brand: "Blue Buffalo",
+        weight: "500g",
+        species: "Dog",
+        lifeStage: "adult",
+        productType: "Dog Treat",
+        foodType: "dry",
       }
     }),
     prisma.product.create({
@@ -153,6 +195,12 @@ async function main() {
         petType: "Cat",
         image: "/placeholder.svg?height=300&width=300&text=Cat+Treats",
         featured: false,
+        brand: "Hill's",
+        weight: "300g",
+        species: "Cat",
+        lifeStage: "adult",
+        productType: "Cat Treat",
+        foodType: "dry",
       }
     }),
     prisma.product.create({
