@@ -11,6 +11,7 @@ export interface CartItem {
   category: string
   image: string
   quantity: number
+  weight?: string // Optional weight/package size field
 }
 
 interface CartState {

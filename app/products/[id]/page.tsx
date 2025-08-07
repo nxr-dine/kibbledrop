@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import {
   Heart,
   ShoppingBag,
@@ -16,6 +18,7 @@ import {
   ArrowLeft,
   Minus,
   Plus,
+  Package,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -61,7 +64,46 @@ export default function ProductPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
+  const [selectedWeight, setSelectedWeight] = useState<string>("");
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+
+  // Define available weight options based on product type
+  const getWeightOptions = (product: Product) => {
+    const baseWeights = [];
+    
+    if (product.productType?.includes("Treat")) {
+      baseWeights.push(
+        { value: "300g", label: "300g - $" + product.price.toFixed(2), priceMultiplier: 1 },
+        { value: "500g", label: "500g - $" + (product.price * 1.6).toFixed(2), priceMultiplier: 1.6 },
+        { value: "1kg", label: "1kg - $" + (product.price * 2.8).toFixed(2), priceMultiplier: 2.8 }
+      );
+    } else if (product.productType?.includes("Food")) {
+      baseWeights.push(
+        { value: "1kg", label: "1kg - $" + product.price.toFixed(2), priceMultiplier: 1 },
+        { value: "2kg", label: "2kg - $" + (product.price * 1.8).toFixed(2), priceMultiplier: 1.8 },
+        { value: "5kg", label: "5kg - $" + (product.price * 4.2).toFixed(2), priceMultiplier: 4.2 },
+        { value: "10kg", label: "10kg - $" + (product.price * 7.8).toFixed(2), priceMultiplier: 7.8 },
+        { value: "20kg", label: "20kg - $" + (product.price * 14.5).toFixed(2), priceMultiplier: 14.5 }
+      );
+    } else if (product.productType?.includes("Litter")) {
+      baseWeights.push(
+        { value: "5kg", label: "5kg - $" + product.price.toFixed(2), priceMultiplier: 1 },
+        { value: "10kg", label: "10kg - $" + (product.price * 1.7).toFixed(2), priceMultiplier: 1.7 },
+        { value: "20kg", label: "20kg - $" + (product.price * 3.2).toFixed(2), priceMultiplier: 3.2 }
+      );
+    } else {
+      // Default for other products
+      baseWeights.push(
+        { value: "Regular", label: "Regular Size - $" + product.price.toFixed(2), priceMultiplier: 1 }
+      );
+    }
+    
+    return baseWeights;
+  };
+
+  const weightOptions = product ? getWeightOptions(product) : [];
+  const selectedWeightOption = weightOptions.find(option => option.value === selectedWeight);
+  const currentPrice = selectedWeightOption ? product!.price * selectedWeightOption.priceMultiplier : product?.price || 0;
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -73,6 +115,12 @@ export default function ProductPage() {
         }
         const productData = await response.json();
         setProduct(productData);
+        
+        // Set default weight based on product type
+        const weights = getWeightOptions(productData);
+        if (weights.length > 0) {
+          setSelectedWeight(weights[0].value);
+        }
       } catch (error) {
         console.error("Error fetching product:", error);
         toast({
@@ -92,7 +140,7 @@ export default function ProductPage() {
   }, [params.id, router, toast]);
 
   const handleAddToCart = async () => {
-    if (!product) return;
+    if (!product || !selectedWeight) return;
 
     setIsAddingToCart(true);
     try {
@@ -100,18 +148,19 @@ export default function ProductPage() {
         dispatch({
           type: "ADD_ITEM",
           payload: {
-            id: product.id,
-            name: product.name,
-            price: product.price,
+            id: `${product.id}-${selectedWeight}`, // Unique ID for different weights
+            name: `${product.name} (${selectedWeight})`,
+            price: currentPrice,
             category: product.category,
             image: product.image,
+            weight: selectedWeight,
           },
         });
       }
       toast({
         title: "Success",
-        description: `Added ${quantity} ${
-          quantity === 1 ? "item" : "items"
+        description: `Added ${quantity} ${selectedWeight} ${
+          quantity === 1 ? "package" : "packages"
         } to cart`,
       });
     } catch (error) {
@@ -232,11 +281,16 @@ export default function ProductPage() {
               </h1>
               <div className="flex items-center gap-4 mb-6">
                 <span className="text-3xl font-light text-gray-900">
-                  ${product.price.toFixed(2)}
+                  ${currentPrice.toFixed(2)}
                 </span>
                 <Badge className="bg-orange-100 text-orange-800">
                   {product.petType}
                 </Badge>
+                {selectedWeight && (
+                  <Badge className="bg-blue-100 text-blue-800">
+                    {selectedWeight}
+                  </Badge>
+                )}
               </div>
             </div>
 
@@ -269,6 +323,26 @@ export default function ProductPage() {
 
             {/* Actions */}
             <div className="space-y-4">
+              {/* Weight/Package Size Selection */}
+              <div className="space-y-2">
+                <Label htmlFor="weight" className="text-sm font-medium flex items-center gap-2">
+                  <Package className="h-4 w-4" />
+                  Package Size
+                </Label>
+                <Select value={selectedWeight} onValueChange={setSelectedWeight}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select package size" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {weightOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="flex items-center gap-4">
                 <div className="flex items-center border border-gray-300 rounded-lg">
                   <button
@@ -291,7 +365,7 @@ export default function ProductPage() {
                 </div>
                 <Button
                   onClick={handleAddToCart}
-                  disabled={isAddingToCart}
+                  disabled={isAddingToCart || !selectedWeight}
                   className="flex-1 bg-gradient-to-r from-orange-400 to-orange-600 hover:from-orange-500 hover:to-orange-700 text-white py-3 text-lg disabled:opacity-50"
                 >
                   <ShoppingBag className="mr-2 h-5 w-5" />

@@ -38,11 +38,18 @@ export function CartItem({ item }: CartItemProps) {
           <div className="flex-1 min-w-0">
             <div className="flex justify-between items-start mb-2">
               <h3 className="font-semibold text-gray-900 truncate pr-2">{item.name}</h3>
-              <Badge variant="secondary" className="capitalize flex-shrink-0">
-                {item.category}
-              </Badge>
+              <div className="flex gap-2 flex-shrink-0">
+                <Badge variant="secondary" className="capitalize">
+                  {item.category}
+                </Badge>
+                {item.weight && (
+                  <Badge variant="outline" className="text-blue-600 border-blue-200">
+                    {item.weight}
+                  </Badge>
+                )}
+              </div>
             </div>
-            <p className="text-orange-600 font-semibold">${item.price.toFixed(2)}/month</p>
+            <p className="text-orange-600 font-semibold">${item.price.toFixed(2)}</p>
           </div>
 
           {/* Quantity Controls */}
