@@ -1,36 +1,38 @@
-import { ProductCard } from "./product-card"
+import { ProductCard } from "./product-card";
 
 interface Product {
-  id: string
-  name: string
-  description: string
-  price: number
-  category: string
-  petType: string
-  image: string
-  featured: boolean
-  createdAt: string
-  updatedAt: string
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  petType: string;
+  image: string;
+  featured: boolean;
+  createdAt: string;
+  updatedAt: string;
   // New filtering fields
-  brand?: string
-  weight?: string
-  species?: string
-  lifeStage?: string
-  productType?: string
-  foodType?: string
+  brand?: string;
+  weight?: string;
+  species?: string;
+  lifeStage?: string;
+  productType?: string;
+  foodType?: string;
 }
 
 interface ProductGridProps {
-  products: Product[]
+  products: Product[];
 }
 
 export function ProductGrid({ products }: ProductGridProps) {
   if (products.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500 text-lg">No products found for this category.</p>
+        <p className="text-gray-500 text-lg">
+          No products found for this category.
+        </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -39,5 +41,5 @@ export function ProductGrid({ products }: ProductGridProps) {
         <ProductCard key={product.id} product={product} />
       ))}
     </div>
-  )
+  );
 }

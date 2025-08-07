@@ -6,16 +6,31 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const product = await prisma.product.findUnique({
-      where: {
-        id: params.id,
-      },
-    });
+    const productData = await prisma.$queryRaw`
+      SELECT 
+        p.*,
+        COALESCE(
+          JSON_AGG(
+            JSON_BUILD_OBJECT(
+              'id', wv.id,
+              'weight', wv.weight,
+              'price', wv.price,
+              'inStock', wv."inStock"
+            )
+          ) FILTER (WHERE wv.id IS NOT NULL),
+          '[]'::json
+        ) as "weightVariants"
+      FROM "Product" p
+      LEFT JOIN "ProductWeightVariant" wv ON p.id = wv."productId"
+      WHERE p.id = ${params.id}
+      GROUP BY p.id
+    ` as any[];
 
-    if (!product) {
+    if (!productData || productData.length === 0) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
+    const product = productData[0];
     return NextResponse.json(product);
   } catch (error) {
     console.error("Error fetching product:", error);

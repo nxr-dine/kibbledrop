@@ -93,7 +93,7 @@ model Product {
   
   // New filtering fields
   brand       String? // Product brand
-  weight      String? // Product weight (e.g., "2kg", "500g")
+  weight      String? // Product weight (e.g., "2kg", "500g") - kept for backward compatibility
   species     String? // Dog or Cat (same as petType but more explicit)
   lifeStage   String? // adult, kitten, puppy, senior
   productType String? // Cat Treat, Dog Treat, Dry Cat Food, etc.
@@ -113,9 +113,26 @@ model Product {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
+  // Relations
+  weightVariants    ProductWeightVariant[]
   subscriptionItems SubscriptionItem[]
   orderItems        OrderItem[]
   cartItems         CartItem[]
+}
+
+model ProductWeightVariant {
+  id        String  @id @default(cuid())
+  productId String
+  weight    String  // e.g., "1kg", "2kg", "5kg"
+  price     Float   // Price for this specific weight
+  inStock   Boolean @default(true)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  @@unique([productId, weight])
 }
 
 model Subscription {

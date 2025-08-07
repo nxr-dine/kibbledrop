@@ -5,7 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import {
   Heart,
@@ -53,6 +59,13 @@ interface Product {
   omega6?: string;
   // Ingredients
   ingredients?: string;
+  // Weight variants
+  weightVariants?: Array<{
+    id: string;
+    weight: string;
+    price: number;
+    inStock: boolean;
+  }>;
 }
 
 export default function ProductPage() {
@@ -69,41 +82,103 @@ export default function ProductPage() {
 
   // Define available weight options based on product type
   const getWeightOptions = (product: Product) => {
+    // If the product has weight variants, use those instead of calculated ones
+    if (product.weightVariants && product.weightVariants.length > 0) {
+      return product.weightVariants.map(variant => ({
+        value: variant.weight,
+        label: `${variant.weight} - $${variant.price.toFixed(2)}`,
+        priceMultiplier: variant.price / product.price, // Calculate multiplier for compatibility
+        actualPrice: variant.price,
+        inStock: variant.inStock
+      })).filter(option => option.inStock); // Only show in-stock variants
+    }
+
+    // Fallback to calculated weights for products without variants
     const baseWeights = [];
-    
+
     if (product.productType?.includes("Treat")) {
       baseWeights.push(
-        { value: "300g", label: "300g - $" + product.price.toFixed(2), priceMultiplier: 1 },
-        { value: "500g", label: "500g - $" + (product.price * 1.6).toFixed(2), priceMultiplier: 1.6 },
-        { value: "1kg", label: "1kg - $" + (product.price * 2.8).toFixed(2), priceMultiplier: 2.8 }
+        {
+          value: "300g",
+          label: "300g - $" + product.price.toFixed(2),
+          priceMultiplier: 1,
+        },
+        {
+          value: "500g",
+          label: "500g - $" + (product.price * 1.6).toFixed(2),
+          priceMultiplier: 1.6,
+        },
+        {
+          value: "1kg",
+          label: "1kg - $" + (product.price * 2.8).toFixed(2),
+          priceMultiplier: 2.8,
+        }
       );
     } else if (product.productType?.includes("Food")) {
       baseWeights.push(
-        { value: "1kg", label: "1kg - $" + product.price.toFixed(2), priceMultiplier: 1 },
-        { value: "2kg", label: "2kg - $" + (product.price * 1.8).toFixed(2), priceMultiplier: 1.8 },
-        { value: "5kg", label: "5kg - $" + (product.price * 4.2).toFixed(2), priceMultiplier: 4.2 },
-        { value: "10kg", label: "10kg - $" + (product.price * 7.8).toFixed(2), priceMultiplier: 7.8 },
-        { value: "20kg", label: "20kg - $" + (product.price * 14.5).toFixed(2), priceMultiplier: 14.5 }
+        {
+          value: "1kg",
+          label: "1kg - $" + product.price.toFixed(2),
+          priceMultiplier: 1,
+        },
+        {
+          value: "2kg",
+          label: "2kg - $" + (product.price * 1.8).toFixed(2),
+          priceMultiplier: 1.8,
+        },
+        {
+          value: "5kg",
+          label: "5kg - $" + (product.price * 4.2).toFixed(2),
+          priceMultiplier: 4.2,
+        },
+        {
+          value: "10kg",
+          label: "10kg - $" + (product.price * 7.8).toFixed(2),
+          priceMultiplier: 7.8,
+        },
+        {
+          value: "20kg",
+          label: "20kg - $" + (product.price * 14.5).toFixed(2),
+          priceMultiplier: 14.5,
+        }
       );
     } else if (product.productType?.includes("Litter")) {
       baseWeights.push(
-        { value: "5kg", label: "5kg - $" + product.price.toFixed(2), priceMultiplier: 1 },
-        { value: "10kg", label: "10kg - $" + (product.price * 1.7).toFixed(2), priceMultiplier: 1.7 },
-        { value: "20kg", label: "20kg - $" + (product.price * 3.2).toFixed(2), priceMultiplier: 3.2 }
+        {
+          value: "5kg",
+          label: "5kg - $" + product.price.toFixed(2),
+          priceMultiplier: 1,
+        },
+        {
+          value: "10kg",
+          label: "10kg - $" + (product.price * 1.7).toFixed(2),
+          priceMultiplier: 1.7,
+        },
+        {
+          value: "20kg",
+          label: "20kg - $" + (product.price * 3.2).toFixed(2),
+          priceMultiplier: 3.2,
+        }
       );
     } else {
       // Default for other products
-      baseWeights.push(
-        { value: "Regular", label: "Regular Size - $" + product.price.toFixed(2), priceMultiplier: 1 }
-      );
+      baseWeights.push({
+        value: "Regular",
+        label: "Regular Size - $" + product.price.toFixed(2),
+        priceMultiplier: 1,
+      });
     }
-    
+
     return baseWeights;
   };
 
   const weightOptions = product ? getWeightOptions(product) : [];
-  const selectedWeightOption = weightOptions.find(option => option.value === selectedWeight);
-  const currentPrice = selectedWeightOption ? product!.price * selectedWeightOption.priceMultiplier : product?.price || 0;
+  const selectedWeightOption = weightOptions.find(
+    (option) => option.value === selectedWeight
+  );
+  const currentPrice = selectedWeightOption
+    ? (selectedWeightOption.actualPrice || product!.price * selectedWeightOption.priceMultiplier)
+    : product?.price || 0;
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -115,7 +190,7 @@ export default function ProductPage() {
         }
         const productData = await response.json();
         setProduct(productData);
-        
+
         // Set default weight based on product type
         const weights = getWeightOptions(productData);
         if (weights.length > 0) {
@@ -325,11 +400,17 @@ export default function ProductPage() {
             <div className="space-y-4">
               {/* Weight/Package Size Selection */}
               <div className="space-y-2">
-                <Label htmlFor="weight" className="text-sm font-medium flex items-center gap-2">
+                <Label
+                  htmlFor="weight"
+                  className="text-sm font-medium flex items-center gap-2"
+                >
                   <Package className="h-4 w-4" />
                   Package Size
                 </Label>
-                <Select value={selectedWeight} onValueChange={setSelectedWeight}>
+                <Select
+                  value={selectedWeight}
+                  onValueChange={setSelectedWeight}
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select package size" />
                   </SelectTrigger>

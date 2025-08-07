@@ -1,29 +1,32 @@
-"use client"
+"use client";
 
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Minus, Plus, Trash2 } from "lucide-react"
-import { useCart, type CartItem as CartItemType } from "@/contexts/cart-context"
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Minus, Plus, Trash2 } from "lucide-react";
+import {
+  useCart,
+  type CartItem as CartItemType,
+} from "@/contexts/cart-context";
 
 interface CartItemProps {
-  item: CartItemType
+  item: CartItemType;
 }
 
 export function CartItem({ item }: CartItemProps) {
-  const { dispatch } = useCart()
+  const { dispatch } = useCart();
 
   const updateQuantity = (newQuantity: number) => {
     dispatch({
       type: "UPDATE_QUANTITY",
       payload: { id: item.id, quantity: newQuantity },
-    })
-  }
+    });
+  };
 
   const removeItem = () => {
-    dispatch({ type: "REMOVE_ITEM", payload: item.id })
-  }
+    dispatch({ type: "REMOVE_ITEM", payload: item.id });
+  };
 
   return (
     <Card>
@@ -31,25 +34,37 @@ export function CartItem({ item }: CartItemProps) {
         <div className="flex items-center space-x-4">
           {/* Product Image */}
           <div className="relative h-20 w-20 flex-shrink-0">
-            <Image src={item.image || "/placeholder.svg"} alt={item.name} fill className="object-cover rounded-lg" />
+            <Image
+              src={item.image || "/placeholder.svg"}
+              alt={item.name}
+              fill
+              className="object-cover rounded-lg"
+            />
           </div>
 
           {/* Product Details */}
           <div className="flex-1 min-w-0">
             <div className="flex justify-between items-start mb-2">
-              <h3 className="font-semibold text-gray-900 truncate pr-2">{item.name}</h3>
+              <h3 className="font-semibold text-gray-900 truncate pr-2">
+                {item.name}
+              </h3>
               <div className="flex gap-2 flex-shrink-0">
                 <Badge variant="secondary" className="capitalize">
                   {item.category}
                 </Badge>
                 {item.weight && (
-                  <Badge variant="outline" className="text-blue-600 border-blue-200">
+                  <Badge
+                    variant="outline"
+                    className="text-blue-600 border-blue-200"
+                  >
                     {item.weight}
                   </Badge>
                 )}
               </div>
             </div>
-            <p className="text-orange-600 font-semibold">${item.price.toFixed(2)}</p>
+            <p className="text-orange-600 font-semibold">
+              ${item.price.toFixed(2)}
+            </p>
           </div>
 
           {/* Quantity Controls */}
@@ -90,10 +105,12 @@ export function CartItem({ item }: CartItemProps) {
         <div className="mt-3 pt-3 border-t border-gray-100">
           <div className="flex justify-between items-center">
             <span className="text-sm text-gray-600">Item total:</span>
-            <span className="font-semibold">${(item.price * item.quantity).toFixed(2)}/month</span>
+            <span className="font-semibold">
+              ${(item.price * item.quantity).toFixed(2)}/month
+            </span>
           </div>
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

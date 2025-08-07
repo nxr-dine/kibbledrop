@@ -24,11 +24,25 @@ export async function GET() {
       return NextResponse.json({ error: "Admin access required" }, { status: 403 })
     }
 
-    const products = await prisma.product.findMany({
-      orderBy: {
-        createdAt: "desc"
-      }
-    })
+    const products = await prisma.$queryRaw`
+      SELECT 
+        p.*,
+        COALESCE(
+          JSON_AGG(
+            JSON_BUILD_OBJECT(
+              'id', wv.id,
+              'weight', wv.weight,
+              'price', wv.price,
+              'inStock', wv."inStock"
+            )
+          ) FILTER (WHERE wv.id IS NOT NULL),
+          '[]'::json
+        ) as "weightVariants"
+      FROM "Product" p
+      LEFT JOIN "ProductWeightVariant" wv ON p.id = wv."productId"
+      GROUP BY p.id
+      ORDER BY p."createdAt" DESC
+    ` as any[]
 
     console.log('Found products:', products.length)
     return NextResponse.json(products)
@@ -57,7 +71,29 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, description, price, category, petType, image, featured } = body
+    const { 
+      name, 
+      description, 
+      price, 
+      category, 
+      petType, 
+      image, 
+      featured,
+      brand,
+      weight,
+      species,
+      lifeStage,
+      productType,
+      foodType,
+      protein,
+      fat,
+      fiber,
+      moisture,
+      calories,
+      omega6,
+      ingredients,
+      weightVariants
+    } = body
 
     // Validation
     if (!name || !description || !price || !category || !petType) {
@@ -67,20 +103,58 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create product
-    const product = await prisma.product.create({
-      data: {
-        name,
-        description,
-        price: parseFloat(price),
-        category,
-        petType,
-        image: image || `/placeholder.svg?height=300&width=300&text=${encodeURIComponent(name)}`,
-        featured: featured || false
+    // Validate weight variants
+    if (weightVariants && (!Array.isArray(weightVariants) || weightVariants.length === 0)) {
+      return NextResponse.json(
+        { error: "At least one weight variant is required" },
+        { status: 400 }
+      )
+    }
+
+    // Create product with weight variants in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // Create the main product
+      const product = await tx.product.create({
+        data: {
+          name,
+          description,
+          price: parseFloat(price),
+          category,
+          petType,
+          image: image || `/placeholder.svg?height=300&width=300&text=${encodeURIComponent(name)}`,
+          featured: featured || false,
+          // New filtering fields
+          brand,
+          weight,
+          species,
+          lifeStage,
+          productType,
+          foodType,
+          // Nutrition facts
+          protein,
+          fat,
+          fiber,
+          moisture,
+          calories,
+          omega6,
+          ingredients
+        }
+      })
+
+      // Create weight variants if provided using raw SQL for now
+      if (weightVariants && weightVariants.length > 0) {
+        for (const variant of weightVariants) {
+          await tx.$executeRaw`
+            INSERT INTO "ProductWeightVariant" (id, "productId", weight, price, "inStock", "createdAt", "updatedAt")
+            VALUES (gen_random_uuid()::text, ${product.id}, ${variant.weight}, ${parseFloat(variant.price)}, true, NOW(), NOW())
+          `
+        }
       }
+
+      return product
     })
 
-    return NextResponse.json(product, { status: 201 })
+    return NextResponse.json(result, { status: 201 })
   } catch (error) {
     console.error("Error creating product:", error)
     return NextResponse.json(

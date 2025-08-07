@@ -1,87 +1,92 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { ProductGrid } from "@/components/product-grid"
-import { ProductFilter } from "@/components/product-filter"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useState, useEffect } from "react";
+import { ProductGrid } from "@/components/product-grid";
+import { ProductFilter } from "@/components/product-filter";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface Product {
-  id: string
-  name: string
-  description: string
-  price: number
-  category: string
-  petType: string
-  image: string
-  featured: boolean
-  createdAt: string
-  updatedAt: string
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  petType: string;
+  image: string;
+  featured: boolean;
+  createdAt: string;
+  updatedAt: string;
   // New filtering fields
-  brand?: string
-  weight?: string
-  species?: string
-  lifeStage?: string
-  productType?: string
-  foodType?: string
+  brand?: string;
+  weight?: string;
+  species?: string;
+  lifeStage?: string;
+  productType?: string;
+  foodType?: string;
 }
 
 interface ClientProductsPageProps {
-  initialProducts: Product[]
+  initialProducts: Product[];
 }
 
-export default function ClientProductsPage({ initialProducts }: ClientProductsPageProps) {
-  const [products, setProducts] = useState<Product[]>(initialProducts)
-  const [loading, setLoading] = useState(false)
-  const router = useRouter()
-  const searchParams = useSearchParams()
+export default function ClientProductsPage({
+  initialProducts,
+}: ClientProductsPageProps) {
+  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   // Parse current filters from URL
   const currentFilters = {
-    category: searchParams.get('category') || undefined,
-    petType: searchParams.get('petType') || undefined,
-    brand: searchParams.get('brand') || undefined,
-    weight: searchParams.get('weight') || undefined,
-    species: searchParams.get('species') || searchParams.get('petType') || undefined,
-    lifeStage: searchParams.get('lifeStage') || undefined,
-    productType: searchParams.get('productType') || undefined,
-    foodType: searchParams.get('foodType') || undefined,
-  }
+    category: searchParams.get("category") || undefined,
+    petType: searchParams.get("petType") || undefined,
+    brand: searchParams.get("brand") || undefined,
+    weight: searchParams.get("weight") || undefined,
+    species:
+      searchParams.get("species") || searchParams.get("petType") || undefined,
+    lifeStage: searchParams.get("lifeStage") || undefined,
+    productType: searchParams.get("productType") || undefined,
+    foodType: searchParams.get("foodType") || undefined,
+  };
 
   const handleFiltersChange = async (filters: any) => {
-    setLoading(true)
-    
-    const params = new URLSearchParams()
-    
+    setLoading(true);
+
+    const params = new URLSearchParams();
+
     // Add filters to URL params
     Object.entries(filters).forEach(([key, value]) => {
-      if (value && value !== 'all') {
-        params.set(key, value as string)
+      if (value && value !== "all") {
+        params.set(key, value as string);
       }
-    })
-    
-    router.push(`/products?${params.toString()}`)
-    
+    });
+
+    router.push(`/products?${params.toString()}`);
+
     try {
-      const response = await fetch(`/api/products?${params.toString()}`)
-      const data = await response.json()
-      setProducts(data)
+      const response = await fetch(`/api/products?${params.toString()}`);
+      const data = await response.json();
+      setProducts(data);
     } catch (error) {
-      console.error('Error fetching products:', error)
+      console.error("Error fetching products:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Pet Food Products</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          Pet Food Products
+        </h1>
         <p className="text-gray-600">Premium nutrition delivered monthly</p>
       </div>
 
-      <ProductFilter 
+      <ProductFilter
         filters={currentFilters}
-        onFiltersChange={handleFiltersChange} 
+        onFiltersChange={handleFiltersChange}
       />
 
       {loading ? (
@@ -93,5 +98,5 @@ export default function ClientProductsPage({ initialProducts }: ClientProductsPa
         <ProductGrid products={products} />
       )}
     </div>
-  )
-} 
+  );
+}

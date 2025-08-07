@@ -1,27 +1,36 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { X, Filter } from "lucide-react"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { X, Filter } from "lucide-react";
 
 interface ProductFilterProps {
   filters: {
-    category?: string
-    petType?: string
-    brand?: string
-    weight?: string
-    species?: string
-    lifeStage?: string
-    productType?: string
-    foodType?: string
-  }
-  onFiltersChange: (filters: any) => void
+    category?: string;
+    petType?: string;
+    brand?: string;
+    weight?: string;
+    species?: string;
+    lifeStage?: string;
+    productType?: string;
+    foodType?: string;
+  };
+  onFiltersChange: (filters: any) => void;
 }
 
-export function ProductFilter({ filters, onFiltersChange }: ProductFilterProps) {
-  const [isExpanded, setIsExpanded] = useState(false)
+export function ProductFilter({
+  filters,
+  onFiltersChange,
+}: ProductFilterProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const categories = [
     { value: "all", label: "All Categories" },
@@ -31,13 +40,13 @@ export function ProductFilter({ filters, onFiltersChange }: ProductFilterProps) 
     { value: "Hygiene", label: "Hygiene" },
     { value: "Tick & Flea", label: "Tick & Flea" },
     { value: "Litter", label: "Litter" },
-  ]
+  ];
 
   const species = [
     { value: "all", label: "All Species" },
     { value: "Dog", label: "Dog" },
     { value: "Cat", label: "Cat" },
-  ]
+  ];
 
   const brands = [
     { value: "all", label: "All Brands" },
@@ -47,7 +56,7 @@ export function ProductFilter({ filters, onFiltersChange }: ProductFilterProps) 
     { value: "Blue Buffalo", label: "Blue Buffalo" },
     { value: "Orijen", label: "Orijen" },
     { value: "Acana", label: "Acana" },
-  ]
+  ];
 
   const weights = [
     { value: "all", label: "All Weights" },
@@ -56,7 +65,7 @@ export function ProductFilter({ filters, onFiltersChange }: ProductFilterProps) 
     { value: "1-2kg", label: "1-2kg" },
     { value: "2-5kg", label: "2-5kg" },
     { value: "5kg+", label: "5kg+" },
-  ]
+  ];
 
   const lifeStages = [
     { value: "all", label: "All Life Stages" },
@@ -64,7 +73,7 @@ export function ProductFilter({ filters, onFiltersChange }: ProductFilterProps) 
     { value: "puppy", label: "Puppy" },
     { value: "adult", label: "Adult" },
     { value: "senior", label: "Senior" },
-  ]
+  ];
 
   const productTypes = [
     { value: "all", label: "All Product Types" },
@@ -78,29 +87,29 @@ export function ProductFilter({ filters, onFiltersChange }: ProductFilterProps) 
     { value: "Litter", label: "Litter" },
     { value: "Tick & Flea Cats", label: "Tick & Flea Cats" },
     { value: "Tick & Flea Dogs", label: "Tick & Flea Dogs" },
-  ]
+  ];
 
   const foodTypes = [
     { value: "all", label: "All Food Types" },
     { value: "dry", label: "Dry" },
     { value: "wet", label: "Wet" },
-  ]
+  ];
 
   const handleFilterChange = (key: string, value: string) => {
-    const newFilters = { ...filters }
+    const newFilters = { ...filters };
     if (value === "all") {
-      delete newFilters[key as keyof typeof filters]
+      delete newFilters[key as keyof typeof filters];
     } else {
-      newFilters[key as keyof typeof filters] = value
+      newFilters[key as keyof typeof filters] = value;
     }
-    onFiltersChange(newFilters)
-  }
+    onFiltersChange(newFilters);
+  };
 
   const clearAllFilters = () => {
-    onFiltersChange({})
-  }
+    onFiltersChange({});
+  };
 
-  const hasActiveFilters = Object.keys(filters).length > 0
+  const hasActiveFilters = Object.keys(filters).length > 0;
 
   return (
     <Card className="mb-6">
@@ -132,13 +141,16 @@ export function ProductFilter({ filters, onFiltersChange }: ProductFilterProps) 
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         {/* Basic Filters - Always Visible */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <label className="text-sm font-medium mb-2 block">Category</label>
-            <Select value={filters.category || "all"} onValueChange={(value) => handleFilterChange("category", value)}>
+            <Select
+              value={filters.category || "all"}
+              onValueChange={(value) => handleFilterChange("category", value)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
@@ -154,7 +166,10 @@ export function ProductFilter({ filters, onFiltersChange }: ProductFilterProps) 
 
           <div>
             <label className="text-sm font-medium mb-2 block">Species</label>
-            <Select value={filters.species || "all"} onValueChange={(value) => handleFilterChange("species", value)}>
+            <Select
+              value={filters.species || "all"}
+              onValueChange={(value) => handleFilterChange("species", value)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select species" />
               </SelectTrigger>
@@ -169,8 +184,15 @@ export function ProductFilter({ filters, onFiltersChange }: ProductFilterProps) 
           </div>
 
           <div>
-            <label className="text-sm font-medium mb-2 block">Product Type</label>
-            <Select value={filters.productType || "all"} onValueChange={(value) => handleFilterChange("productType", value)}>
+            <label className="text-sm font-medium mb-2 block">
+              Product Type
+            </label>
+            <Select
+              value={filters.productType || "all"}
+              onValueChange={(value) =>
+                handleFilterChange("productType", value)
+              }
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select product type" />
               </SelectTrigger>
@@ -186,7 +208,10 @@ export function ProductFilter({ filters, onFiltersChange }: ProductFilterProps) 
 
           <div>
             <label className="text-sm font-medium mb-2 block">Life Stage</label>
-            <Select value={filters.lifeStage || "all"} onValueChange={(value) => handleFilterChange("lifeStage", value)}>
+            <Select
+              value={filters.lifeStage || "all"}
+              onValueChange={(value) => handleFilterChange("lifeStage", value)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select life stage" />
               </SelectTrigger>
@@ -206,7 +231,10 @@ export function ProductFilter({ filters, onFiltersChange }: ProductFilterProps) 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-4 border-t">
             <div>
               <label className="text-sm font-medium mb-2 block">Brand</label>
-              <Select value={filters.brand || "all"} onValueChange={(value) => handleFilterChange("brand", value)}>
+              <Select
+                value={filters.brand || "all"}
+                onValueChange={(value) => handleFilterChange("brand", value)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select brand" />
                 </SelectTrigger>
@@ -222,7 +250,10 @@ export function ProductFilter({ filters, onFiltersChange }: ProductFilterProps) 
 
             <div>
               <label className="text-sm font-medium mb-2 block">Weight</label>
-              <Select value={filters.weight || "all"} onValueChange={(value) => handleFilterChange("weight", value)}>
+              <Select
+                value={filters.weight || "all"}
+                onValueChange={(value) => handleFilterChange("weight", value)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select weight" />
                 </SelectTrigger>
@@ -237,8 +268,13 @@ export function ProductFilter({ filters, onFiltersChange }: ProductFilterProps) 
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block">Food Type</label>
-              <Select value={filters.foodType || "all"} onValueChange={(value) => handleFilterChange("foodType", value)}>
+              <label className="text-sm font-medium mb-2 block">
+                Food Type
+              </label>
+              <Select
+                value={filters.foodType || "all"}
+                onValueChange={(value) => handleFilterChange("foodType", value)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select food type" />
                 </SelectTrigger>
@@ -274,5 +310,5 @@ export function ProductFilter({ filters, onFiltersChange }: ProductFilterProps) 
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

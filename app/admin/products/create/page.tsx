@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, Save, Upload, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
@@ -57,6 +58,21 @@ export default function CreateProductPage() {
     ingredients:
       "Deboned chicken as the first ingredient, Sweet potatoes and peas for digestible carbohydrates, Chicken meal and salmon meal for added protein, Flaxseed for omega fatty acids, Blueberries and cranberries for antioxidants, No corn, wheat, soy, or artificial preservatives",
   });
+
+  // Weight variants state
+  const [weightVariants, setWeightVariants] = useState<Array<{weight: string, price: string, selected: boolean}>>([
+    { weight: "300g", price: "", selected: false },
+    { weight: "500g", price: "", selected: false },
+    { weight: "1kg", price: "", selected: false },
+    { weight: "1.5kg", price: "", selected: false },
+    { weight: "2kg", price: "", selected: false },
+    { weight: "3kg", price: "", selected: false },
+    { weight: "5kg", price: "", selected: false },
+    { weight: "7kg", price: "", selected: false },
+    { weight: "10kg", price: "", selected: false },
+    { weight: "15kg", price: "", selected: false },
+    { weight: "20kg", price: "", selected: false },
+  ]);
 
   const router = useRouter();
   const { toast } = useToast();
@@ -149,6 +165,18 @@ export default function CreateProductPage() {
     setLoading(true);
 
     try {
+      // Validate that at least one weight variant is selected
+      const selectedVariants = weightVariants.filter(variant => variant.selected && variant.price);
+      if (selectedVariants.length === 0) {
+        toast({
+          title: "Error",
+          description: "Please select at least one weight variant with a price.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
       const response = await fetch("/api/admin/products", {
         method: "POST",
         headers: {
@@ -157,6 +185,10 @@ export default function CreateProductPage() {
         body: JSON.stringify({
           ...formData,
           price: parseFloat(formData.price),
+          weightVariants: selectedVariants.map(variant => ({
+            weight: variant.weight,
+            price: parseFloat(variant.price),
+          })),
         }),
       });
 
@@ -168,7 +200,7 @@ export default function CreateProductPage() {
 
       toast({
         title: "Product Created!",
-        description: `${product.name} has been added to your catalog.`,
+        description: `${product.name} has been added to your catalog with ${selectedVariants.length} weight variant(s).`,
       });
 
       router.push("/admin/products");
@@ -190,14 +222,27 @@ export default function CreateProductPage() {
         ...prev,
         [field]: value,
       };
-      
+
       // Automatically set species when petType changes
       if (field === "petType" && (value === "Dog" || value === "Cat")) {
         newData.species = value as string;
       }
-      
+
       return newData;
     });
+  };
+
+  // Weight variant handlers
+  const handleWeightVariantToggle = (index: number, checked: boolean) => {
+    setWeightVariants(prev => prev.map((variant, i) => 
+      i === index ? { ...variant, selected: checked } : variant
+    ));
+  };
+
+  const handleWeightVariantPriceChange = (index: number, price: string) => {
+    setWeightVariants(prev => prev.map((variant, i) => 
+      i === index ? { ...variant, price } : variant
+    ));
   };
 
   return (
@@ -387,7 +432,9 @@ export default function CreateProductPage() {
                     <Label htmlFor="brand">Brand</Label>
                     <Select
                       value={formData.brand}
-                      onValueChange={(value) => handleInputChange("brand", value)}
+                      onValueChange={(value) =>
+                        handleInputChange("brand", value)
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select brand" />
@@ -396,41 +443,58 @@ export default function CreateProductPage() {
                         <SelectItem value="Royal Canin">Royal Canin</SelectItem>
                         <SelectItem value="Hill's">Hill's</SelectItem>
                         <SelectItem value="Purina">Purina</SelectItem>
-                        <SelectItem value="Blue Buffalo">Blue Buffalo</SelectItem>
+                        <SelectItem value="Blue Buffalo">
+                          Blue Buffalo
+                        </SelectItem>
                         <SelectItem value="Orijen">Orijen</SelectItem>
                         <SelectItem value="Acana">Acana</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="weight">Weight</Label>
-                    <Select
-                      value={formData.weight}
-                      onValueChange={(value) => handleInputChange("weight", value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select weight" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="300g">300g</SelectItem>
-                        <SelectItem value="500g">500g</SelectItem>
-                        <SelectItem value="1kg">1kg</SelectItem>
-                        <SelectItem value="1.5kg">1.5kg</SelectItem>
-                        <SelectItem value="2kg">2kg</SelectItem>
-                        <SelectItem value="3kg">3kg</SelectItem>
-                        <SelectItem value="5kg">5kg</SelectItem>
-                        <SelectItem value="7kg">7kg</SelectItem>
-                        <SelectItem value="10kg">10kg</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="space-y-4">
+                    <Label>Weight Variants</Label>
+                    <p className="text-sm text-gray-600">
+                      Select the weight options you want to offer for this product and set their prices.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto border rounded-lg p-4">
+                      {weightVariants.map((variant, index) => (
+                        <div key={variant.weight} className="flex items-center space-x-3 p-3 border rounded-lg">
+                          <Checkbox
+                            id={`weight-${index}`}
+                            checked={variant.selected}
+                            onCheckedChange={(checked) => 
+                              handleWeightVariantToggle(index, checked as boolean)
+                            }
+                          />
+                          <Label htmlFor={`weight-${index}`} className="flex-shrink-0 min-w-[60px]">
+                            {variant.weight}
+                          </Label>
+                          <Input
+                            type="number"
+                            placeholder="Price"
+                            value={variant.price}
+                            onChange={(e) => handleWeightVariantPriceChange(index, e.target.value)}
+                            disabled={!variant.selected}
+                            className="flex-1"
+                            step="0.01"
+                            min="0"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      Selected variants: {weightVariants.filter(v => v.selected).length}
+                    </div>
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="lifeStage">Life Stage</Label>
                     <Select
                       value={formData.lifeStage}
-                      onValueChange={(value) => handleInputChange("lifeStage", value)}
+                      onValueChange={(value) =>
+                        handleInputChange("lifeStage", value)
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select life stage" />
@@ -448,7 +512,9 @@ export default function CreateProductPage() {
                     <Label htmlFor="productType">Product Type</Label>
                     <Select
                       value={formData.productType}
-                      onValueChange={(value) => handleInputChange("productType", value)}
+                      onValueChange={(value) =>
+                        handleInputChange("productType", value)
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select product type" />
@@ -456,14 +522,26 @@ export default function CreateProductPage() {
                       <SelectContent>
                         <SelectItem value="Cat Treat">Cat Treat</SelectItem>
                         <SelectItem value="Dog Treat">Dog Treat</SelectItem>
-                        <SelectItem value="Dry Cat Food">Dry Cat Food</SelectItem>
-                        <SelectItem value="Dry Dog Food">Dry Dog Food</SelectItem>
-                        <SelectItem value="Wet Cat Food">Wet Cat Food</SelectItem>
-                        <SelectItem value="Wet Dog Food">Wet Dog Food</SelectItem>
+                        <SelectItem value="Dry Cat Food">
+                          Dry Cat Food
+                        </SelectItem>
+                        <SelectItem value="Dry Dog Food">
+                          Dry Dog Food
+                        </SelectItem>
+                        <SelectItem value="Wet Cat Food">
+                          Wet Cat Food
+                        </SelectItem>
+                        <SelectItem value="Wet Dog Food">
+                          Wet Dog Food
+                        </SelectItem>
                         <SelectItem value="Hygiene">Hygiene</SelectItem>
                         <SelectItem value="Litter">Litter</SelectItem>
-                        <SelectItem value="Tick & Flea Cats">Tick & Flea Cats</SelectItem>
-                        <SelectItem value="Tick & Flea Dogs">Tick & Flea Dogs</SelectItem>
+                        <SelectItem value="Tick & Flea Cats">
+                          Tick & Flea Cats
+                        </SelectItem>
+                        <SelectItem value="Tick & Flea Dogs">
+                          Tick & Flea Dogs
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -472,7 +550,9 @@ export default function CreateProductPage() {
                     <Label htmlFor="foodType">Food Type</Label>
                     <Select
                       value={formData.foodType}
-                      onValueChange={(value) => handleInputChange("foodType", value)}
+                      onValueChange={(value) =>
+                        handleInputChange("foodType", value)
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select food type" />
