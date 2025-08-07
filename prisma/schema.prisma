@@ -90,6 +90,18 @@ model Product {
   petType     String // Dog or Cat
   image       String
   featured    Boolean  @default(false)
+  
+  // Nutrition Facts
+  protein     String?  @default("Min 28%")
+  fat         String?  @default("Min 15%")
+  fiber       String?  @default("Max 4%")
+  moisture    String?  @default("Max 10%")
+  calories    String?  @default("3,500 kcal/kg")
+  omega6      String?  @default("Min 1.4%")
+  
+  // Ingredients
+  ingredients String?  @default("Deboned chicken as the first ingredient, Sweet potatoes and peas for digestible carbohydrates, Chicken meal and salmon meal for added protein, Flaxseed for omega fatty acids, Blueberries and cranberries for antioxidants, No corn, wheat, soy, or artificial preservatives")
+  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   

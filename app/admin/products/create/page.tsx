@@ -39,6 +39,16 @@ export default function CreateProductPage() {
     petType: "",
     image: "",
     featured: false,
+    // Nutrition Facts
+    protein: "Min 28%",
+    fat: "Min 15%",
+    fiber: "Max 4%",
+    moisture: "Max 10%",
+    calories: "3,500 kcal/kg",
+    omega6: "Min 1.4%",
+    // Ingredients
+    ingredients:
+      "Deboned chicken as the first ingredient, Sweet potatoes and peas for digestible carbohydrates, Chicken meal and salmon meal for added protein, Flaxseed for omega fatty acids, Blueberries and cranberries for antioxidants, No corn, wheat, soy, or artificial preservatives",
   });
 
   const router = useRouter();
@@ -352,7 +362,102 @@ export default function CreateProductPage() {
               </p>
             </div>
 
-            <div className="flex items-center space-x-2">
+            {/* Nutrition Facts Section */}
+            <div className="space-y-4">
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold mb-4">Nutrition Facts</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="protein">Protein</Label>
+                    <Input
+                      id="protein"
+                      value={formData.protein}
+                      onChange={(e) =>
+                        handleInputChange("protein", e.target.value)
+                      }
+                      placeholder="e.g., Min 28%"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="fat">Fat</Label>
+                    <Input
+                      id="fat"
+                      value={formData.fat}
+                      onChange={(e) => handleInputChange("fat", e.target.value)}
+                      placeholder="e.g., Min 15%"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="fiber">Fiber</Label>
+                    <Input
+                      id="fiber"
+                      value={formData.fiber}
+                      onChange={(e) =>
+                        handleInputChange("fiber", e.target.value)
+                      }
+                      placeholder="e.g., Max 4%"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="moisture">Moisture</Label>
+                    <Input
+                      id="moisture"
+                      value={formData.moisture}
+                      onChange={(e) =>
+                        handleInputChange("moisture", e.target.value)
+                      }
+                      placeholder="e.g., Max 10%"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="calories">Calories</Label>
+                    <Input
+                      id="calories"
+                      value={formData.calories}
+                      onChange={(e) =>
+                        handleInputChange("calories", e.target.value)
+                      }
+                      placeholder="e.g., 3,500 kcal/kg"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="omega6">Omega-6</Label>
+                    <Input
+                      id="omega6"
+                      value={formData.omega6}
+                      onChange={(e) =>
+                        handleInputChange("omega6", e.target.value)
+                      }
+                      placeholder="e.g., Min 1.4%"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Ingredients Section */}
+            <div className="space-y-4">
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold mb-4">Ingredients</h3>
+                <div className="space-y-2">
+                  <Label htmlFor="ingredients">Ingredients List</Label>
+                  <Textarea
+                    id="ingredients"
+                    value={formData.ingredients}
+                    onChange={(e) =>
+                      handleInputChange("ingredients", e.target.value)
+                    }
+                    placeholder="List all ingredients separated by commas..."
+                    rows={4}
+                  />
+                  <p className="text-sm text-gray-600">
+                    List ingredients in order of weight, separated by commas.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2 border-t pt-6">
               <Switch
                 id="featured"
                 checked={formData.featured}

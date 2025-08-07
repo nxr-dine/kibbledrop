@@ -35,6 +35,13 @@ interface Product {
   petType: string;
   image: string;
   featured: boolean;
+  protein?: string;
+  fat?: string;
+  fiber?: string;
+  moisture?: string;
+  calories?: string;
+  omega6?: string;
+  ingredients?: string;
 }
 
 export default function EditProductPage({
@@ -56,6 +63,13 @@ export default function EditProductPage({
     petType: "",
     image: "",
     featured: false,
+    protein: "",
+    fat: "",
+    fiber: "",
+    moisture: "",
+    calories: "",
+    omega6: "",
+    ingredients: "",
   });
 
   const router = useRouter();
@@ -162,6 +176,13 @@ export default function EditProductPage({
           petType: productData.petType,
           image: productData.image,
           featured: productData.featured,
+          protein: productData.protein || "",
+          fat: productData.fat || "",
+          fiber: productData.fiber || "",
+          moisture: productData.moisture || "",
+          calories: productData.calories || "",
+          omega6: productData.omega6 || "",
+          ingredients: productData.ingredients || "",
         });
         // Set image preview if image exists
         if (productData.image) {
@@ -426,6 +447,99 @@ export default function EditProductPage({
                 Upload a high-quality image of your product. Leave empty to keep
                 current image.
               </p>
+            </div>
+
+            {/* Nutrition Facts Section */}
+            <div className="space-y-4">
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold mb-4">
+                  Nutrition Facts (Optional)
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="protein">Crude Protein (%)</Label>
+                    <Input
+                      id="protein"
+                      value={formData.protein}
+                      onChange={(e) =>
+                        handleInputChange("protein", e.target.value)
+                      }
+                      placeholder="e.g., 26.0"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="fat">Crude Fat (%)</Label>
+                    <Input
+                      id="fat"
+                      value={formData.fat}
+                      onChange={(e) => handleInputChange("fat", e.target.value)}
+                      placeholder="e.g., 15.0"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="fiber">Crude Fiber (%)</Label>
+                    <Input
+                      id="fiber"
+                      value={formData.fiber}
+                      onChange={(e) =>
+                        handleInputChange("fiber", e.target.value)
+                      }
+                      placeholder="e.g., 4.0"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="moisture">Moisture (%)</Label>
+                    <Input
+                      id="moisture"
+                      value={formData.moisture}
+                      onChange={(e) =>
+                        handleInputChange("moisture", e.target.value)
+                      }
+                      placeholder="e.g., 10.0"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="calories">Calories (kcal/kg)</Label>
+                    <Input
+                      id="calories"
+                      value={formData.calories}
+                      onChange={(e) =>
+                        handleInputChange("calories", e.target.value)
+                      }
+                      placeholder="e.g., 3500"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="omega6">Omega-6 Fatty Acids (%)</Label>
+                    <Input
+                      id="omega6"
+                      value={formData.omega6}
+                      onChange={(e) =>
+                        handleInputChange("omega6", e.target.value)
+                      }
+                      placeholder="e.g., 3.0"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="ingredients">Ingredients</Label>
+                <Textarea
+                  id="ingredients"
+                  value={formData.ingredients}
+                  onChange={(e) =>
+                    handleInputChange("ingredients", e.target.value)
+                  }
+                  placeholder="List all ingredients separated by commas..."
+                  rows={4}
+                />
+              </div>
             </div>
 
             <div className="flex items-center space-x-2">

@@ -1,45 +1,94 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useCart } from "@/contexts/cart-context"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useToast } from "@/hooks/use-toast"
+import { useState } from "react";
+import { useCart } from "@/contexts/cart-context";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 export default function SubscriptionSetupPage() {
-  const { state } = useCart()
-  const router = useRouter()
-  const { toast } = useToast()
-  const [deliveryFrequency, setDeliveryFrequency] = useState("monthly")
+  const { state } = useCart();
+  const router = useRouter();
+  const { toast } = useToast();
+  const [deliveryFrequency, setDeliveryFrequency] = useState("monthly");
+  const [customWeeks, setCustomWeeks] = useState(4);
+  const [customDate, setCustomDate] = useState<Date | undefined>(new Date());
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   if (state.items.length === 0) {
-    router.push("/dashboard/products")
+    router.push("/dashboard/products");
     toast({
       title: "Your cart is empty!",
-      description: "Please add products to your cart before setting up a subscription.",
+      description:
+        "Please add products to your cart before setting up a subscription.",
       variant: "destructive",
-    })
-    return null
+    });
+    return null;
   }
 
-  const subtotal = state.total
-  const tax = subtotal * 0.08 // 8% tax
-  const finalTotal = subtotal + tax
+  const subtotal = state.total;
+  const tax = subtotal * 0.08; // 8% tax
+  const finalTotal = subtotal + tax;
 
   const handleProceedToDelivery = () => {
-    // Save the selected frequency to localStorage for the next step
-    localStorage.setItem('subscriptionFrequency', deliveryFrequency)
-    router.push("/dashboard/delivery")
-  }
+    // Save the selected frequency and custom options to localStorage for the next step
+    const subscriptionData = {
+      frequency: deliveryFrequency,
+      customWeeks: customWeeks,
+      customDate: customDate?.toISOString(),
+    };
+    localStorage.setItem(
+      "subscriptionFrequency",
+      JSON.stringify(subscriptionData)
+    );
+    router.push("/dashboard/delivery");
+  };
+
+  const getFrequencyDisplay = () => {
+    switch (deliveryFrequency) {
+      case "weekly":
+        return "week";
+      case "bi-weekly":
+        return "2 weeks";
+      case "tri-weekly":
+        return "3 weeks";
+      case "monthly":
+        return "month";
+      case "custom-weeks":
+        return `${customWeeks} weeks`;
+      case "custom-date":
+        return "custom schedule";
+      default:
+        return "month";
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8">Set Up Your Subscription</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8">
+        Set Up Your Subscription
+      </h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
         {/* Selected Products */}
@@ -47,16 +96,25 @@ export default function SubscriptionSetupPage() {
           <Card>
             <CardHeader>
               <CardTitle>Your Selected Products</CardTitle>
-              <CardDescription>Review the items in your monthly subscription.</CardDescription>
+              <CardDescription>
+                Review the items in your monthly subscription.
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {state.items.map((item) => (
-                <div key={item.id} className="flex justify-between items-center">
+                <div
+                  key={item.id}
+                  className="flex justify-between items-center"
+                >
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm truncate">{item.name}</p>
-                    <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                    <p className="text-sm text-gray-600">
+                      Qty: {item.quantity}
+                    </p>
                   </div>
-                  <p className="font-semibold text-sm sm:text-base ml-2">${(item.price * item.quantity).toFixed(2)}</p>
+                  <p className="font-semibold text-sm sm:text-base ml-2">
+                    ${(item.price * item.quantity).toFixed(2)}
+                  </p>
                 </div>
               ))}
               <Separator />
@@ -64,7 +122,11 @@ export default function SubscriptionSetupPage() {
                 <span>Monthly Subtotal:</span>
                 <span className="text-orange-600">${subtotal.toFixed(2)}</span>
               </div>
-              <Button asChild variant="outline" className="w-full bg-transparent">
+              <Button
+                asChild
+                variant="outline"
+                className="w-full bg-transparent"
+              >
                 <Link href="/cart">Edit Cart</Link>
               </Button>
             </CardContent>
@@ -76,7 +138,9 @@ export default function SubscriptionSetupPage() {
           <Card>
             <CardHeader>
               <CardTitle>Delivery Frequency</CardTitle>
-              <CardDescription>Choose how often you'd like your pet food delivered.</CardDescription>
+              <CardDescription>
+                Choose how often you'd like your pet food delivered.
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <RadioGroup
@@ -86,17 +150,115 @@ export default function SubscriptionSetupPage() {
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="weekly" id="weekly" />
-                  <Label htmlFor="weekly" className="text-sm sm:text-base">Weekly Delivery</Label>
+                  <Label htmlFor="weekly" className="text-sm sm:text-base">
+                    Weekly Delivery
+                  </Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="bi-weekly" id="bi-weekly" />
-                  <Label htmlFor="bi-weekly" className="text-sm sm:text-base">Bi-Weekly Delivery</Label>
+                  <Label htmlFor="bi-weekly" className="text-sm sm:text-base">
+                    Every 2 Weeks
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="tri-weekly" id="tri-weekly" />
+                  <Label htmlFor="tri-weekly" className="text-sm sm:text-base">
+                    Every 3 Weeks
+                  </Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="monthly" id="monthly" />
-                  <Label htmlFor="monthly" className="text-sm sm:text-base">Monthly Delivery (Recommended)</Label>
+                  <Label htmlFor="monthly" className="text-sm sm:text-base">
+                    Monthly Delivery (Recommended)
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="custom-weeks" id="custom-weeks" />
+                  <Label
+                    htmlFor="custom-weeks"
+                    className="text-sm sm:text-base"
+                  >
+                    Custom Weeks
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="custom-date" id="custom-date" />
+                  <Label htmlFor="custom-date" className="text-sm sm:text-base">
+                    Custom Date Schedule
+                  </Label>
                 </div>
               </RadioGroup>
+
+              {/* Custom Weeks Input */}
+              {deliveryFrequency === "custom-weeks" && (
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="custom-weeks-input"
+                    className="text-sm font-medium"
+                  >
+                    Deliver every how many weeks?
+                  </Label>
+                  <div className="flex items-center space-x-2">
+                    <Input
+                      id="custom-weeks-input"
+                      type="number"
+                      min="1"
+                      max="52"
+                      value={customWeeks}
+                      onChange={(e) =>
+                        setCustomWeeks(parseInt(e.target.value) || 1)
+                      }
+                      className="w-20"
+                    />
+                    <span className="text-sm text-gray-600">weeks</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Custom Date Picker */}
+              {deliveryFrequency === "custom-date" && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">
+                    Select next delivery date
+                  </Label>
+                  <Popover
+                    open={isCalendarOpen}
+                    onOpenChange={setIsCalendarOpen}
+                  >
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !customDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {customDate ? (
+                          format(customDate, "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={customDate}
+                        onSelect={(date) => {
+                          setCustomDate(date);
+                          setIsCalendarOpen(false);
+                        }}
+                        disabled={(date) => date < new Date()}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <p className="text-xs text-gray-500">
+                    You can adjust this schedule after setup
+                  </p>
+                </div>
+              )}
 
               <Separator />
 
@@ -117,14 +279,27 @@ export default function SubscriptionSetupPage() {
                 <div className="flex justify-between text-base sm:text-lg font-bold">
                   <span>Estimated Total:</span>
                   <span className="text-orange-600">
-                    ${finalTotal.toFixed(2)}/
-                    {deliveryFrequency === "weekly" ? "week" : deliveryFrequency === "bi-weekly" ? "2 weeks" : "month"}
+                    ${finalTotal.toFixed(2)}/{getFrequencyDisplay()}
                   </span>
                 </div>
-                <p className="text-sm text-gray-600">Billed {deliveryFrequency}</p>
+                <p className="text-sm text-gray-600">
+                  {deliveryFrequency === "custom-date"
+                    ? `Next delivery: ${
+                        customDate ? format(customDate, "PPP") : "Select date"
+                      }`
+                    : `Billed ${
+                        deliveryFrequency === "custom-weeks"
+                          ? `every ${customWeeks} weeks`
+                          : deliveryFrequency
+                      }`}
+                </p>
               </div>
 
-              <Button onClick={handleProceedToDelivery} className="w-full" size="lg">
+              <Button
+                onClick={handleProceedToDelivery}
+                className="w-full"
+                size="lg"
+              >
                 Proceed to Delivery Information
               </Button>
             </CardContent>
@@ -132,5 +307,5 @@ export default function SubscriptionSetupPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

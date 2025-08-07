@@ -1,37 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function GET(request: NextRequest) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    const { searchParams } = new URL(request.url);
-    const petType = searchParams.get("petType");
-    const category = searchParams.get("category");
-    const featured = searchParams.get("featured");
-
-    const where: any = {};
-
-    if (petType) {
-      where.petType = petType;
-    }
-
-    if (category) {
-      where.category = category;
-    }
-
-    if (featured === "true") {
-      where.featured = true;
-    }
-
-    const products = await prisma.product.findMany({
-      where,
-      orderBy: {
-        createdAt: "desc",
+    const product = await prisma.product.findUnique({
+      where: {
+        id: params.id,
       },
     });
 
-    return NextResponse.json(products);
+    if (!product) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(product);
   } catch (error) {
-    console.error("Error fetching products:", error);
+    console.error("Error fetching product:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -39,7 +26,10 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
     const body = await request.json();
     const {
@@ -57,6 +47,8 @@ export async function POST(request: NextRequest) {
       calories,
       omega6,
       ingredients,
+      feedingGuideAdult,
+      feedingGuidePuppy,
     } = body;
 
     // Validate required fields
@@ -67,7 +59,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const product = await prisma.product.create({
+    const product = await prisma.product.update({
+      where: {
+        id: params.id,
+      },
       data: {
         name,
         description,
@@ -83,12 +78,14 @@ export async function POST(request: NextRequest) {
         calories,
         omega6,
         ingredients,
+        feedingGuideAdult,
+        feedingGuidePuppy,
       },
     });
 
-    return NextResponse.json(product, { status: 201 });
+    return NextResponse.json(product);
   } catch (error) {
-    console.error("Error creating product:", error);
+    console.error("Error updating product:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

@@ -1,38 +1,73 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, MapPin, Clock, Truck, CreditCard } from "lucide-react"
-import { useCartStore } from "@/lib/cart"
-import { useToast } from "@/hooks/use-toast"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, MapPin, Clock, Truck, CreditCard } from "lucide-react";
+import { useCart } from "@/contexts/cart-context";
+import { useToast } from "@/hooks/use-toast";
+import { useSession } from "next-auth/react";
 
 interface DeliveryInfo {
-  firstName: string
-  lastName: string
-  email: string
-  phone: string
-  address: string
-  city: string
-  state: string
-  postalCode: string
-  deliveryInstructions: string
-  deliveryMethod: string
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  deliveryInstructions: string;
+  deliveryMethod: string;
 }
 
 export default function CheckoutPage() {
-  const { items, getTotal, clearCart } = useCartStore()
-  const router = useRouter()
-  const { toast } = useToast()
-  const [loading, setLoading] = useState(false)
+  const { state: cartState, dispatch } = useCart();
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (status === "loading") return; // Still loading
+    if (!session) {
+      router.push("/login?callbackUrl=/checkout");
+      return;
+    }
+  }, [session, status, router]);
+
+  // Redirect if cart is empty
+  useEffect(() => {
+    if (cartState.items.length === 0) {
+      router.push("/dashboard/products");
+      toast({
+        title: "Your cart is empty",
+        description: "Please add some products before checking out.",
+        variant: "destructive",
+      });
+    }
+  }, [cartState.items.length, router, toast]);
   const [deliveryInfo, setDeliveryInfo] = useState<DeliveryInfo>({
     firstName: "",
     lastName: "",
@@ -43,23 +78,23 @@ export default function CheckoutPage() {
     state: "",
     postalCode: "",
     deliveryInstructions: "",
-    deliveryMethod: "standard"
-  })
+    deliveryMethod: "standard",
+  });
 
-  const subtotal = getTotal()
-  const shipping = deliveryInfo.deliveryMethod === "express" ? 12.99 : 5.99
-  const total = subtotal + shipping
+  const subtotal = cartState.total;
+  const shipping = deliveryInfo.deliveryMethod === "express" ? 12.99 : 5.99;
+  const total = subtotal + shipping;
 
   const handleInputChange = (field: keyof DeliveryInfo, value: string) => {
-    setDeliveryInfo(prev => ({
+    setDeliveryInfo((prev) => ({
       ...prev,
-      [field]: value
-    }))
-  }
+      [field]: value,
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
 
     try {
       // Create order
@@ -69,56 +104,60 @@ export default function CheckoutPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          items: items.map(item => ({
-            productId: item.productId,
+          items: cartState.items.map((item) => ({
+            productId: item.id, // Map 'id' to 'productId'
             quantity: item.quantity,
-            price: item.price
+            price: item.price,
           })),
           deliveryInfo,
           subtotal,
           shipping,
-          total
+          total,
         }),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error("Failed to create order")
+        throw new Error("Failed to create order");
       }
 
-      const order = await response.json()
-      
+      const order = await response.json();
+
       toast({
         title: "Order Placed!",
         description: `Order #${order.id} has been created successfully.`,
-      })
+      });
 
       // Clear cart and redirect to order confirmation
-      await clearCart()
-      router.push(`/orders/${order.id}`)
+      dispatch({ type: "CLEAR_CART" });
+      router.push(`/orders/${order.id}`);
     } catch (error) {
-      console.error("Error creating order:", error)
+      console.error("Error creating order:", error);
       toast({
         title: "Error",
         description: "Failed to place order. Please try again.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  if (items.length === 0) {
+  if (cartState.items.length === 0) {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center py-12">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Your cart is empty</h1>
-          <p className="text-gray-600 mb-6">Add some products to your cart to proceed with checkout.</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            Your cart is empty
+          </h1>
+          <p className="text-gray-600 mb-6">
+            Add some products to your cart to proceed with checkout.
+          </p>
           <Button asChild>
             <Link href="/dashboard/products">Continue Shopping</Link>
           </Button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -136,7 +175,10 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <form
+        onSubmit={handleSubmit}
+        className="grid grid-cols-1 lg:grid-cols-3 gap-8"
+      >
         {/* Delivery Information */}
         <div className="lg:col-span-2 space-y-6">
           {/* Contact Information */}
@@ -154,7 +196,9 @@ export default function CheckoutPage() {
                   <Input
                     id="firstName"
                     value={deliveryInfo.firstName}
-                    onChange={(e) => handleInputChange("firstName", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("firstName", e.target.value)
+                    }
                     required
                   />
                 </div>
@@ -163,7 +207,9 @@ export default function CheckoutPage() {
                   <Input
                     id="lastName"
                     value={deliveryInfo.lastName}
-                    onChange={(e) => handleInputChange("lastName", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("lastName", e.target.value)
+                    }
                     required
                   />
                 </div>
@@ -235,17 +281,23 @@ export default function CheckoutPage() {
                   <Input
                     id="postalCode"
                     value={deliveryInfo.postalCode}
-                    onChange={(e) => handleInputChange("postalCode", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("postalCode", e.target.value)
+                    }
                     required
                   />
                 </div>
               </div>
               <div>
-                <Label htmlFor="deliveryInstructions">Delivery Instructions</Label>
+                <Label htmlFor="deliveryInstructions">
+                  Delivery Instructions
+                </Label>
                 <Textarea
                   id="deliveryInstructions"
                   value={deliveryInfo.deliveryInstructions}
-                  onChange={(e) => handleInputChange("deliveryInstructions", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("deliveryInstructions", e.target.value)
+                  }
                   placeholder="Any special instructions for delivery..."
                   rows={3}
                 />
@@ -262,9 +314,11 @@ export default function CheckoutPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Select 
-                value={deliveryInfo.deliveryMethod} 
-                onValueChange={(value) => handleInputChange("deliveryMethod", value)}
+              <Select
+                value={deliveryInfo.deliveryMethod}
+                onValueChange={(value) =>
+                  handleInputChange("deliveryMethod", value)
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select delivery method" />
@@ -285,10 +339,9 @@ export default function CheckoutPage() {
                 </SelectContent>
               </Select>
               <p className="text-sm text-gray-600 mt-2">
-                {deliveryInfo.deliveryMethod === "express" 
-                  ? "Next day delivery" 
-                  : "3-5 business days"
-                }
+                {deliveryInfo.deliveryMethod === "express"
+                  ? "Next day delivery"
+                  : "3-5 business days"}
               </p>
             </CardContent>
           </Card>
@@ -299,12 +352,15 @@ export default function CheckoutPage() {
           <Card className="sticky top-24 max-h-[calc(100vh-6rem)] overflow-y-auto">
             <CardHeader>
               <CardTitle>Order Summary</CardTitle>
-              <CardDescription>{items.length} item{items.length !== 1 ? 's' : ''}</CardDescription>
+              <CardDescription>
+                {cartState.items.length} item
+                {cartState.items.length !== 1 ? "s" : ""}
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Items */}
               <div className="space-y-3 max-h-64 overflow-y-auto">
-                {items.map((item) => (
+                {cartState.items.map((item) => (
                   <div key={item.id} className="flex items-center gap-3">
                     <div className="relative h-12 w-12 flex-shrink-0">
                       <Image
@@ -315,10 +371,16 @@ export default function CheckoutPage() {
                       />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-sm truncate">{item.name}</h4>
-                      <p className="text-xs text-gray-600">Qty: {item.quantity}</p>
+                      <h4 className="font-medium text-sm truncate">
+                        {item.name}
+                      </h4>
+                      <p className="text-xs text-gray-600">
+                        Qty: {item.quantity}
+                      </p>
                     </div>
-                    <p className="font-medium text-sm">${(item.price * item.quantity).toFixed(2)}</p>
+                    <p className="font-medium text-sm">
+                      ${(item.price * item.quantity).toFixed(2)}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -341,9 +403,9 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              <Button 
-                type="submit" 
-                className="w-full" 
+              <Button
+                type="submit"
+                className="w-full"
                 size="lg"
                 disabled={loading}
               >
@@ -359,5 +421,5 @@ export default function CheckoutPage() {
         </div>
       </form>
     </div>
-  )
+  );
 }

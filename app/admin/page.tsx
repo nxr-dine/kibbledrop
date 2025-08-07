@@ -1,42 +1,49 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { 
-  Package, 
-  Users, 
-  ShoppingCart, 
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Package,
+  Users,
+  ShoppingCart,
   BarChart3,
   User,
-  Shield
-} from "lucide-react"
-import { useAuth } from "@/contexts/auth-context"
+  Shield,
+  Repeat,
+} from "lucide-react";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function AdminDashboardPage() {
-  const { user, isLoggedIn } = useAuth()
-  const [userRole, setUserRole] = useState<string | null>(null)
+  const { user, isLoggedIn } = useAuth();
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
     const checkUserRole = async () => {
       if (user?.id) {
         try {
-          const response = await fetch('/api/admin/users')
+          const response = await fetch("/api/admin/users");
           if (response.ok) {
-            setUserRole('admin')
+            setUserRole("admin");
           } else {
-            setUserRole('customer')
+            setUserRole("customer");
           }
         } catch (error) {
-          setUserRole('unknown')
+          setUserRole("unknown");
         }
       }
-    }
-    
-    checkUserRole()
-  }, [user])
+    };
+
+    checkUserRole();
+  }, [user]);
 
   if (!isLoggedIn) {
     return (
@@ -44,7 +51,9 @@ export default function AdminDashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle>Access Denied</CardTitle>
-            <CardDescription>You must be logged in to access the admin dashboard</CardDescription>
+            <CardDescription>
+              You must be logged in to access the admin dashboard
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Button asChild>
@@ -53,7 +62,7 @@ export default function AdminDashboardPage() {
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
@@ -68,24 +77,29 @@ export default function AdminDashboardPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <p><strong>Name:</strong> {user?.name || 'Unknown'}</p>
-            <p><strong>Email:</strong> {user?.email || 'Unknown'}</p>
-            <p><strong>User ID:</strong> {user?.id || 'Unknown'}</p>
-            <p><strong>Role:</strong> 
-              {userRole === 'admin' ? (
+            <p>
+              <strong>Name:</strong> {user?.name || "Unknown"}
+            </p>
+            <p>
+              <strong>Email:</strong> {user?.email || "Unknown"}
+            </p>
+            <p>
+              <strong>User ID:</strong> {user?.id || "Unknown"}
+            </p>
+            <p>
+              <strong>Role:</strong>
+              {userRole === "admin" ? (
                 <Badge className="ml-2 bg-green-600">
                   <Shield className="h-3 w-3 mr-1" />
                   Admin
                 </Badge>
-              ) : userRole === 'customer' ? (
+              ) : userRole === "customer" ? (
                 <Badge className="ml-2 bg-blue-600">
                   <User className="h-3 w-3 mr-1" />
                   Customer
                 </Badge>
               ) : (
-                <Badge className="ml-2 bg-gray-600">
-                  Unknown
-                </Badge>
+                <Badge className="ml-2 bg-gray-600">Unknown</Badge>
               )}
             </p>
           </div>
@@ -94,13 +108,17 @@ export default function AdminDashboardPage() {
 
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="text-gray-600 mt-2">Welcome to your KibbleDrop administration panel</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            Admin Dashboard
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Welcome to your KibbleDrop administration panel
+          </p>
         </div>
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Products</CardTitle>
@@ -134,8 +152,19 @@ export default function AdminDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">4</div>
+            <p className="text-xs text-muted-foreground">Total orders placed</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Subscriptions</CardTitle>
+            <Repeat className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">2</div>
             <p className="text-xs text-muted-foreground">
-              Total orders placed
+              Active subscriptions
             </p>
           </CardContent>
         </Card>
@@ -147,15 +176,13 @@ export default function AdminDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">📊</div>
-            <p className="text-xs text-muted-foreground">
-              Business insights
-            </p>
+            <p className="text-xs text-muted-foreground">Business insights</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
         <Card className="hover:shadow-lg transition-shadow cursor-pointer">
           <Link href="/admin/products">
             <CardHeader>
@@ -179,6 +206,20 @@ export default function AdminDashboardPage() {
               </CardTitle>
               <CardDescription>
                 View and update order status, track deliveries
+              </CardDescription>
+            </CardHeader>
+          </Link>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+          <Link href="/admin/subscriptions">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Repeat className="h-5 w-5" />
+                Manage Subscriptions
+              </CardTitle>
+              <CardDescription>
+                View and manage customer subscriptions
               </CardDescription>
             </CardHeader>
           </Link>
@@ -213,5 +254,5 @@ export default function AdminDashboardPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
