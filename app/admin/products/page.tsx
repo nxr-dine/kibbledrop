@@ -18,6 +18,13 @@ interface Product {
   image: string
   featured: boolean
   createdAt: string
+  // New filtering fields
+  brand?: string
+  weight?: string
+  species?: string
+  lifeStage?: string
+  productType?: string
+  foodType?: string
 }
 
 export default function AdminProductsPage() {

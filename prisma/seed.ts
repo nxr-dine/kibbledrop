@@ -212,6 +212,12 @@ async function main() {
         petType: "Dog",
         image: "/placeholder.svg?height=300&width=300&text=Dog+Collar",
         featured: false,
+        brand: "Royal Canin",
+        weight: "200g",
+        species: "Dog",
+        lifeStage: "adult",
+        productType: "Hygiene",
+        foodType: null,
       }
     }),
     prisma.product.create({
@@ -223,6 +229,12 @@ async function main() {
         petType: "Cat",
         image: "/placeholder.svg?height=300&width=300&text=Cat+Tree",
         featured: false,
+        brand: "Blue Buffalo",
+        weight: "5kg",
+        species: "Cat",
+        lifeStage: "adult",
+        productType: "Hygiene",
+        foodType: null,
       }
     }),
     prisma.product.create({
@@ -234,6 +246,12 @@ async function main() {
         petType: "Dog",
         image: "/placeholder.svg?height=300&width=300&text=Dog+Leash",
         featured: false,
+        brand: "Orijen",
+        weight: "300g",
+        species: "Dog",
+        lifeStage: "adult",
+        productType: "Hygiene",
+        foodType: null,
       }
     }),
     prisma.product.create({
@@ -245,6 +263,12 @@ async function main() {
         petType: "Cat",
         image: "/placeholder.svg?height=300&width=300&text=Litter+Box",
         featured: false,
+        brand: "Acana",
+        weight: "3kg",
+        species: "Cat",
+        lifeStage: "adult",
+        productType: "Litter",
+        foodType: null,
       }
     })
   ])

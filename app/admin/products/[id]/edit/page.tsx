@@ -35,6 +35,14 @@ interface Product {
   petType: string;
   image: string;
   featured: boolean;
+  // New filtering fields
+  brand?: string;
+  weight?: string;
+  species?: string;
+  lifeStage?: string;
+  productType?: string;
+  foodType?: string;
+  // Nutrition facts
   protein?: string;
   fat?: string;
   fiber?: string;
