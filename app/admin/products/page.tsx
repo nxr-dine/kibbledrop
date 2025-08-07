@@ -197,18 +197,27 @@ export default function AdminProductsPage() {
                         </Badge>
                       </td>
                       <td className="py-4 px-4">
-                        {product.weightVariants && product.weightVariants.length > 0 ? (
+                        {product.weightVariants &&
+                        product.weightVariants.length > 0 ? (
                           <div className="space-y-1">
                             <div className="text-sm font-medium">
                               {product.weightVariants.length} variants
                             </div>
                             <div className="text-xs text-gray-600">
-                              ${Math.min(...product.weightVariants.map(v => v.price)).toFixed(2)} - 
-                              ${Math.max(...product.weightVariants.map(v => v.price)).toFixed(2)}
+                              $
+                              {Math.min(
+                                ...product.weightVariants.map((v) => v.price)
+                              ).toFixed(2)}{" "}
+                              - $
+                              {Math.max(
+                                ...product.weightVariants.map((v) => v.price)
+                              ).toFixed(2)}
                             </div>
                           </div>
                         ) : (
-                          <span className="font-medium">${product.price.toFixed(2)}</span>
+                          <span className="font-medium">
+                            ${product.price.toFixed(2)}
+                          </span>
                         )}
                       </td>
                       <td className="py-4 px-4">

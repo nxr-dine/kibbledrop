@@ -7,15 +7,23 @@ import { checkAdminRole } from "@/lib/utils";
 
 export async function POST(request: NextRequest) {
   try {
+    console.log("=== POST /api/upload called ===");
     const session = await getServerSession(authOptions);
+    console.log("Session user:", session?.user);
+    console.log("Session user ID:", session?.user?.id);
 
     if (!session?.user) {
+      console.log("❌ No session found");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Check admin role for product uploads
+    console.log("🔍 Checking admin role for user ID:", session.user.id);
     const isAdmin = await checkAdminRole(session.user.id);
+    console.log("✅ Is admin:", isAdmin);
+
     if (!isAdmin) {
+      console.log("❌ User is not admin");
       return NextResponse.json(
         { error: "Admin access required" },
         { status: 403 }

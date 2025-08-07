@@ -6,7 +6,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const productData = await prisma.$queryRaw`
+    const productData = (await prisma.$queryRaw`
       SELECT 
         p.*,
         COALESCE(
@@ -24,7 +24,7 @@ export async function GET(
       LEFT JOIN "ProductWeightVariant" wv ON p.id = wv."productId"
       WHERE p.id = ${params.id}
       GROUP BY p.id
-    ` as any[];
+    `) as any[];
 
     if (!productData || productData.length === 0) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });

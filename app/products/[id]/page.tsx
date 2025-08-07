@@ -84,13 +84,15 @@ export default function ProductPage() {
   const getWeightOptions = (product: Product) => {
     // If the product has weight variants, use those instead of calculated ones
     if (product.weightVariants && product.weightVariants.length > 0) {
-      return product.weightVariants.map(variant => ({
-        value: variant.weight,
-        label: `${variant.weight} - $${variant.price.toFixed(2)}`,
-        priceMultiplier: variant.price / product.price, // Calculate multiplier for compatibility
-        actualPrice: variant.price,
-        inStock: variant.inStock
-      })).filter(option => option.inStock); // Only show in-stock variants
+      return product.weightVariants
+        .map((variant) => ({
+          value: variant.weight,
+          label: `${variant.weight} - $${variant.price.toFixed(2)}`,
+          priceMultiplier: variant.price / product.price, // Calculate multiplier for compatibility
+          actualPrice: variant.price,
+          inStock: variant.inStock,
+        }))
+        .filter((option) => option.inStock); // Only show in-stock variants
     }
 
     // Fallback to calculated weights for products without variants
@@ -177,7 +179,8 @@ export default function ProductPage() {
     (option) => option.value === selectedWeight
   );
   const currentPrice = selectedWeightOption
-    ? (selectedWeightOption.actualPrice || product!.price * selectedWeightOption.priceMultiplier)
+    ? selectedWeightOption.actualPrice ||
+      product!.price * selectedWeightOption.priceMultiplier
     : product?.price || 0;
 
   useEffect(() => {
