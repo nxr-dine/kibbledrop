@@ -49,15 +49,24 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    console.log("=== PUT /api/admin/products/[id] called ===");
+    console.log("Product ID:", params.id);
+    
     const session = await getServerSession(authOptions);
+    console.log("Session user:", session?.user);
 
     if (!session?.user) {
+      console.log("❌ No session found");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Check admin role
+    console.log("🔍 Checking admin role for user ID:", session.user.id);
     const isAdmin = await checkAdminRole(session.user.id);
+    console.log("✅ Is admin:", isAdmin);
+    
     if (!isAdmin) {
+      console.log("❌ User is not admin");
       return NextResponse.json(
         { error: "Admin access required" },
         { status: 403 }
@@ -65,6 +74,8 @@ export async function PUT(
     }
 
     const body = await request.json();
+    console.log("Request body:", body);
+    
     const {
       name,
       description,
@@ -84,6 +95,7 @@ export async function PUT(
 
     // Validation
     if (!name || !description || !price || !category || !petType) {
+      console.log("❌ Missing required fields:", { name, description, price, category, petType });
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -91,15 +103,19 @@ export async function PUT(
     }
 
     // Check if product exists
+    console.log("🔍 Checking if product exists...");
     const existingProduct = await prisma.product.findUnique({
       where: { id: params.id },
     });
 
     if (!existingProduct) {
+      console.log("❌ Product not found");
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
+    console.log("✅ Product found:", existingProduct.name);
 
     // Update product
+    console.log("🔄 Updating product...");
     const product = await prisma.product.update({
       where: { id: params.id },
       data: {
@@ -120,6 +136,7 @@ export async function PUT(
       },
     });
 
+    console.log("✅ Product updated successfully:", product.name);
     return NextResponse.json(product);
   } catch (error) {
     console.error("Error updating product:", error);

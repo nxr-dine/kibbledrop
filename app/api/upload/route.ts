@@ -1,21 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile } from "fs/promises";
-import { join } from "path";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { checkAdminRole } from "@/lib/utils";
 
 export async function POST(request: NextRequest) {
   try {
+    console.log("=== POST /api/upload called ===");
     const session = await getServerSession(authOptions);
+    console.log("Session user:", session?.user);
+    console.log("Session user ID:", session?.user?.id);
 
     if (!session?.user) {
+      console.log("❌ No session found");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Check admin role for product uploads
+    console.log("🔍 Checking admin role for user ID:", session.user.id);
     const isAdmin = await checkAdminRole(session.user.id);
+    console.log("✅ Is admin:", isAdmin);
+    
     if (!isAdmin) {
+      console.log("❌ User is not admin");
       return NextResponse.json(
         { error: "Admin access required" },
         { status: 403 }
@@ -40,37 +46,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate file size (5MB limit)
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    // Validate file size (2MB limit for Vercel)
+    const maxSize = 2 * 1024 * 1024; // 2MB for better performance on Vercel
     if (file.size > maxSize) {
       return NextResponse.json(
         {
-          error: "File too large. Maximum size is 5MB.",
+          error: "File too large. Maximum size is 2MB.",
         },
         { status: 400 }
       );
     }
 
+    // Convert to base64 for Vercel compatibility
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-
+    const base64 = buffer.toString('base64');
+    
     // Generate unique filename
     const timestamp = Date.now();
     const fileExtension = file.name.split(".").pop();
     const filename = `product_${timestamp}.${fileExtension}`;
 
-    // Save to public/uploads/products directory
-    const uploadDir = join(process.cwd(), "public", "uploads", "products");
-    const filepath = join(uploadDir, filename);
-
-    await writeFile(filepath, buffer);
-
-    // Return the public URL
-    const publicUrl = `/uploads/products/${filename}`;
+    // Create data URL for immediate use
+    const dataUrl = `data:${file.type};base64,${base64}`;
 
     return NextResponse.json({
       message: "File uploaded successfully",
-      url: publicUrl,
+      url: dataUrl,
       filename: filename,
     });
   } catch (error) {

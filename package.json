@@ -12,7 +12,8 @@
     "start": "next start",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "test:deployment": "node scripts/test-deployment.js"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",

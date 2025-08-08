@@ -5,9 +5,20 @@
     },
     "app/api/admin/products/route.ts": {
       "maxDuration": 30
+    },
+    "app/api/orders/route.ts": {
+      "maxDuration": 30
+    },
+    "app/api/admin/products/[id]/route.ts": {
+      "maxDuration": 30
     }
   },
   "env": {
     "NEXTAUTH_URL": "https://kibbledrop.vercel.app"
+  },
+  "build": {
+    "env": {
+      "NEXTAUTH_URL": "https://kibbledrop.vercel.app"
+    }
   }
 }

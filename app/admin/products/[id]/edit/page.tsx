@@ -100,12 +100,12 @@ export default function EditProductPage({
       return;
     }
 
-    // Validate file size (5MB limit)
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    // Validate file size (2MB limit for Vercel)
+    const maxSize = 2 * 1024 * 1024; // 2MB for Vercel
     if (file.size > maxSize) {
       toast({
         title: "File too large",
-        description: "Please upload an image smaller than 5MB.",
+        description: "Please upload an image smaller than 2MB.",
         variant: "destructive",
       });
       return;
@@ -428,7 +428,7 @@ export default function EditProductPage({
                       Click to upload product image or drag and drop
                     </p>
                     <p className="text-xs text-gray-500 mb-4">
-                      JPEG, PNG, or WebP (max 5MB)
+                      JPEG, PNG, or WebP (max 2MB)
                     </p>
                     <Button
                       type="button"

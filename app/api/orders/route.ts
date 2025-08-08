@@ -40,17 +40,22 @@ export async function GET() {
 // POST - Create new order
 export async function POST(request: NextRequest) {
   try {
+    console.log("=== POST /api/orders called ===");
     const session = await getServerSession(authOptions)
+    console.log("Session user:", session?.user);
     
     if (!session?.user) {
+      console.log("❌ No session found");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const body = await request.json()
+    console.log("Request body:", body);
     const { items, deliveryInfo, subtotal, shipping, total } = body
 
     // Validation
     if (!items || !deliveryInfo || !subtotal || !shipping || !total) {
+      console.log("❌ Missing required fields:", { items, deliveryInfo, subtotal, shipping, total });
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -58,6 +63,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Create order with items
+    console.log("Creating order with data:", {
+      userId: session.user.id,
+      subtotal,
+      shipping,
+      total,
+      itemsCount: items.length
+    });
+    
     const order = await prisma.order.create({
       data: {
         userId: session.user.id,
@@ -94,9 +107,12 @@ export async function POST(request: NextRequest) {
         }
       }
     })
+    
+    console.log("✅ Order created successfully:", order.id);
 
     // Send order confirmation email
     try {
+      console.log("Sending order confirmation email...");
       const estimatedDelivery = new Date()
       estimatedDelivery.setDate(estimatedDelivery.getDate() + (deliveryInfo.deliveryMethod === "express" ? 2 : 7))
       
@@ -115,8 +131,9 @@ export async function POST(request: NextRequest) {
           deliveryAddress: `${deliveryInfo.address}, ${deliveryInfo.city}`
         }
       )
+      console.log("✅ Order confirmation email sent successfully");
     } catch (error) {
-      console.error("Error sending order confirmation email:", error)
+      console.error("❌ Error sending order confirmation email:", error)
       // Don't fail the order creation if email fails
     }
 
