@@ -5,7 +5,8 @@ import type React from "react";
 import { createContext, useContext, useReducer, type ReactNode } from "react";
 
 export interface CartItem {
-  id: string;
+  id: string; // Composite ID for unique cart items
+  productId: string; // Actual product ID for database operations
   name: string;
   price: number;
   category: string;
@@ -100,7 +101,10 @@ function cartReducer(state: CartState, action: CartAction): CartState {
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(cartReducer, { items: [], total: 0 });
+  const [state, dispatch] = useReducer(cartReducer, {
+    items: [],
+    total: 0,
+  });
 
   return (
     <CartContext.Provider value={{ state, dispatch }}>

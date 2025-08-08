@@ -97,6 +97,14 @@ export default function CheckoutPage() {
     setLoading(true);
 
     try {
+      console.log("Submitting order with data:", {
+        items: cartState.items,
+        deliveryInfo,
+        subtotal,
+        shipping,
+        total
+      });
+
       // Create order
       const response = await fetch("/api/orders", {
         method: "POST",
@@ -105,7 +113,7 @@ export default function CheckoutPage() {
         },
         body: JSON.stringify({
           items: cartState.items.map((item) => ({
-            productId: item.id, // Map 'id' to 'productId'
+            productId: item.productId, // Use the actual product ID
             quantity: item.quantity,
             price: item.price,
           })),
@@ -117,10 +125,13 @@ export default function CheckoutPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to create order");
+        const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+        console.error("Order creation failed:", errorData);
+        throw new Error(errorData.error || "Failed to create order");
       }
 
       const order = await response.json();
+      console.log("Order created successfully:", order);
 
       toast({
         title: "Order Placed!",
@@ -132,9 +143,10 @@ export default function CheckoutPage() {
       router.push(`/orders/${order.id}`);
     } catch (error) {
       console.error("Error creating order:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to place order. Please try again.";
       toast({
         title: "Error",
-        description: "Failed to place order. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

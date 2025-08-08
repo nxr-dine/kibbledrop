@@ -22,10 +22,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, Save, Upload, X } from "lucide-react";
+import { ArrowLeft, Save, Upload, X, Plus, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
+
+interface WeightVariant {
+  id: string;
+  weight: string;
+  price: string;
+}
 
 export default function CreateProductPage() {
   const [loading, setLoading] = useState(false);
@@ -59,20 +64,8 @@ export default function CreateProductPage() {
       "Deboned chicken as the first ingredient, Sweet potatoes and peas for digestible carbohydrates, Chicken meal and salmon meal for added protein, Flaxseed for omega fatty acids, Blueberries and cranberries for antioxidants, No corn, wheat, soy, or artificial preservatives",
   });
 
-  // Weight variants state
-  const [weightVariants, setWeightVariants] = useState<Array<{weight: string, price: string, selected: boolean}>>([
-    { weight: "300g", price: "", selected: false },
-    { weight: "500g", price: "", selected: false },
-    { weight: "1kg", price: "", selected: false },
-    { weight: "1.5kg", price: "", selected: false },
-    { weight: "2kg", price: "", selected: false },
-    { weight: "3kg", price: "", selected: false },
-    { weight: "5kg", price: "", selected: false },
-    { weight: "7kg", price: "", selected: false },
-    { weight: "10kg", price: "", selected: false },
-    { weight: "15kg", price: "", selected: false },
-    { weight: "20kg", price: "", selected: false },
-  ]);
+  // Custom weight variants state
+  const [weightVariants, setWeightVariants] = useState<WeightVariant[]>([]);
 
   const router = useRouter();
   const { toast } = useToast();
@@ -94,12 +87,12 @@ export default function CreateProductPage() {
       return;
     }
 
-    // Validate file size (5MB limit)
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    // Validate file size (2MB limit for Vercel)
+    const maxSize = 2 * 1024 * 1024; // 2MB for Vercel
     if (file.size > maxSize) {
       toast({
         title: "File too large",
-        description: "Please upload an image smaller than 5MB.",
+        description: "Please upload an image smaller than 2MB.",
         variant: "destructive",
       });
       return;
@@ -165,12 +158,23 @@ export default function CreateProductPage() {
     setLoading(true);
 
     try {
-      // Validate that at least one weight variant is selected
-      const selectedVariants = weightVariants.filter(variant => variant.selected && variant.price);
-      if (selectedVariants.length === 0) {
+      // Validate that at least one weight variant is added
+      if (weightVariants.length === 0) {
         toast({
           title: "Error",
-          description: "Please select at least one weight variant with a price.",
+          description: "Please add at least one weight variant with a price.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Validate that all weight variants have both weight and price
+      const validVariants = weightVariants.filter(variant => variant.weight && variant.price);
+      if (validVariants.length === 0) {
+        toast({
+          title: "Error",
+          description: "Please ensure all weight variants have both weight and price values.",
           variant: "destructive",
         });
         setLoading(false);
@@ -185,7 +189,7 @@ export default function CreateProductPage() {
         body: JSON.stringify({
           ...formData,
           price: parseFloat(formData.price),
-          weightVariants: selectedVariants.map(variant => ({
+          weightVariants: validVariants.map(variant => ({
             weight: variant.weight,
             price: parseFloat(variant.price),
           })),
@@ -200,7 +204,7 @@ export default function CreateProductPage() {
 
       toast({
         title: "Product Created!",
-        description: `${product.name} has been added to your catalog with ${selectedVariants.length} weight variant(s).`,
+        description: `${product.name} has been added to your catalog with ${validVariants.length} weight variant(s).`,
       });
 
       router.push("/admin/products");
@@ -232,16 +236,23 @@ export default function CreateProductPage() {
     });
   };
 
-  // Weight variant handlers
-  const handleWeightVariantToggle = (index: number, checked: boolean) => {
-    setWeightVariants(prev => prev.map((variant, i) => 
-      i === index ? { ...variant, selected: checked } : variant
-    ));
+  // Custom weight variant handlers
+  const addWeightVariant = () => {
+    const newVariant: WeightVariant = {
+      id: Date.now().toString(),
+      weight: "",
+      price: "",
+    };
+    setWeightVariants(prev => [...prev, newVariant]);
   };
 
-  const handleWeightVariantPriceChange = (index: number, price: string) => {
-    setWeightVariants(prev => prev.map((variant, i) => 
-      i === index ? { ...variant, price } : variant
+  const removeWeightVariant = (id: string) => {
+    setWeightVariants(prev => prev.filter(variant => variant.id !== id));
+  };
+
+  const updateWeightVariant = (id: string, field: 'weight' | 'price', value: string) => {
+    setWeightVariants(prev => prev.map(variant => 
+      variant.id === id ? { ...variant, [field]: value } : variant
     ));
   };
 
@@ -394,7 +405,7 @@ export default function CreateProductPage() {
                       Click to upload product image or drag and drop
                     </p>
                     <p className="text-xs text-gray-500 mb-4">
-                      JPEG, PNG, or WebP (max 5MB)
+                      JPEG, PNG, or WebP (max 2MB)
                     </p>
                     <Button
                       type="button"
@@ -473,38 +484,84 @@ export default function CreateProductPage() {
                   </div>
 
                   <div className="space-y-4 md:col-span-2">
-                    <Label>Weight Variants</Label>
-                    <p className="text-sm text-gray-600">
-                      Select the weight options you want to offer for this product and set their prices.
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto border rounded-lg p-4">
-                      {weightVariants.map((variant, index) => (
-                        <div key={variant.weight} className="flex items-center space-x-3 p-3 border rounded-lg">
-                          <Checkbox
-                            id={`weight-${index}`}
-                            checked={variant.selected}
-                            onCheckedChange={(checked) => 
-                              handleWeightVariantToggle(index, checked as boolean)
-                            }
-                          />
-                          <Label htmlFor={`weight-${index}`} className="flex-shrink-0 min-w-[60px]">
-                            {variant.weight}
-                          </Label>
-                          <Input
-                            type="number"
-                            placeholder="Price"
-                            value={variant.price}
-                            onChange={(e) => handleWeightVariantPriceChange(index, e.target.value)}
-                            disabled={!variant.selected}
-                            className="flex-1"
-                            step="0.01"
-                            min="0"
-                          />
-                        </div>
-                      ))}
+                    <div className="flex items-center justify-between">
+                      <Label>Weight Variants</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={addWeightVariant}
+                        className="flex items-center gap-2"
+                      >
+                        <Plus className="h-4 w-4" />
+                        Add Weight Option
+                      </Button>
                     </div>
+                    <p className="text-sm text-gray-600">
+                      Add custom weight options with their prices for this product.
+                    </p>
+                    
+                    {weightVariants.length === 0 ? (
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                        <p className="text-gray-500 mb-4">No weight variants added yet</p>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={addWeightVariant}
+                          className="flex items-center gap-2"
+                        >
+                          <Plus className="h-4 w-4" />
+                          Add First Weight Option
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {weightVariants.map((variant) => (
+                          <div key={variant.id} className="flex items-center gap-3 p-4 border rounded-lg">
+                            <div className="flex-1">
+                              <Label htmlFor={`weight-${variant.id}`} className="text-sm font-medium">
+                                Weight
+                              </Label>
+                              <Input
+                                id={`weight-${variant.id}`}
+                                type="text"
+                                placeholder="e.g., 300g, 1kg, 2.5kg"
+                                value={variant.weight}
+                                onChange={(e) => updateWeightVariant(variant.id, 'weight', e.target.value)}
+                                className="mt-1"
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <Label htmlFor={`price-${variant.id}`} className="text-sm font-medium">
+                                Price
+                              </Label>
+                              <Input
+                                id={`price-${variant.id}`}
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                placeholder="0.00"
+                                value={variant.price}
+                                onChange={(e) => updateWeightVariant(variant.id, 'price', e.target.value)}
+                                className="mt-1"
+                              />
+                            </div>
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => removeWeightVariant(variant.id)}
+                              className="mt-6"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
                     <div className="text-sm text-gray-500">
-                      Selected variants: {weightVariants.filter(v => v.selected).length}
+                      Total weight variants: {weightVariants.length}
                     </div>
                   </div>
 

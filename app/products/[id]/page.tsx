@@ -227,6 +227,7 @@ export default function ProductPage() {
           type: "ADD_ITEM",
           payload: {
             id: `${product.id}-${selectedWeight}`, // Unique ID for different weights
+            productId: product.id, // Actual product ID for database operations
             name: `${product.name} (${selectedWeight})`,
             price: currentPrice,
             category: product.category,

@@ -22,9 +22,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { ArrowLeft, Save, Loader2, Upload, X } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Upload, X, Plus, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
+
+interface WeightVariant {
+  id: string;
+  weight: string;
+  price: string;
+}
 
 interface Product {
   id: string;
@@ -50,6 +56,8 @@ interface Product {
   calories?: string;
   omega6?: string;
   ingredients?: string;
+  // Weight variants
+  weightVariants?: Array<{weight: string, price: number}>;
 }
 
 export default function EditProductPage({
@@ -79,6 +87,9 @@ export default function EditProductPage({
     omega6: "",
     ingredients: "",
   });
+
+  // Custom weight variants state
+  const [weightVariants, setWeightVariants] = useState<WeightVariant[]>([]);
 
   const router = useRouter();
   const { toast } = useToast();
@@ -166,6 +177,26 @@ export default function EditProductPage({
     }
   };
 
+  // Custom weight variant handlers
+  const addWeightVariant = () => {
+    const newVariant: WeightVariant = {
+      id: Date.now().toString(),
+      weight: "",
+      price: "",
+    };
+    setWeightVariants(prev => [...prev, newVariant]);
+  };
+
+  const removeWeightVariant = (id: string) => {
+    setWeightVariants(prev => prev.filter(variant => variant.id !== id));
+  };
+
+  const updateWeightVariant = (id: string, field: 'weight' | 'price', value: string) => {
+    setWeightVariants(prev => prev.map(variant => 
+      variant.id === id ? { ...variant, [field]: value } : variant
+    ));
+  };
+
   // Fetch product data on component mount
   useEffect(() => {
     const fetchProduct = async () => {
@@ -196,6 +227,16 @@ export default function EditProductPage({
         if (productData.image) {
           setImagePreview(productData.image);
         }
+
+        // Set weight variants if they exist
+        if (productData.weightVariants && productData.weightVariants.length > 0) {
+          const variants: WeightVariant[] = productData.weightVariants.map((variant: any, index: number) => ({
+            id: index.toString(),
+            weight: variant.weight,
+            price: variant.price.toString(),
+          }));
+          setWeightVariants(variants);
+        }
       } catch (error) {
         console.error("Error fetching product:", error);
         toast({
@@ -217,6 +258,29 @@ export default function EditProductPage({
     setLoading(true);
 
     try {
+      // Validate that at least one weight variant is added
+      if (weightVariants.length === 0) {
+        toast({
+          title: "Error",
+          description: "Please add at least one weight variant with a price.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Validate that all weight variants have both weight and price
+      const validVariants = weightVariants.filter(variant => variant.weight && variant.price);
+      if (validVariants.length === 0) {
+        toast({
+          title: "Error",
+          description: "Please ensure all weight variants have both weight and price values.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
       const response = await fetch(`/api/admin/products/${params.id}`, {
         method: "PUT",
         headers: {
@@ -225,6 +289,10 @@ export default function EditProductPage({
         body: JSON.stringify({
           ...formData,
           price: parseFloat(formData.price),
+          weightVariants: validVariants.map(variant => ({
+            weight: variant.weight,
+            price: parseFloat(variant.price),
+          })),
         }),
       });
 
@@ -455,6 +523,91 @@ export default function EditProductPage({
                 Upload a high-quality image of your product. Leave empty to keep
                 current image.
               </p>
+            </div>
+
+            {/* Weight Variants Section */}
+            <div className="space-y-4">
+              <div className="border-t pt-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">Weight Variants</h3>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addWeightVariant}
+                    className="flex items-center gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Weight Option
+                  </Button>
+                </div>
+                <p className="text-sm text-gray-600 mb-4">
+                  Add custom weight options with their prices for this product.
+                </p>
+                
+                {weightVariants.length === 0 ? (
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                    <p className="text-gray-500 mb-4">No weight variants added yet</p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={addWeightVariant}
+                      className="flex items-center gap-2"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Add First Weight Option
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {weightVariants.map((variant) => (
+                      <div key={variant.id} className="flex items-center gap-3 p-4 border rounded-lg">
+                        <div className="flex-1">
+                          <Label htmlFor={`weight-${variant.id}`} className="text-sm font-medium">
+                            Weight
+                          </Label>
+                          <Input
+                            id={`weight-${variant.id}`}
+                            type="text"
+                            placeholder="e.g., 300g, 1kg, 2.5kg"
+                            value={variant.weight}
+                            onChange={(e) => updateWeightVariant(variant.id, 'weight', e.target.value)}
+                            className="mt-1"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <Label htmlFor={`price-${variant.id}`} className="text-sm font-medium">
+                            Price
+                          </Label>
+                          <Input
+                            id={`price-${variant.id}`}
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            placeholder="0.00"
+                            value={variant.price}
+                            onChange={(e) => updateWeightVariant(variant.id, 'price', e.target.value)}
+                            className="mt-1"
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => removeWeightVariant(variant.id)}
+                          className="mt-6"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                <div className="text-sm text-gray-500 mt-2">
+                  Total weight variants: {weightVariants.length}
+                </div>
+              </div>
             </div>
 
             {/* Nutrition Facts Section */}
