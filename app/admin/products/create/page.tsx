@@ -22,7 +22,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { ArrowLeft, Save, Upload, X, Plus, Trash2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ArrowLeft, Save, Upload, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 
@@ -58,10 +59,20 @@ export default function CreateProductPage() {
       "Deboned chicken as the first ingredient, Sweet potatoes and peas for digestible carbohydrates, Chicken meal and salmon meal for added protein, Flaxseed for omega fatty acids, Blueberries and cranberries for antioxidants, No corn, wheat, soy, or artificial preservatives",
   });
 
-  // Custom weight variants state
-  const [customWeights, setCustomWeights] = useState<
-    Array<{ weight: string; price: string; id: string }>
-  >([]);
+  // Weight variants state
+  const [weightVariants, setWeightVariants] = useState<Array<{weight: string, price: string, selected: boolean}>>([
+    { weight: "300g", price: "", selected: false },
+    { weight: "500g", price: "", selected: false },
+    { weight: "1kg", price: "", selected: false },
+    { weight: "1.5kg", price: "", selected: false },
+    { weight: "2kg", price: "", selected: false },
+    { weight: "3kg", price: "", selected: false },
+    { weight: "5kg", price: "", selected: false },
+    { weight: "7kg", price: "", selected: false },
+    { weight: "10kg", price: "", selected: false },
+    { weight: "15kg", price: "", selected: false },
+    { weight: "20kg", price: "", selected: false },
+  ]);
 
   const router = useRouter();
   const { toast } = useToast();
@@ -154,15 +165,12 @@ export default function CreateProductPage() {
     setLoading(true);
 
     try {
-      // Validate that at least one custom weight is added
-      const validCustomWeights = customWeights.filter(
-        (custom) => custom.weight && custom.price
-      );
-
-      if (validCustomWeights.length === 0) {
+      // Validate that at least one weight variant is selected
+      const selectedVariants = weightVariants.filter(variant => variant.selected && variant.price);
+      if (selectedVariants.length === 0) {
         toast({
           title: "Error",
-          description: "Please add at least one custom weight with a price.",
+          description: "Please select at least one weight variant with a price.",
           variant: "destructive",
         });
         setLoading(false);
@@ -177,7 +185,7 @@ export default function CreateProductPage() {
         body: JSON.stringify({
           ...formData,
           price: parseFloat(formData.price),
-          weightVariants: validCustomWeights.map((variant) => ({
+          weightVariants: selectedVariants.map(variant => ({
             weight: variant.weight,
             price: parseFloat(variant.price),
           })),
@@ -192,7 +200,7 @@ export default function CreateProductPage() {
 
       toast({
         title: "Product Created!",
-        description: `${product.name} has been added to your catalog with ${validCustomWeights.length} weight variant(s).`,
+        description: `${product.name} has been added to your catalog with ${selectedVariants.length} weight variant(s).`,
       });
 
       router.push("/admin/products");
@@ -224,24 +232,17 @@ export default function CreateProductPage() {
     });
   };
 
-  // Custom weight handlers
-  const addCustomWeight = () => {
-    const newId = Date.now().toString();
-    setCustomWeights((prev) => [...prev, { weight: "", price: "", id: newId }]);
+  // Weight variant handlers
+  const handleWeightVariantToggle = (index: number, checked: boolean) => {
+    setWeightVariants(prev => prev.map((variant, i) => 
+      i === index ? { ...variant, selected: checked } : variant
+    ));
   };
 
-  const removeCustomWeight = (id: string) => {
-    setCustomWeights((prev) => prev.filter((item) => item.id !== id));
-  };
-
-  const handleCustomWeightChange = (
-    id: string,
-    field: "weight" | "price",
-    value: string
-  ) => {
-    setCustomWeights((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
-    );
+  const handleWeightVariantPriceChange = (index: number, price: string) => {
+    setWeightVariants(prev => prev.map((variant, i) => 
+      i === index ? { ...variant, price } : variant
+    ));
   };
 
   return (
@@ -466,9 +467,7 @@ export default function CreateProductPage() {
                         <SelectItem value="dry">Dry</SelectItem>
                         <SelectItem value="wet">Wet</SelectItem>
                         <SelectItem value="raw">Raw</SelectItem>
-                        <SelectItem value="freeze-dried">
-                          Freeze-Dried
-                        </SelectItem>
+                        <SelectItem value="freeze-dried">Freeze-Dried</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -476,92 +475,36 @@ export default function CreateProductPage() {
                   <div className="space-y-4 md:col-span-2">
                     <Label>Weight Variants</Label>
                     <p className="text-sm text-gray-600">
-                      Add custom weight options with specific prices for this
-                      product.
+                      Select the weight options you want to offer for this product and set their prices.
                     </p>
-
-                    {/* Custom Weights Section */}
-                    <div className="p-4 border rounded-lg bg-gray-50">
-                      <div className="flex items-center justify-between mb-3">
-                        <Label className="text-sm font-medium">
-                          Custom Weight Options
-                        </Label>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={addCustomWeight}
-                          className="flex items-center gap-1"
-                        >
-                          <Plus className="h-3 w-3" />
-                          Add Weight
-                        </Button>
-                      </div>
-
-                      {customWeights.length > 0 && (
-                        <div className="space-y-2">
-                          {customWeights.map((custom) => (
-                            <div
-                              key={custom.id}
-                              className="flex items-center space-x-2 p-2 border rounded bg-white"
-                            >
-                              <Input
-                                placeholder="Weight (e.g., 1.2kg, 500g)"
-                                value={custom.weight}
-                                onChange={(e) =>
-                                  handleCustomWeightChange(
-                                    custom.id,
-                                    "weight",
-                                    e.target.value
-                                  )
-                                }
-                                className="flex-1"
-                              />
-                              <Input
-                                type="number"
-                                placeholder="Price"
-                                value={custom.price}
-                                onChange={(e) =>
-                                  handleCustomWeightChange(
-                                    custom.id,
-                                    "price",
-                                    e.target.value
-                                  )
-                                }
-                                className="flex-1"
-                                step="0.01"
-                                min="0"
-                              />
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => removeCustomWeight(custom.id)}
-                                className="p-2"
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          ))}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto border rounded-lg p-4">
+                      {weightVariants.map((variant, index) => (
+                        <div key={variant.weight} className="flex items-center space-x-3 p-3 border rounded-lg">
+                          <Checkbox
+                            id={`weight-${index}`}
+                            checked={variant.selected}
+                            onCheckedChange={(checked) => 
+                              handleWeightVariantToggle(index, checked as boolean)
+                            }
+                          />
+                          <Label htmlFor={`weight-${index}`} className="flex-shrink-0 min-w-[60px]">
+                            {variant.weight}
+                          </Label>
+                          <Input
+                            type="number"
+                            placeholder="Price"
+                            value={variant.price}
+                            onChange={(e) => handleWeightVariantPriceChange(index, e.target.value)}
+                            disabled={!variant.selected}
+                            className="flex-1"
+                            step="0.01"
+                            min="0"
+                          />
                         </div>
-                      )}
-
-                      {customWeights.length === 0 && (
-                        <div className="text-center py-8 text-gray-500">
-                          <div className="text-sm">
-                            No weight variants added yet
-                          </div>
-                          <div className="text-xs mt-1">
-                            Click "Add Weight" to create custom weight options
-                          </div>
-                        </div>
-                      )}
-
-                      {customWeights.length > 0 && (
-                        <div className="mt-3 text-sm text-gray-500">
-                          Total weight options: {customWeights.length}
-                        </div>
-                      )}
+                      ))}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      Selected variants: {weightVariants.filter(v => v.selected).length}
                     </div>
                   </div>
 
