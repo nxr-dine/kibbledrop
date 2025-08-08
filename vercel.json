@@ -8,6 +8,6 @@
     }
   },
   "env": {
-    "NEXTAUTH_URL": "https://kibbledrop-7vd7z8pnc-nxr-deens-projects.vercel.app"
+    "NEXTAUTH_URL": "https://kibbledrop.vercel.app"
   }
 }

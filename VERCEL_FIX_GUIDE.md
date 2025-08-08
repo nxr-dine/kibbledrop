@@ -18,7 +18,7 @@ Add these environment variables:
 DATABASE_URL=postgresql://username:password@your-vercel-postgres-url
 
 # NextAuth
-NEXTAUTH_URL=https://kibbledrop-7vd7z8pnc-nxr-deens-projects.vercel.app
+NEXTAUTH_URL=https://kibbledrop.vercel.app
 NEXTAUTH_SECRET=cc1RWwkjLO/24HiwjEdSU+P5MRPvGjNHtMv1AKfiGCo=
 
 # Stripe (if you have real keys)
