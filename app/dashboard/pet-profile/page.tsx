@@ -22,6 +22,7 @@ interface PetProfile {
   birthday?: string | null
   weight: number
   image?: string
+  vaccineCardUrl?: string | null
   healthTags: string[]
   createdAt: string
   updatedAt: string
@@ -34,6 +35,7 @@ export default function PetProfilePage() {
   const [loading, setLoading] = useState(true)
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string>("")
+  const [vaccineCardFile, setVaccineCardFile] = useState<File | null>(null)
   const [petToDelete, setPetToDelete] = useState<PetProfile | null>(null)
   const { toast } = useToast()
 
@@ -82,6 +84,13 @@ export default function PetProfilePage() {
     }
   }
 
+  const handleVaccineCardChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setVaccineCardFile(file)
+    }
+  }
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget as HTMLFormElement)
@@ -106,6 +115,9 @@ export default function PetProfilePage() {
     
     if (selectedImage) {
       uploadData.append('image', selectedImage)
+    }
+    if (vaccineCardFile) {
+      uploadData.append('vaccineCard', vaccineCardFile)
     }
 
     try {
@@ -141,6 +153,7 @@ export default function PetProfilePage() {
       setEditingPet(null)
       setSelectedImage(null)
       setImagePreview("")
+      setVaccineCardFile(null)
     } catch (error) {
       console.error('Error saving pet profile:', error)
       toast({
@@ -293,6 +306,28 @@ export default function PetProfilePage() {
                   />
                 </div>
               </div>
+              {/* Vaccine Card Upload */}
+              <div>
+                <Label htmlFor="vaccineCard">Vaccine Card (PDF or image)</Label>
+                <div className="mt-2 flex flex-col gap-2">
+                  <Input
+                    id="vaccineCard"
+                    name="vaccineCard"
+                    type="file"
+                    accept="application/pdf,image/*"
+                    onChange={handleVaccineCardChange}
+                  />
+                  {editingPet?.vaccineCardUrl && (
+                    <div className="text-sm text-gray-600">
+                      Existing: {editingPet.vaccineCardUrl.startsWith('data:application/pdf') ? (
+                        <a href={editingPet.vaccineCardUrl} target="_blank" rel="noreferrer" className="text-blue-600 underline">View PDF</a>
+                      ) : (
+                        <a href={editingPet.vaccineCardUrl} target="_blank" rel="noreferrer" className="text-blue-600 underline">View Image</a>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="birthday">Birthday</Label>
@@ -410,6 +445,15 @@ export default function PetProfilePage() {
                   <p className="text-sm text-gray-700">
                     <span className="font-medium">Health Notes:</span> {pet.healthTags.join(', ')}
                   </p>
+                  {pet.vaccineCardUrl && (
+                    <p className="text-sm text-gray-700 mt-2">
+                      <span className="font-medium">Vaccine Card:</span> {pet.vaccineCardUrl.startsWith('data:application/pdf') ? (
+                        <a href={pet.vaccineCardUrl} target="_blank" rel="noreferrer" className="text-blue-600 underline">View PDF</a>
+                      ) : (
+                        <a href={pet.vaccineCardUrl} target="_blank" rel="noreferrer" className="text-blue-600 underline">View Image</a>
+                      )}
+                    </p>
+                  )}
                 </CardContent>
               )}
             </Card>
