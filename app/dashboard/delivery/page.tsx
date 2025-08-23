@@ -64,6 +64,7 @@ export default function DeliveryInformationPage() {
 
       // Prepare subscription data
       const subscriptionData = {
+        petProfileId: parsedFrequency.petProfileId, // Add missing petProfileId
         frequency: parsedFrequency.frequency || "monthly",
         deliveryName: formData.fullName,
         deliveryPhone: formData.phone,
@@ -72,7 +73,7 @@ export default function DeliveryInformationPage() {
         postalCode: formData.postalCode,
         instructions: formData.instructions,
         items: state.items.map((item) => ({
-          productId: item.id, // Map 'id' to 'productId'
+          productId: item.productId || item.id, // Use productId if available, fallback to id
           quantity: item.quantity,
         })),
       };
