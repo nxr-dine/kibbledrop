@@ -51,31 +51,28 @@ export class TradesafeAPI {
 
   async createPayment(paymentRequest: TradesafePaymentRequest): Promise<TradesafePaymentResponse> {
     try {
-      // In development, use mock payment gateway to avoid SSL issues
-      if (process.env.NODE_ENV === 'development' && !process.env.TRADESAFE_API_KEY) {
-        console.log('🧪 Using mock TradeSafe payment gateway for development');
-        
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Generate mock payment response
-        const mockPaymentId = `mock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        const mockRedirectUrl = `${process.env.NEXTAUTH_URL}/mock-payment?paymentId=${mockPaymentId}&orderId=${paymentRequest.orderId}&amount=${paymentRequest.amount}`;
-        
-        console.log('Mock payment created:', {
-          paymentId: mockPaymentId,
-          orderId: paymentRequest.orderId,
-          amount: paymentRequest.amount
-        });
-        
+      // Check if we have proper TradeSafe credentials
+      const hasCredentials = this.config.merchantId && this.config.apiKey;
+      
+      // In development, use mock payment gateway if no credentials or if explicitly requested
+      if (process.env.NODE_ENV === 'development' && !hasCredentials) {
+        console.log('🧪 Using mock TradeSafe payment gateway for development (no credentials)');
+        return this.createMockPayment(paymentRequest);
+      }
+
+      // If we don't have credentials in production, redirect to unavailable page
+      if (!hasCredentials) {
+        console.error('❌ TradeSafe credentials not configured');
+        const fallbackUrl = `${process.env.NEXTAUTH_URL}/payment-unavailable?orderId=${paymentRequest.orderId}&amount=${paymentRequest.amount}`;
         return {
           success: true,
-          paymentId: mockPaymentId,
-          redirectUrl: mockRedirectUrl,
-          message: 'Mock payment created successfully',
+          paymentId: 'unavailable',
+          redirectUrl: fallbackUrl,
+          message: 'Redirecting to payment unavailable page',
         };
       }
 
+      // Try to make the real API call
       const response = await fetch(`${this.baseUrl}/v1/payments`, {
         method: 'POST',
         headers: {
@@ -101,10 +98,11 @@ export class TradesafeAPI {
       const data = await response.json();
 
       if (!response.ok) {
+        console.error('TradeSafe API error:', data);
         return {
           success: false,
           error: data.error || 'Payment creation failed',
-          message: data.message,
+          message: data.message || 'Payment gateway returned an error',
         };
       }
 
@@ -120,23 +118,36 @@ export class TradesafeAPI {
       // In development, fall back to mock if real API fails
       if (process.env.NODE_ENV === 'development') {
         console.log('🧪 Falling back to mock payment gateway due to API error');
-        const mockPaymentId = `mock_fallback_${Date.now()}`;
-        const mockRedirectUrl = `${process.env.NEXTAUTH_URL}/mock-payment?paymentId=${mockPaymentId}&orderId=${paymentRequest.orderId}&amount=${paymentRequest.amount}`;
-        
-        return {
-          success: true,
-          paymentId: mockPaymentId,
-          redirectUrl: mockRedirectUrl,
-          message: 'Mock payment created (fallback)',
-        };
+        return this.createMockPayment(paymentRequest);
       }
       
+      // In production, redirect to payment unavailable page if API fails
+      const fallbackUrl = `${process.env.NEXTAUTH_URL}/payment-unavailable?orderId=${paymentRequest.orderId}&amount=${paymentRequest.amount}`;
       return {
-        success: false,
-        error: 'Network error occurred',
-        message: 'Failed to connect to payment gateway',
+        success: true,
+        paymentId: 'api_failed',
+        redirectUrl: fallbackUrl,
+        message: 'Redirecting due to payment gateway issues',
       };
     }
+  }
+
+  private createMockPayment(paymentRequest: TradesafePaymentRequest): TradesafePaymentResponse {
+    const mockPaymentId = `mock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const mockRedirectUrl = `${process.env.NEXTAUTH_URL}/mock-payment?paymentId=${mockPaymentId}&orderId=${paymentRequest.orderId}&amount=${paymentRequest.amount}`;
+    
+    console.log('Mock payment created:', {
+      paymentId: mockPaymentId,
+      orderId: paymentRequest.orderId,
+      amount: paymentRequest.amount
+    });
+    
+    return {
+      success: true,
+      paymentId: mockPaymentId,
+      redirectUrl: mockRedirectUrl,
+      message: 'Mock payment created successfully',
+    };
   }
 
   async getPaymentStatus(paymentId: string): Promise<TradesafePaymentResponse> {
