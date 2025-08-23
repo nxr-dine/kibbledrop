@@ -23,6 +23,7 @@ import {
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import Link from "next/link";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -35,6 +36,25 @@ export default function SubscriptionSetupPage() {
   const [customWeeks, setCustomWeeks] = useState(4);
   const [customDate, setCustomDate] = useState<Date | undefined>(new Date());
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [pets, setPets] = useState<Array<{ id: string; name: string }>>([]);
+  const [petProfileId, setPetProfileId] = useState<string>("");
+
+  useEffect(() => {
+    const loadPets = async () => {
+      try {
+        const res = await fetch("/api/pets");
+        if (!res.ok) return;
+        const data = await res.json();
+        setPets(data || []);
+        if (data && data.length > 0) {
+          setPetProfileId(data[0].id);
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+    loadPets();
+  }, []);
 
   if (state.items.length === 0) {
     router.push("/dashboard/products");
@@ -54,6 +74,7 @@ export default function SubscriptionSetupPage() {
   const handleProceedToDelivery = () => {
     // Save the selected frequency and custom options to localStorage for the next step
     const subscriptionData = {
+      petProfileId,
       frequency: deliveryFrequency,
       customWeeks: customWeeks,
       customDate: customDate?.toISOString(),
@@ -101,6 +122,22 @@ export default function SubscriptionSetupPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Pet selection */}
+              <div className="space-y-2">
+                <Label htmlFor="pet">Select Pet</Label>
+                <select
+                  id="pet"
+                  value={petProfileId}
+                  onChange={(e) => setPetProfileId(e.target.value)}
+                  className="w-full border rounded-md p-2"
+                >
+                  {pets.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
               {state.items.map((item) => (
                 <div
                   key={item.id}

@@ -22,7 +22,6 @@ export async function PUT(
     const weight = parseFloat(formData.get("weight") as string)
     const healthTags = JSON.parse(formData.get("healthTags") as string || "[]")
     const imageFile = formData.get("image") as File | null
-    const vaccineCardFile = formData.get("vaccineCard") as File | null
 
     // Verify the pet belongs to the user
     const existingPet = await prisma.petProfile.findFirst({
@@ -47,35 +46,6 @@ export async function PUT(
       imageUrl = `data:${mimeType};base64,${base64}`
     }
 
-    // Handle vaccine card upload (PDF or image)
-    let vaccineCardUrl = existingPet.vaccineCardUrl || null
-    if (vaccineCardFile) {
-      const allowedTypes = new Set([
-        "application/pdf",
-        "image/jpeg",
-        "image/jpg",
-        "image/png",
-        "image/webp",
-      ])
-      const maxSize = 2 * 1024 * 1024 // 2MB
-      if (!allowedTypes.has(vaccineCardFile.type)) {
-        return NextResponse.json(
-          { error: "Invalid vaccine card type. Only PDF or images (JPEG, PNG, WebP) are allowed." },
-          { status: 400 }
-        )
-      }
-      if (vaccineCardFile.size > maxSize) {
-        return NextResponse.json(
-          { error: "Vaccine card too large. Maximum size is 2MB." },
-          { status: 400 }
-        )
-      }
-      const bytes = await vaccineCardFile.arrayBuffer()
-      const buffer = Buffer.from(bytes)
-      const base64 = buffer.toString('base64')
-      vaccineCardUrl = `data:${vaccineCardFile.type};base64,${base64}`
-    }
-
     const updatedPet = await prisma.petProfile.update({
       where: {
         id: params.id
@@ -87,7 +57,6 @@ export async function PUT(
         birthday: new Date(birthday),
         weight,
         image: imageUrl,
-        vaccineCardUrl: vaccineCardUrl,
         healthTags: healthTags || []
       }
     })

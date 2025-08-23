@@ -237,12 +237,8 @@ export default function CartPage() {
 
               <div className="space-y-3">
                 <Button asChild className="w-full" size="lg">
-                  <Link href="/checkout">One-Time Purchase</Link>
-                </Button>
-
-                <Button asChild variant="outline" className="w-full" size="lg">
                   <Link href="/dashboard/subscription/setup">
-                    Set Up Subscription & Save
+                    Set Up Subscription
                   </Link>
                 </Button>
               </div>

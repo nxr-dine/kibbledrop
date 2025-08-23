@@ -27,6 +27,7 @@ import { ArrowLeft, MapPin, Clock, Truck, CreditCard } from "lucide-react";
 import { useCart } from "@/contexts/cart-context";
 import { useToast } from "@/hooks/use-toast";
 import { useSession } from "next-auth/react";
+import { TradesafeCheckout } from "@/components/tradesafe-checkout";
 
 interface DeliveryInfo {
   firstName: string;
@@ -47,6 +48,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [showTradesafeCheckout, setShowTradesafeCheckout] = useState(false);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -141,6 +143,39 @@ export default function CheckoutPage() {
       // Clear cart and redirect to order confirmation
       dispatch({ type: "CLEAR_CART" });
       router.push(`/orders/${order.id}`);
+    } catch (error) {
+      console.error("Error creating order:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to place order. Please try again.";
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTradesafeCheckout = () => {
+    setShowTradesafeCheckout(true);
+  };
+
+  const handleTradesafeSuccess = (orderId: string) => {
+    toast({
+      title: "Payment Successful!",
+      description: `Order #${orderId} has been created and payment processed.`,
+    });
+    dispatch({ type: "CLEAR_CART" });
+    router.push(`/orders/${orderId}`);
+  };
+
+  const handleTradesafeError = (error: string) => {
+    toast({
+      title: "Payment Error",
+      description: error,
+      variant: "destructive",
+    });
+  };
     } catch (error) {
       console.error("Error creating order:", error);
       const errorMessage = error instanceof Error ? error.message : "Failed to place order. Please try again.";
@@ -415,15 +450,50 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              <Button
-                type="submit"
-                className="w-full"
-                size="lg"
-                disabled={loading}
-              >
-                <CreditCard className="h-4 w-4 mr-2" />
-                {loading ? "Processing..." : "Place Order"}
-              </Button>
+              {!showTradesafeCheckout ? (
+                <div className="space-y-3">
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    size="lg"
+                    disabled={loading}
+                  >
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    {loading ? "Processing..." : "Place Order (Pay Later)"}
+                  </Button>
+                  
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-white px-2 text-gray-500">Or</span>
+                    </div>
+                  </div>
+
+                  <Button
+                    type="button"
+                    onClick={handleTradesafeCheckout}
+                    variant="outline"
+                    className="w-full"
+                    size="lg"
+                  >
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    Pay Now with Tradesafe
+                  </Button>
+                </div>
+              ) : (
+                <TradesafeCheckout
+                  items={cartState.items.map(item => ({
+                    productId: item.productId,
+                    quantity: item.quantity,
+                    name: item.name,
+                    price: item.price
+                  }))}
+                  onSuccess={handleTradesafeSuccess}
+                  onError={handleTradesafeError}
+                />
+              )}
 
               <p className="text-xs text-gray-500 text-center">
                 By placing your order, you agree to our terms and conditions.

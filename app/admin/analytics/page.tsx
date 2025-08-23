@@ -249,8 +249,8 @@ export default function AnalyticsPage() {
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <span>One-time Sales</span>
-                    <span className="font-semibold">${data.revenue.oneTimeRevenue.toFixed(2)}</span>
+                    <span>One-time Sales (disabled)</span>
+                    <span className="font-semibold">$0.00</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span>Subscription Revenue</span>

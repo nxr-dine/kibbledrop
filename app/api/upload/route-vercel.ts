@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     console.log("🔍 Checking admin role for user ID:", session.user.id);
     const isAdmin = await checkAdminRole(session.user.id);
     console.log("✅ Is admin:", isAdmin);
-    
+
     if (!isAdmin) {
       console.log("❌ User is not admin");
       return NextResponse.json(
@@ -60,8 +60,8 @@ export async function POST(request: NextRequest) {
     // Convert to base64 for Vercel compatibility
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    const base64 = buffer.toString('base64');
-    
+    const base64 = buffer.toString("base64");
+
     // Generate unique filename
     const timestamp = Date.now();
     const fileExtension = file.name.split(".").pop();

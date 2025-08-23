@@ -11,14 +11,32 @@
     },
     "app/api/admin/products/[id]/route.ts": {
       "maxDuration": 30
+    },
+    "app/api/tradesafe/checkout/route.ts": {
+      "maxDuration": 30
+    },
+    "app/api/tradesafe/webhook/route.ts": {
+      "maxDuration": 30
+    },
+    "app/api/tradesafe/status/route.ts": {
+      "maxDuration": 30
+    },
+    "app/api/tradesafe-graphql/checkout/route.ts": {
+      "maxDuration": 30
+    },
+    "app/api/tradesafe-graphql/webhook/route.ts": {
+      "maxDuration": 30
+    },
+    "app/api/tradesafe-graphql/status/route.ts": {
+      "maxDuration": 30
     }
   },
   "env": {
-    "NEXTAUTH_URL": "https://www.kibbledrop.com"
+    "NEXTAUTH_URL": "https://kibbledrop.vercel.app"
   },
   "build": {
     "env": {
-      "NEXTAUTH_URL": "https://www.kibbledrop.com"
+      "NEXTAUTH_URL": "https://kibbledrop.vercel.app"
     }
   }
 }

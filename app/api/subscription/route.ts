@@ -47,6 +47,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const {
+      petProfileId,
       frequency,
       deliveryName,
       deliveryPhone,
@@ -58,6 +59,7 @@ export async function POST(request: NextRequest) {
     } = body;
 
     if (
+      !petProfileId ||
       !frequency ||
       !deliveryName ||
       !deliveryPhone ||
@@ -68,6 +70,17 @@ export async function POST(request: NextRequest) {
     ) {
       return NextResponse.json(
         { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    // Ensure selected pet belongs to the user
+    const pet = await prisma.petProfile.findFirst({
+      where: { id: petProfileId, userId: session.user.id },
+    });
+    if (!pet) {
+      return NextResponse.json(
+        { error: "Invalid pet selected" },
         { status: 400 }
       );
     }
@@ -102,6 +115,7 @@ export async function POST(request: NextRequest) {
     const subscription = await prisma.subscription.create({
       data: {
         userId: session.user.id,
+        petProfileId,
         frequency,
         status: "active",
         deliveryName,
@@ -119,6 +133,7 @@ export async function POST(request: NextRequest) {
         },
       },
       include: {
+        pet: true,
         items: {
           include: {
             product: true,

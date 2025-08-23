@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { prisma } from "@/lib/prisma"
-import { createSubscriptionSession, createOneTimePaymentSession } from "@/lib/stripe"
+import { createSubscriptionSession } from "@/lib/stripe"
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { subscriptionId, items, isSubscription } = body
+    const { subscriptionId, items } = body
 
     if (!items || items.length === 0) {
       return NextResponse.json(
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
 
     let stripeSession
 
-    if (isSubscription && subscriptionId) {
+    if (subscriptionId) {
       // Get subscription details
       const subscription = await prisma.subscription.findFirst({
         where: {
@@ -66,8 +66,7 @@ export async function POST(request: NextRequest) {
         subscription.frequency
       )
     } else {
-      // One-time payment
-      stripeSession = await createOneTimePaymentSession(itemsWithDetails)
+      return NextResponse.json({ error: "One-time checkout disabled" }, { status: 400 })
     }
 
     return NextResponse.json({ sessionId: stripeSession.id })

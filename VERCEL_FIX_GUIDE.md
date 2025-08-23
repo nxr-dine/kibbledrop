@@ -1,6 +1,7 @@
 # 🚀 Vercel Deployment Fix Guide
 
 ## 🚨 Current Issues
+
 - File uploads failing (serverless storage limitation)
 - Database connection issues
 - Environment variables not set correctly
@@ -30,25 +31,30 @@ RESEND_API_KEY=your_resend_api_key_here
 ```
 
 ### 2. **Database Setup**
+
 - Make sure your Vercel Postgres database has the admin user
 - Run the admin creation script on production database
 
 ### 3. **Deploy the Fixes**
+
 After setting environment variables, redeploy the app.
 
 ## 🔧 Alternative File Upload Solutions
 
 ### Option A: Use Cloudinary (Recommended)
+
 ```bash
 npm install cloudinary
 ```
 
 ### Option B: Use Vercel Blob Storage
+
 ```bash
 npm install @vercel/blob
 ```
 
 ### Option C: Use Base64 (Current Temporary Fix)
+
 - Files stored as base64 in database
 - 2MB limit for better performance
 - Works immediately with current setup
@@ -56,6 +62,7 @@ npm install @vercel/blob
 ## 📋 Testing Checklist
 
 After deployment:
+
 - [ ] Admin can log in
 - [ ] File upload works (with 2MB limit)
 - [ ] Product creation succeeds
@@ -65,6 +72,7 @@ After deployment:
 ## 🔍 Debug Commands
 
 Check logs in Vercel dashboard or use:
+
 ```bash
 vercel logs
 ```
@@ -72,6 +80,7 @@ vercel logs
 ## 🚀 Quick Fix Deploy
 
 Run these commands to deploy the fixes:
+
 ```bash
 git add .
 git commit -m "fix: resolve Vercel deployment issues for file uploads and database"

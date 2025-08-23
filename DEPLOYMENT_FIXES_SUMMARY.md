@@ -77,7 +77,7 @@ console.log("✅ Is admin:", isAdmin);
     "app/api/orders/route.ts": { "maxDuration": 30 }
   },
   "env": {
-    "NEXTAUTH_URL": "https://kibbledrop.vercel.app"
+    "NEXTAUTH_URL": "https://kibbledrop.com"
   }
 }
 ```
@@ -100,7 +100,7 @@ npm run test:deployment
 ### Required for Production
 ```
 DATABASE_URL="postgres://..."
-NEXTAUTH_URL="https://kibbledrop.vercel.app"
+NEXTAUTH_URL="https://kibbledrop.com"
 NEXTAUTH_SECRET="your-secret-key"
 RESEND_API_KEY="your-resend-api-key"
 ```

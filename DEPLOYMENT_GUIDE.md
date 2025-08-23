@@ -11,7 +11,7 @@ DATABASE_URL="postgres://username:password@your-database-host:5432/database-name
 
 ### NextAuth Configuration
 ```
-NEXTAUTH_URL="https://kibbledrop.vercel.app"
+NEXTAUTH_URL="https://kibbledrop.com"
 NEXTAUTH_SECRET="your-long-random-secret-key-here"
 ```
 
