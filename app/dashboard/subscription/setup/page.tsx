@@ -56,14 +56,20 @@ export default function SubscriptionSetupPage() {
     loadPets();
   }, []);
 
+  useEffect(() => {
+    if (state.items.length === 0) {
+      router.push("/dashboard/products");
+      toast({
+        title: "Your cart is empty!",
+        description:
+          "Please add products to your cart before setting up a subscription.",
+        variant: "destructive",
+      });
+    }
+  }, [state.items.length, router, toast]);
+
+  // Don't render if cart is empty
   if (state.items.length === 0) {
-    router.push("/dashboard/products");
-    toast({
-      title: "Your cart is empty!",
-      description:
-        "Please add products to your cart before setting up a subscription.",
-      variant: "destructive",
-    });
     return null;
   }
 

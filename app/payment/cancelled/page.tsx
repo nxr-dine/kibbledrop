@@ -1,12 +1,13 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { XCircle, Home, ShoppingCart, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 
-export default function PaymentCancelledPage() {
+function PaymentCancelledContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
 
@@ -67,6 +68,14 @@ export default function PaymentCancelledPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function PaymentCancelledPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PaymentCancelledContent />
+    </Suspense>
   );
 }
 

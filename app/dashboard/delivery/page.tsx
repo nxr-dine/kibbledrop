@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,15 +22,21 @@ export default function DeliveryInformationPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  // Redirect if cart is empty
+  // Check cart on client side
+  useEffect(() => {
+    if (state.items.length === 0) {
+      router.push("/dashboard/products");
+      toast({
+        title: "Your cart is empty!",
+        description:
+          "Please add products to your cart before setting up a subscription.",
+        variant: "destructive",
+      });
+    }
+  }, [state.items.length, router, toast]);
+
+  // Don't render if cart is empty
   if (state.items.length === 0) {
-    router.push("/dashboard/products");
-    toast({
-      title: "Your cart is empty!",
-      description:
-        "Please add products to your cart before setting up a subscription.",
-      variant: "destructive",
-    });
     return null;
   }
 
