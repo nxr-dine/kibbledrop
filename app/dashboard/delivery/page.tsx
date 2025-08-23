@@ -22,6 +22,17 @@ export default function DeliveryInformationPage() {
   const router = useRouter();
   const { toast } = useToast();
 
+  const [formData, setFormData] = useState({
+    fullName: "",
+    address: "",
+    city: "",
+    postalCode: "",
+    phone: "",
+    instructions: "",
+  });
+
+  const [loading, setLoading] = useState(false);
+
   // Check cart on client side
   useEffect(() => {
     if (state.items.length === 0) {
@@ -39,16 +50,6 @@ export default function DeliveryInformationPage() {
   if (state.items.length === 0) {
     return null;
   }
-
-  const [formData, setFormData] = useState({
-    fullName: "",
-    address: "",
-    city: "",
-    postalCode: "",
-    phone: "",
-    instructions: "",
-  });
-  const [loading, setLoading] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
