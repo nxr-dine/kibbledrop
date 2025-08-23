@@ -40,8 +40,13 @@ export async function POST(request: NextRequest) {
 
     // Create or get order
     let order;
+    
+    // Calculate shipping (you can add logic here for different shipping costs)
+    const shippingCost = 0; // Free shipping for now
+    const subtotal = totalAmount;
+    
     if (subscriptionId) {
-      // For subscription orders
+      // For subscription orders - verify subscription exists
       const subscription = await prisma.subscription.findFirst({
         where: {
           id: subscriptionId,
@@ -59,15 +64,17 @@ export async function POST(request: NextRequest) {
       order = await prisma.order.create({
         data: {
           userId: session.user.id,
-          subscriptionId: subscriptionId,
           status: 'pending',
+          subtotal: subtotal,
+          shipping: shippingCost,
           total: totalAmount,
-          items: items.map((item: any) => ({
-            productId: item.productId,
-            quantity: item.quantity || 1,
-            price: products.find(p => p.id === item.productId)?.price || 0
-          })),
-          customerInfo: customerInfo || {},
+          deliveryName: customerInfo?.name || '',
+          deliveryPhone: customerInfo?.phone || '',
+          deliveryAddress: metadata?.deliveryInfo?.street || '',
+          city: metadata?.deliveryInfo?.city || '',
+          postalCode: metadata?.deliveryInfo?.postalCode || '',
+          instructions: metadata?.deliveryInfo?.instructions || '',
+          deliveryMethod: 'standard',
         }
       });
     } else if (metadata?.isSubscriptionPayment) {
@@ -76,13 +83,16 @@ export async function POST(request: NextRequest) {
         data: {
           userId: session.user.id,
           status: 'pending',
+          subtotal: subtotal,
+          shipping: shippingCost,
           total: totalAmount,
-          items: items.map((item: any) => ({
-            productId: item.productId,
-            quantity: item.quantity || 1,
-            price: products.find(p => p.id === item.productId)?.price || 0
-          })),
-          customerInfo: customerInfo || {},
+          deliveryName: customerInfo?.name || '',
+          deliveryPhone: customerInfo?.phone || '',
+          deliveryAddress: metadata?.deliveryInfo?.street || '',
+          city: metadata?.deliveryInfo?.city || '',
+          postalCode: metadata?.deliveryInfo?.postalCode || '',
+          instructions: metadata?.deliveryInfo?.instructions || '',
+          deliveryMethod: 'standard',
         }
       });
     } else {
@@ -91,15 +101,33 @@ export async function POST(request: NextRequest) {
         data: {
           userId: session.user.id,
           status: 'pending',
+          subtotal: subtotal,
+          shipping: shippingCost,
           total: totalAmount,
-          items: items.map((item: any) => ({
-            productId: item.productId,
-            quantity: item.quantity || 1,
-            price: products.find(p => p.id === item.productId)?.price || 0
-          })),
-          customerInfo: customerInfo || {},
+          deliveryName: customerInfo?.name || '',
+          deliveryPhone: customerInfo?.phone || '',
+          deliveryAddress: customerInfo?.address || '',
+          city: customerInfo?.city || '',
+          postalCode: customerInfo?.postalCode || '',
+          instructions: customerInfo?.instructions || '',
+          deliveryMethod: 'standard',
         }
       });
+    }
+
+    // Create order items separately
+    for (const item of items) {
+      const product = products.find(p => p.id === item.productId);
+      if (product) {
+        await prisma.orderItem.create({
+          data: {
+            orderId: order.id,
+            productId: item.productId,
+            quantity: item.quantity || 1,
+            price: product.price,
+          }
+        });
+      }
     }
 
     // Create Tradesafe payment
@@ -142,11 +170,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update order with payment ID
+    // Update order status (remove paymentId as it's not in the schema)
     await prisma.order.update({
       where: { id: order.id },
       data: { 
-        paymentId: paymentResponse.paymentId,
         status: 'payment_pending'
       }
     });
