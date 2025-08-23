@@ -32,11 +32,11 @@
     }
   },
   "env": {
-    "NEXTAUTH_URL": "https://kibbledrop.vercel.app"
+    "NEXTAUTH_URL": "https://kibbledrop.com"
   },
   "build": {
     "env": {
-      "NEXTAUTH_URL": "https://kibbledrop.vercel.app"
+      "NEXTAUTH_URL": "https://kibbledrop.com"
     }
   }
 }
