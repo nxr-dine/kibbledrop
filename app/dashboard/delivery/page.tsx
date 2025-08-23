@@ -16,11 +16,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/contexts/cart-context";
+import { useTradesafe } from "@/hooks/use-tradesafe";
+import { useSession } from "next-auth/react";
+import { CreditCard } from "lucide-react";
 
 export default function DeliveryInformationPage() {
   const { state, dispatch } = useCart();
   const router = useRouter();
   const { toast } = useToast();
+  const { createCheckout, isLoading: paymentLoading } = useTradesafe();
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -32,6 +36,7 @@ export default function DeliveryInformationPage() {
   });
 
   const [loading, setLoading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"later" | "now">("later");
 
   // Check cart on client side
   useEffect(() => {
@@ -71,7 +76,7 @@ export default function DeliveryInformationPage() {
 
       // Prepare subscription data
       const subscriptionData = {
-        petProfileId: parsedFrequency.petProfileId, // Add missing petProfileId
+        petProfileId: parsedFrequency.petProfileId,
         frequency: parsedFrequency.frequency || "monthly",
         deliveryName: formData.fullName,
         deliveryPhone: formData.phone,
@@ -80,37 +85,17 @@ export default function DeliveryInformationPage() {
         postalCode: formData.postalCode,
         instructions: formData.instructions,
         items: state.items.map((item) => ({
-          productId: item.productId || item.id, // Use productId if available, fallback to id
+          productId: item.productId || item.id,
           quantity: item.quantity,
         })),
       };
 
-      // Create subscription
-      const response = await fetch("/api/subscription", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(subscriptionData),
-      });
-
-      if (response.ok) {
-        const subscription = await response.json();
-
-        // Clear cart and localStorage
-        dispatch({ type: "CLEAR_CART" });
-        localStorage.removeItem("subscriptionFrequency");
-
-        toast({
-          title: "Subscription Created!",
-          description: "Your subscription has been set up successfully.",
-        });
-
-        // Redirect to subscription management
-        router.push("/dashboard/subscription/manage");
+      if (paymentMethod === "now") {
+        // Process payment first with TradeSafe
+        await handlePaymentCheckout(subscriptionData);
       } else {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to create subscription");
+        // Create subscription without payment
+        await createSubscriptionWithoutPayment(subscriptionData);
       }
     } catch (error) {
       console.error("Error creating subscription:", error);
@@ -124,6 +109,83 @@ export default function DeliveryInformationPage() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePaymentCheckout = async (subscriptionData: any) => {
+    try {
+      if (!session?.user?.email) {
+        throw new Error("User session required for payment");
+      }
+
+      const result = await createCheckout({
+        customerInfo: {
+          name: formData.fullName,
+          email: session.user.email,
+          phone: formData.phone,
+        },
+        items: state.items.map((item) => ({
+          productId: item.productId || item.id,
+          quantity: item.quantity,
+        })),
+        metadata: {
+          isSubscriptionPayment: true,
+          deliveryInfo: {
+            street: formData.address,
+            city: formData.city,
+            postalCode: formData.postalCode,
+            instructions: formData.instructions,
+          },
+          subscriptionData: subscriptionData,
+        },
+      });
+
+      if (result.success && result.redirectUrl) {
+        // Store subscription data for completion after payment
+        localStorage.setItem("pendingSubscription", JSON.stringify(subscriptionData));
+        
+        toast({
+          title: "Redirecting to Payment",
+          description: "You will be redirected to TradeSafe for payment processing.",
+        });
+
+        // Redirect to TradeSafe payment page
+        window.location.href = result.redirectUrl;
+      } else {
+        throw new Error(result.error || "Payment initialization failed");
+      }
+    } catch (error) {
+      throw new Error(`Payment processing failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
+  };
+
+  const createSubscriptionWithoutPayment = async (subscriptionData: any) => {
+    // Create subscription
+    const response = await fetch("/api/subscription", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(subscriptionData),
+    });
+
+    if (response.ok) {
+      const subscription = await response.json();
+
+      // Clear cart and localStorage
+      dispatch({ type: "CLEAR_CART" });
+      localStorage.removeItem("subscriptionFrequency");
+
+      toast({
+        title: "Subscription Created!",
+        description: "Your subscription has been set up successfully.",
+      });
+
+      // Redirect to subscription management
+      router.push("/dashboard/subscription/manage");
+    } else {
+      const error = await response.json();
+      throw new Error(error.error || "Failed to create subscription");
     }
   };
 
@@ -203,8 +265,53 @@ export default function DeliveryInformationPage() {
                 placeholder="e.g., Leave package by the back door"
               />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Creating Subscription..." : "Create Subscription"}
+
+            {/* Payment Method Selection */}
+            <div className="space-y-4">
+              <Label className="text-base font-medium">Payment Options</Label>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id="pay-later"
+                    name="payment"
+                    value="later"
+                    checked={paymentMethod === "later"}
+                    onChange={(e) => setPaymentMethod(e.target.value as "later" | "now")}
+                    className="h-4 w-4"
+                  />
+                  <Label htmlFor="pay-later" className="text-sm font-normal">
+                    Create subscription (Pay later)
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id="pay-now"
+                    name="payment"
+                    value="now"
+                    checked={paymentMethod === "now"}
+                    onChange={(e) => setPaymentMethod(e.target.value as "later" | "now")}
+                    className="h-4 w-4"
+                  />
+                  <Label htmlFor="pay-now" className="text-sm font-normal">
+                    Pay now with TradeSafe (${state.total.toFixed(2)})
+                  </Label>
+                </div>
+              </div>
+            </div>
+
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={loading || paymentLoading}
+            >
+              <CreditCard className="h-4 w-4 mr-2" />
+              {loading || paymentLoading ? "Processing..." : 
+                paymentMethod === "now" ? 
+                  `Pay $${state.total.toFixed(2)} & Create Subscription` : 
+                  "Create Subscription"
+              }
             </Button>
           </form>
         </CardContent>

@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { subscriptionId, items, customerInfo } = body;
+    const { subscriptionId, items, customerInfo, metadata } = body;
 
     if (!items || items.length === 0) {
       return NextResponse.json(
@@ -69,6 +69,21 @@ export async function POST(request: NextRequest) {
           customerInfo: customerInfo || {},
         }
       });
+    } else if (metadata?.isSubscriptionPayment) {
+      // For new subscription creation payment
+      order = await prisma.order.create({
+        data: {
+          userId: session.user.id,
+          status: 'pending',
+          total: totalAmount,
+          items: items.map((item: any) => ({
+            productId: item.productId,
+            quantity: item.quantity || 1,
+            price: products.find(p => p.id === item.productId)?.price || 0
+          })),
+          customerInfo: customerInfo || {},
+        }
+      });
     } else {
       // For one-time orders
       order = await prisma.order.create({
@@ -95,7 +110,9 @@ export async function POST(request: NextRequest) {
       customerEmail: session.user.email!,
       customerName: customerInfo?.name || session.user.name || '',
       customerPhone: customerInfo?.phone || '',
-      returnUrl: `${process.env.NEXTAUTH_URL}/payment/success?orderId=${order.id}`,
+      returnUrl: metadata?.isSubscriptionPayment 
+        ? `${process.env.NEXTAUTH_URL}/payment/subscription-success?orderId=${order.id}`
+        : `${process.env.NEXTAUTH_URL}/payment/success?orderId=${order.id}`,
       cancelUrl: `${process.env.NEXTAUTH_URL}/payment/cancelled?orderId=${order.id}`,
       webhookUrl: `${process.env.NEXTAUTH_URL}/api/tradesafe/webhook`,
       metadata: {
@@ -103,6 +120,9 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         subscriptionId: subscriptionId || null,
         items: items,
+        isSubscriptionPayment: metadata?.isSubscriptionPayment || false,
+        deliveryInfo: metadata?.deliveryInfo || null,
+        subscriptionData: metadata?.subscriptionData || null,
       }
     };
 

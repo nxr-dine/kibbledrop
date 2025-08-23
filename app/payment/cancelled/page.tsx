@@ -1,15 +1,21 @@
-'use client';
+"use client";
 
-import { Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { XCircle, Home, ShoppingCart, RefreshCw } from 'lucide-react';
-import Link from 'next/link';
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { XCircle, Home, ShoppingCart, RefreshCw } from "lucide-react";
+import Link from "next/link";
 
 function PaymentCancelledContent() {
   const searchParams = useSearchParams();
-  const orderId = searchParams.get('orderId');
+  const orderId = searchParams.get("orderId");
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -45,7 +51,7 @@ function PaymentCancelledContent() {
                 Try Payment Again
               </Link>
             </Button>
-            
+
             <Button asChild variant="outline" className="w-full">
               <Link href="/products">
                 <ShoppingCart className="w-4 h-4 mr-2" />
@@ -62,7 +68,9 @@ function PaymentCancelledContent() {
           </div>
 
           <div className="text-center text-sm text-gray-500 pt-4">
-            <p>If you experienced any issues, please contact our support team.</p>
+            <p>
+              If you experienced any issues, please contact our support team.
+            </p>
             <p>We're here to help you complete your order.</p>
           </div>
         </CardContent>
@@ -78,4 +86,3 @@ export default function PaymentCancelledPage() {
     </Suspense>
   );
 }
-

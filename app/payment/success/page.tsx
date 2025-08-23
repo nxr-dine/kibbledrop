@@ -1,16 +1,22 @@
-'use client';
+"use client";
 
-import { useEffect, useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { CheckCircle, Package, Home, ShoppingCart } from 'lucide-react';
-import Link from 'next/link';
-import { useTradesafe } from '@/hooks/use-tradesafe';
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { CheckCircle, Package, Home, ShoppingCart } from "lucide-react";
+import Link from "next/link";
+import { useTradesafe } from "@/hooks/use-tradesafe";
 
 function PaymentSuccessContent() {
   const searchParams = useSearchParams();
-  const orderId = searchParams.get('orderId');
+  const orderId = searchParams.get("orderId");
   const { checkPaymentStatus, isLoading } = useTradesafe();
   const [orderDetails, setOrderDetails] = useState<any>(null);
 
@@ -31,7 +37,8 @@ function PaymentSuccessContent() {
             Payment Successful!
           </CardTitle>
           <CardDescription>
-            Thank you for your order. We've received your payment and will process your order shortly.
+            Thank you for your order. We've received your payment and will
+            process your order shortly.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -39,15 +46,21 @@ function PaymentSuccessContent() {
             <div className="bg-gray-50 p-4 rounded-lg space-y-2">
               <div className="flex justify-between">
                 <span className="font-medium">Order ID:</span>
-                <span className="font-mono text-sm">{orderDetails.orderId}</span>
+                <span className="font-mono text-sm">
+                  {orderDetails.orderId}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="font-medium">Amount:</span>
-                <span className="font-medium">R{orderDetails.total?.toFixed(2)}</span>
+                <span className="font-medium">
+                  R{orderDetails.total?.toFixed(2)}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="font-medium">Status:</span>
-                <span className="capitalize text-green-600">{orderDetails.status}</span>
+                <span className="capitalize text-green-600">
+                  {orderDetails.status}
+                </span>
               </div>
             </div>
           )}
@@ -59,7 +72,7 @@ function PaymentSuccessContent() {
                 View My Orders
               </Link>
             </Button>
-            
+
             <Button asChild variant="outline" className="w-full">
               <Link href="/products">
                 <ShoppingCart className="w-4 h-4 mr-2" />
@@ -92,4 +105,3 @@ export default function PaymentSuccessPage() {
     </Suspense>
   );
 }
-

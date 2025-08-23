@@ -104,7 +104,7 @@ export default function CheckoutPage() {
         deliveryInfo,
         subtotal,
         shipping,
-        total
+        total,
       });
 
       // Create order
@@ -127,7 +127,9 @@ export default function CheckoutPage() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: "Unknown error" }));
         console.error("Order creation failed:", errorData);
         throw new Error(errorData.error || "Failed to create order");
       }
@@ -145,7 +147,10 @@ export default function CheckoutPage() {
       router.push(`/orders/${order.id}`);
     } catch (error) {
       console.error("Error creating order:", error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to place order. Please try again.";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to place order. Please try again.";
       toast({
         title: "Error",
         description: errorMessage,
@@ -449,7 +454,7 @@ export default function CheckoutPage() {
                     <CreditCard className="h-4 w-4 mr-2" />
                     {loading ? "Processing..." : "Place Order (Pay Later)"}
                   </Button>
-                  
+
                   <div className="relative">
                     <div className="absolute inset-0 flex items-center">
                       <span className="w-full border-t" />
@@ -472,11 +477,11 @@ export default function CheckoutPage() {
                 </div>
               ) : (
                 <TradesafeCheckout
-                  items={cartState.items.map(item => ({
+                  items={cartState.items.map((item) => ({
                     productId: item.productId,
                     quantity: item.quantity,
                     name: item.name,
-                    price: item.price
+                    price: item.price,
                   }))}
                   onSuccess={handleTradesafeSuccess}
                   onError={handleTradesafeError}

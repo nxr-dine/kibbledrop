@@ -9,7 +9,18 @@ interface TradesafeCheckoutData {
   }>;
   customerInfo?: {
     name?: string;
+    email?: string;
     phone?: string;
+  };
+  metadata?: {
+    isSubscriptionPayment?: boolean;
+    deliveryInfo?: {
+      street: string;
+      city: string;
+      postalCode: string;
+      instructions?: string;
+    };
+    subscriptionData?: any;
   };
 }
 
