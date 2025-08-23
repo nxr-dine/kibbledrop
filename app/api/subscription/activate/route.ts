@@ -11,63 +11,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { orderId } = await request.json();
-
-    if (!orderId) {
-      return NextResponse.json(
-        { error: "Order ID is required" },
-        { status: 400 }
-      );
-    }
-
-    // Find the order and verify it belongs to the user
-    const order = await prisma.order.findFirst({
-      where: {
-        id: orderId,
-        userId: session.user.id,
-        status: "paid", // Only process paid orders
-      },
-      include: {
-        items: true,
-      },
-    });
-
-    if (!order) {
-      return NextResponse.json(
-        { error: "Order not found or not paid" },
-        { status: 404 }
-      );
-    }
-
-    // Get subscription ID from order metadata
-    let subscriptionId;
-    try {
-      const orderMetadata = order.metadata ? JSON.parse(order.metadata as string) : null;
-      subscriptionId = orderMetadata?.subscriptionId;
-    } catch (e) {
-      console.error("Failed to parse order metadata:", e);
-    }
+    const body = await request.json();
+    const { subscriptionId } = body;
 
     if (!subscriptionId) {
       return NextResponse.json(
-        { error: "No subscription ID found in order" },
+        { error: "Subscription ID is required" },
         { status: 400 }
       );
     }
 
-    // Find and activate the pending subscription
+    // Find the pending subscription
     const subscription = await prisma.subscription.findFirst({
       where: {
         id: subscriptionId,
         userId: session.user.id,
         status: "pending",
-      },
-      include: {
-        items: {
-          include: {
-            product: true,
-          },
-        },
       },
     });
 
@@ -95,7 +54,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ subscription: activatedSubscription }, { status: 200 });
   } catch (error) {
-    console.error("Error completing subscription payment:", error);
+    console.error("Error activating subscription:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

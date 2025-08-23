@@ -119,6 +119,23 @@ export default function DeliveryInformationPage() {
         throw new Error("User session required for payment");
       }
 
+      // First create a pending subscription
+      const subscriptionResponse = await fetch("/api/subscription", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(subscriptionData),
+      });
+
+      if (!subscriptionResponse.ok) {
+        const error = await subscriptionResponse.json();
+        throw new Error(error.error || "Failed to create subscription");
+      }
+
+      const subscription = await subscriptionResponse.json();
+
+      // Now process payment with subscription ID
       const result = await createCheckout({
         customerInfo: {
           name: formData.fullName,
@@ -131,6 +148,7 @@ export default function DeliveryInformationPage() {
         })),
         metadata: {
           isSubscriptionPayment: true,
+          subscriptionId: subscription.id,
           deliveryInfo: {
             street: formData.address,
             city: formData.city,
@@ -143,11 +161,15 @@ export default function DeliveryInformationPage() {
 
       if (result.success && result.redirectUrl) {
         // Store subscription data for completion after payment
-        localStorage.setItem("pendingSubscription", JSON.stringify(subscriptionData));
-        
+        localStorage.setItem(
+          "pendingSubscription",
+          JSON.stringify({ ...subscriptionData, subscriptionId: subscription.id })
+        );
+
         toast({
           title: "Redirecting to Payment",
-          description: "You will be redirected to TradeSafe for payment processing.",
+          description:
+            "You will be redirected to TradeSafe for payment processing.",
         });
 
         // Redirect to TradeSafe payment page
@@ -156,7 +178,11 @@ export default function DeliveryInformationPage() {
         throw new Error(result.error || "Payment initialization failed");
       }
     } catch (error) {
-      throw new Error(`Payment processing failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+      throw new Error(
+        `Payment processing failed: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
     }
   };
 
@@ -278,7 +304,9 @@ export default function DeliveryInformationPage() {
                     name="payment"
                     value="later"
                     checked={paymentMethod === "later"}
-                    onChange={(e) => setPaymentMethod(e.target.value as "later" | "now")}
+                    onChange={(e) =>
+                      setPaymentMethod(e.target.value as "later" | "now")
+                    }
                     className="h-4 w-4"
                   />
                   <Label htmlFor="pay-later" className="text-sm font-normal">
@@ -292,7 +320,9 @@ export default function DeliveryInformationPage() {
                     name="payment"
                     value="now"
                     checked={paymentMethod === "now"}
-                    onChange={(e) => setPaymentMethod(e.target.value as "later" | "now")}
+                    onChange={(e) =>
+                      setPaymentMethod(e.target.value as "later" | "now")
+                    }
                     className="h-4 w-4"
                   />
                   <Label htmlFor="pay-now" className="text-sm font-normal">
@@ -302,17 +332,17 @@ export default function DeliveryInformationPage() {
               </div>
             </div>
 
-            <Button 
-              type="submit" 
-              className="w-full" 
+            <Button
+              type="submit"
+              className="w-full"
               disabled={loading || paymentLoading}
             >
               <CreditCard className="h-4 w-4 mr-2" />
-              {loading || paymentLoading ? "Processing..." : 
-                paymentMethod === "now" ? 
-                  `Pay $${state.total.toFixed(2)} & Create Subscription` : 
-                  "Create Subscription"
-              }
+              {loading || paymentLoading
+                ? "Processing..."
+                : paymentMethod === "now"
+                ? `Pay $${state.total.toFixed(2)} & Create Subscription`
+                : "Create Subscription"}
             </Button>
           </form>
         </CardContent>

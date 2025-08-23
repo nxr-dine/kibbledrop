@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         petProfileId,
         frequency,
-        status: "active",
+        status: "pending", // Start as pending until payment is confirmed
         deliveryName,
         deliveryPhone,
         deliveryAddress,

@@ -1,15 +1,21 @@
-'use client';
+"use client";
 
-import { useEffect, useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { CheckCircle, Calendar, Package, Home } from 'lucide-react';
-import Link from 'next/link';
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { CheckCircle, Calendar, Package, Home } from "lucide-react";
+import Link from "next/link";
 
 function SubscriptionSuccessContent() {
   const searchParams = useSearchParams();
-  const orderId = searchParams.get('orderId');
+  const orderId = searchParams.get("orderId");
   const [subscription, setSubscription] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -21,10 +27,10 @@ function SubscriptionSuccessContent() {
 
   const completeSubscriptionPayment = async (orderId: string) => {
     try {
-      const response = await fetch('/api/subscription/complete-payment', {
-        method: 'POST',
+      const response = await fetch("/api/subscription/complete-payment", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ orderId }),
       });
@@ -33,10 +39,10 @@ function SubscriptionSuccessContent() {
         const data = await response.json();
         setSubscription(data.subscription);
       } else {
-        console.error('Failed to complete subscription payment');
+        console.error("Failed to complete subscription payment");
       }
     } catch (error) {
-      console.error('Error completing subscription payment:', error);
+      console.error("Error completing subscription payment:", error);
     } finally {
       setLoading(false);
     }
@@ -80,17 +86,23 @@ function SubscriptionSuccessContent() {
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Frequency:</span>
-                <span className="text-sm capitalize">{subscription.frequency}</span>
+                <span className="text-sm capitalize">
+                  {subscription.frequency}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Status:</span>
-                <span className="text-sm text-green-600 font-medium">Active</span>
+                <span className="text-sm text-green-600 font-medium">
+                  Active
+                </span>
               </div>
               {subscription.nextBillingDate && (
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Next Delivery:</span>
                   <span className="text-sm">
-                    {new Date(subscription.nextBillingDate).toLocaleDateString()}
+                    {new Date(
+                      subscription.nextBillingDate
+                    ).toLocaleDateString()}
                   </span>
                 </div>
               )}
@@ -104,14 +116,14 @@ function SubscriptionSuccessContent() {
                 Manage Subscription
               </Link>
             </Button>
-            
+
             <Button asChild variant="outline" className="w-full">
               <Link href="/dashboard/products">
                 <Package className="w-4 h-4 mr-2" />
                 Continue Shopping
               </Link>
             </Button>
-            
+
             <Button asChild variant="ghost" className="w-full">
               <Link href="/dashboard">
                 <Home className="w-4 h-4 mr-2" />
@@ -122,7 +134,8 @@ function SubscriptionSuccessContent() {
 
           <div className="text-center pt-4 border-t">
             <p className="text-sm text-gray-600">
-              You will receive a confirmation email shortly with your subscription details.
+              You will receive a confirmation email shortly with your
+              subscription details.
             </p>
             <p className="text-sm text-gray-600 mt-2">
               If you have any questions, please contact our support team.

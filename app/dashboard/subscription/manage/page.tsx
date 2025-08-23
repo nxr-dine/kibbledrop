@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Calendar, Package, Truck, Pause, Play, XCircle, SkipForward, Edit, CalendarDays } from "lucide-react"
+import { Calendar, Package, Truck, Pause, Play, XCircle, SkipForward, Edit, CalendarDays, AlertCircle, CreditCard } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -226,6 +226,34 @@ export default function ManageSubscriptionPage() {
     }
   }
 
+  const handleActivateSubscription = async (subscriptionId: string) => {
+    try {
+      const response = await fetch('/api/subscription/activate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subscriptionId })
+      })
+      
+      if (response.ok) {
+        await fetchSubscriptions() // Refresh the list
+        toast({
+          title: "Subscription Activated",
+          description: "Your subscription has been activated successfully.",
+        })
+      } else {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to activate subscription')
+      }
+    } catch (error) {
+      console.error('Error activating subscription:', error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to activate subscription",
+        variant: "destructive"
+      })
+    }
+  }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
@@ -234,6 +262,8 @@ export default function ManageSubscriptionPage() {
         return "secondary"
       case "cancelled":
         return "destructive"
+      case "pending":
+        return "outline"
       case "delivered":
         return "outline"
       default:
@@ -242,6 +272,7 @@ export default function ManageSubscriptionPage() {
   }
 
   const activeSubscriptions = subscriptions.filter((sub) => sub.status === "active" || sub.status === "paused")
+  const pendingSubscriptions = subscriptions.filter((sub) => sub.status === "pending")
   const pastSubscriptions = subscriptions.filter((sub) => sub.status === "cancelled")
 
   return (
@@ -265,6 +296,82 @@ export default function ManageSubscriptionPage() {
         </div>
       ) : (
         <>
+          {/* Pending Subscriptions */}
+          {pendingSubscriptions.length > 0 && (
+            <div className="mb-12">
+              <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-6">Pending Payment Subscriptions</h2>
+              <div className="space-y-4">
+                {pendingSubscriptions.map((subscription) => (
+                  <Card
+                    key={subscription.id}
+                    className="border-l-4 border-l-orange-500"
+                  >
+                    <CardHeader>
+                      <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                        <div>
+                          <CardTitle className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                            <span className="text-sm sm:text-base">Subscription #{subscription.id}</span>
+                            <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-200">
+                              Pending Payment
+                            </Badge>
+                          </CardTitle>
+                          <CardDescription className="mt-1">
+                            Created on {new Date(subscription.createdAt).toLocaleDateString()}
+                          </CardDescription>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xl sm:text-2xl font-bold text-orange-600">
+                            ${subscription.items.reduce((total, item) => total + (item.product.price * item.quantity), 0).toFixed(2)}
+                          </p>
+                          <p className="text-sm text-gray-600">per {subscription.frequency}</p>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {/* Items */}
+                        <div>
+                          <h4 className="font-medium mb-2">Items in this subscription:</h4>
+                          <div className="space-y-1">
+                            {subscription.items.map((item, index) => (
+                              <div key={index} className="flex justify-between text-sm">
+                                <span>
+                                  {item.product.name} x{item.quantity}
+                                </span>
+                                <span>${(item.product.price * item.quantity).toFixed(2)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Pending Payment Notice */}
+                        <div className="flex items-center gap-2 text-sm text-orange-600 bg-orange-50 p-3 rounded-lg">
+                          <AlertCircle className="h-4 w-4" />
+                          <span>This subscription is waiting for payment to be activated.</span>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex flex-wrap gap-2 pt-2">
+                          <Button 
+                            variant="default" 
+                            size="sm" 
+                            onClick={() => handleActivateSubscription(subscription.id)}
+                            className="bg-orange-600 hover:bg-orange-700"
+                          >
+                            <CreditCard className="h-4 w-4 mr-2" /> Complete Payment & Activate
+                          </Button>
+                          <Button variant="destructive" size="sm" onClick={() => handleUpdateStatus(subscription.id, "cancelled")}>
+                            <XCircle className="h-4 w-4 mr-2" /> Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Active/Paused Subscriptions */}
           <div className="mb-12">
             <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-6">Your Active & Paused Subscriptions</h2>
@@ -291,7 +398,10 @@ export default function ManageSubscriptionPage() {
                           <CardTitle className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
                             <span className="text-sm sm:text-base">Subscription #{subscription.id}</span>
                             <Badge variant={getStatusColor(subscription.status)} className="text-xs">
-                              {subscription.status === "active" ? "Active" : "Paused"}
+                              {subscription.status === "active" ? "Active" : 
+                               subscription.status === "paused" ? "Paused" : 
+                               subscription.status === "pending" ? "Pending Payment" : 
+                               subscription.status}
                             </Badge>
                           </CardTitle>
                           <CardDescription className="mt-1">

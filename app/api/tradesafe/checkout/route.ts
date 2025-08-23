@@ -7,7 +7,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -16,10 +16,7 @@ export async function POST(request: NextRequest) {
     const { subscriptionId, items, customerInfo, metadata } = body;
 
     if (!items || items.length === 0) {
-      return NextResponse.json(
-        { error: "No items provided" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "No items provided" }, { status: 400 });
     }
 
     // Get product details for the items
@@ -27,31 +24,31 @@ export async function POST(request: NextRequest) {
     const products = await prisma.product.findMany({
       where: {
         id: {
-          in: productIds
-        }
-      }
+          in: productIds,
+        },
+      },
     });
 
     // Calculate total amount
     const totalAmount = items.reduce((total: number, item: any) => {
-      const product = products.find(p => p.id === item.productId);
-      return total + ((product?.price || 0) * (item.quantity || 1));
+      const product = products.find((p) => p.id === item.productId);
+      return total + (product?.price || 0) * (item.quantity || 1);
     }, 0);
 
     // Create or get order
     let order;
-    
+
     // Calculate shipping (you can add logic here for different shipping costs)
     const shippingCost = 0; // Free shipping for now
     const subtotal = totalAmount;
-    
+
     if (subscriptionId) {
       // For subscription orders - verify subscription exists
       const subscription = await prisma.subscription.findFirst({
         where: {
           id: subscriptionId,
-          userId: session.user.id
-        }
+          userId: session.user.id,
+        },
       });
 
       if (!subscription) {
@@ -64,60 +61,60 @@ export async function POST(request: NextRequest) {
       order = await prisma.order.create({
         data: {
           userId: session.user.id,
-          status: 'pending',
+          status: "pending",
           subtotal: subtotal,
           shipping: shippingCost,
           total: totalAmount,
-          deliveryName: customerInfo?.name || '',
-          deliveryPhone: customerInfo?.phone || '',
-          deliveryAddress: metadata?.deliveryInfo?.street || '',
-          city: metadata?.deliveryInfo?.city || '',
-          postalCode: metadata?.deliveryInfo?.postalCode || '',
-          instructions: metadata?.deliveryInfo?.instructions || '',
-          deliveryMethod: 'standard',
-        }
+          deliveryName: customerInfo?.name || "",
+          deliveryPhone: customerInfo?.phone || "",
+          deliveryAddress: metadata?.deliveryInfo?.street || "",
+          city: metadata?.deliveryInfo?.city || "",
+          postalCode: metadata?.deliveryInfo?.postalCode || "",
+          instructions: metadata?.deliveryInfo?.instructions || "",
+          deliveryMethod: "standard",
+        },
       });
     } else if (metadata?.isSubscriptionPayment) {
       // For new subscription creation payment
       order = await prisma.order.create({
         data: {
           userId: session.user.id,
-          status: 'pending',
+          status: "pending",
           subtotal: subtotal,
           shipping: shippingCost,
           total: totalAmount,
-          deliveryName: customerInfo?.name || '',
-          deliveryPhone: customerInfo?.phone || '',
-          deliveryAddress: metadata?.deliveryInfo?.street || '',
-          city: metadata?.deliveryInfo?.city || '',
-          postalCode: metadata?.deliveryInfo?.postalCode || '',
-          instructions: metadata?.deliveryInfo?.instructions || '',
-          deliveryMethod: 'standard',
-        }
+          deliveryName: customerInfo?.name || "",
+          deliveryPhone: customerInfo?.phone || "",
+          deliveryAddress: metadata?.deliveryInfo?.street || "",
+          city: metadata?.deliveryInfo?.city || "",
+          postalCode: metadata?.deliveryInfo?.postalCode || "",
+          instructions: metadata?.deliveryInfo?.instructions || "",
+          deliveryMethod: "standard",
+        },
       });
     } else {
       // For one-time orders
       order = await prisma.order.create({
         data: {
           userId: session.user.id,
-          status: 'pending',
+          status: "pending",
           subtotal: subtotal,
           shipping: shippingCost,
           total: totalAmount,
-          deliveryName: customerInfo?.name || '',
-          deliveryPhone: customerInfo?.phone || '',
-          deliveryAddress: customerInfo?.address || '',
-          city: customerInfo?.city || '',
-          postalCode: customerInfo?.postalCode || '',
-          instructions: customerInfo?.instructions || '',
-          deliveryMethod: 'standard',
-        }
+          deliveryName: customerInfo?.name || "",
+          deliveryPhone: customerInfo?.phone || "",
+          deliveryAddress: customerInfo?.address || "",
+          city: customerInfo?.city || "",
+          postalCode: customerInfo?.postalCode || "",
+          instructions: customerInfo?.instructions || "",
+          deliveryMethod: "standard",
+        },
       });
     }
 
     // Create order items separately
     for (const item of items) {
-      const product = products.find(p => p.id === item.productId);
+      const product = products.find((p) => p.id === item.productId);
       if (product) {
         await prisma.orderItem.create({
           data: {
@@ -125,7 +122,7 @@ export async function POST(request: NextRequest) {
             productId: item.productId,
             quantity: item.quantity || 1,
             price: product.price,
-          }
+          },
         });
       }
     }
@@ -133,13 +130,15 @@ export async function POST(request: NextRequest) {
     // Create Tradesafe payment
     const paymentRequest = {
       amount: totalAmount,
-      currency: 'ZAR', // South African Rand
+      currency: "ZAR", // South African Rand
       orderId: order.id,
-      description: `Order ${order.id} - ${products.map(p => p.name).join(', ')}`,
+      description: `Order ${order.id} - ${products
+        .map((p) => p.name)
+        .join(", ")}`,
       customerEmail: session.user.email!,
-      customerName: customerInfo?.name || session.user.name || '',
-      customerPhone: customerInfo?.phone || '',
-      returnUrl: metadata?.isSubscriptionPayment 
+      customerName: customerInfo?.name || session.user.name || "",
+      customerPhone: customerInfo?.phone || "",
+      returnUrl: metadata?.isSubscriptionPayment
         ? `${process.env.NEXTAUTH_URL}/payment/subscription-success?orderId=${order.id}`
         : `${process.env.NEXTAUTH_URL}/payment/success?orderId=${order.id}`,
       cancelUrl: `${process.env.NEXTAUTH_URL}/payment/cancelled?orderId=${order.id}`,
@@ -152,7 +151,7 @@ export async function POST(request: NextRequest) {
         isSubscriptionPayment: metadata?.isSubscriptionPayment || false,
         deliveryInfo: metadata?.deliveryInfo || null,
         subscriptionData: metadata?.subscriptionData || null,
-      }
+      },
     };
 
     const paymentResponse = await tradesafe.createPayment(paymentRequest);
@@ -161,11 +160,11 @@ export async function POST(request: NextRequest) {
       // Update order status to failed
       await prisma.order.update({
         where: { id: order.id },
-        data: { status: 'failed' }
+        data: { status: "failed" },
       });
 
       return NextResponse.json(
-        { error: paymentResponse.error || 'Payment creation failed' },
+        { error: paymentResponse.error || "Payment creation failed" },
         { status: 400 }
       );
     }
@@ -173,18 +172,17 @@ export async function POST(request: NextRequest) {
     // Update order status (remove paymentId as it's not in the schema)
     await prisma.order.update({
       where: { id: order.id },
-      data: { 
-        status: 'payment_pending'
-      }
+      data: {
+        status: "payment_pending",
+      },
     });
 
     return NextResponse.json({
       success: true,
       paymentId: paymentResponse.paymentId,
       redirectUrl: paymentResponse.redirectUrl,
-      orderId: order.id
+      orderId: order.id,
     });
-
   } catch (error) {
     console.error("Error creating Tradesafe checkout session:", error);
     return NextResponse.json(
@@ -193,4 +191,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
