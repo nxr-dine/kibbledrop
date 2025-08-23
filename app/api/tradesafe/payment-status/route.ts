@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { tradesafe } from "@/lib/tradesafe";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);

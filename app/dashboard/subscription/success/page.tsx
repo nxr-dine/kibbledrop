@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -8,7 +8,7 @@ import { CheckCircle, AlertCircle, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
 
-export default function SubscriptionSuccessPage() {
+function SubscriptionSuccessContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { toast } = useToast()
@@ -171,4 +171,22 @@ export default function SubscriptionSuccessPage() {
   }
 
   return null
+}
+
+export default function SubscriptionSuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="max-w-2xl mx-auto px-4 py-8">
+        <Card>
+          <CardContent className="text-center py-8">
+            <Loader2 className="h-12 w-12 text-orange-600 mx-auto mb-4 animate-spin" />
+            <h2 className="text-xl font-semibold mb-2">Loading...</h2>
+            <p className="text-gray-600">Please wait...</p>
+          </CardContent>
+        </Card>
+      </div>
+    }>
+      <SubscriptionSuccessContent />
+    </Suspense>
+  )
 }

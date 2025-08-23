@@ -4,6 +4,8 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import { checkAdminRole } from "@/lib/utils"
 
+export const dynamic = 'force-dynamic'
+
 // GET - Get all orders (admin view)
 export async function GET() {
   try {
