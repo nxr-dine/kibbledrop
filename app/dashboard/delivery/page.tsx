@@ -25,6 +25,7 @@ export default function DeliveryInformationPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { createCheckout, isLoading: paymentLoading } = useTradesafe();
+  const { data: session } = useSession();
 
   const [formData, setFormData] = useState({
     fullName: "",
