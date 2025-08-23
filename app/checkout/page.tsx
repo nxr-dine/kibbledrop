@@ -176,18 +176,6 @@ export default function CheckoutPage() {
       variant: "destructive",
     });
   };
-    } catch (error) {
-      console.error("Error creating order:", error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to place order. Please try again.";
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (cartState.items.length === 0) {
     return (
