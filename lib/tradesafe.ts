@@ -54,26 +54,38 @@ export class TradesafeAPI {
     paymentRequest: TradesafePaymentRequest
   ): Promise<TradesafePaymentResponse> {
     try {
-      // Check if we have proper TradeSafe credentials
-      const hasCredentials = this.config.merchantId && this.config.apiKey;
+      // Check if we have proper TradeSafe credentials (not just existence, but valid values)
+      const hasCredentials = this.config.merchantId && 
+                           this.config.apiKey && 
+                           this.config.merchantId !== "your_tradesafe_merchant_id" &&
+                           this.config.apiKey !== "your_tradesafe_api_key" &&
+                           this.config.merchantId.length > 5 &&
+                           this.config.apiKey.length > 5;
+
+      console.log("🔍 TradeSafe Credentials Check:", {
+        merchantId: this.config.merchantId ? `${this.config.merchantId.substring(0, 6)}...` : "missing",
+        apiKey: this.config.apiKey ? `${this.config.apiKey.substring(0, 6)}...` : "missing",
+        environment: this.config.environment,
+        hasValidCredentials: hasCredentials
+      });
 
       // In development, use mock payment gateway if no credentials or if explicitly requested
       if (process.env.NODE_ENV === "development" && !hasCredentials) {
         console.log(
-          "🧪 Using mock TradeSafe payment gateway for development (no credentials)"
+          "🧪 Using mock TradeSafe payment gateway for development (no valid credentials)"
         );
         return this.createMockPayment(paymentRequest);
       }
 
       // If we don't have credentials in production, redirect to unavailable page
       if (!hasCredentials) {
-        console.error("❌ TradeSafe credentials not configured");
+        console.error("❌ TradeSafe credentials not configured or contain placeholder values");
         const fallbackUrl = `${process.env.NEXTAUTH_URL}/payment-unavailable?orderId=${paymentRequest.orderId}&amount=${paymentRequest.amount}`;
         return {
           success: true,
           paymentId: "unavailable",
           redirectUrl: fallbackUrl,
-          message: "Redirecting to payment unavailable page",
+          message: "Redirecting to payment unavailable page - credentials not configured",
         };
       }
 

@@ -14,7 +14,9 @@
     "db:seed": "tsx prisma/seed.ts",
     "postinstall": "prisma generate",
     "test:deployment": "node scripts/test-deployment.js",
-    "test:tradesafe": "node scripts/test-tradesafe.js"
+    "test:tradesafe": "node scripts/test-tradesafe.js",
+    "setup:tradesafe": "bash scripts/setup-tradesafe.sh",
+    "check:tradesafe": "node -e \"require('./lib/tradesafe-checker.ts').TradesafeConfigChecker.logStatus()\""
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",

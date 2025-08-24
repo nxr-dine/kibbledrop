@@ -1,20 +1,17 @@
-import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/app/api/auth/[...nextauth]/route"
-import { prisma } from "@/lib/prisma"
-import bcrypt from "bcryptjs"
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
 
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions)
-    
+    const session = await getServerSession(authOptions);
+
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const user = await prisma.user.findUnique({
@@ -34,64 +31,58 @@ export async function GET() {
           select: {
             orders: true,
             subscriptions: true,
-            petProfiles: true
-          }
-        }
-      }
-    })
+            petProfiles: true,
+          },
+        },
+      },
+    });
 
     if (!user) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    return NextResponse.json(user)
+    return NextResponse.json(user);
   } catch (error) {
-    console.error("Error fetching user profile:", error)
+    console.error("Error fetching user profile:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
-    )
+    );
   }
 }
 
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    
+    const session = await getServerSession(authOptions);
+
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json()
-    const { name, email, phone, address } = body
+    const body = await request.json();
+    const { name, email, phone, address } = body;
 
     // Validate input
     if (!name || !email) {
       return NextResponse.json(
         { error: "Name and email are required" },
         { status: 400 }
-      )
+      );
     }
 
     // Check if email is already taken by another user
     const existingUser = await prisma.user.findFirst({
       where: {
         email,
-        id: { not: session.user.id }
-      }
-    })
+        id: { not: session.user.id },
+      },
+    });
 
     if (existingUser) {
       return NextResponse.json(
         { error: "Email is already taken" },
         { status: 400 }
-      )
+      );
     }
 
     // Update user profile
@@ -101,7 +92,7 @@ export async function PUT(request: NextRequest) {
         name,
         email,
         phone,
-        address
+        address,
       },
       select: {
         id: true,
@@ -113,16 +104,16 @@ export async function PUT(request: NextRequest) {
         address: true,
         role: true,
         createdAt: true,
-        updatedAt: true
-      }
-    })
+        updatedAt: true,
+      },
+    });
 
-    return NextResponse.json(updatedUser)
+    return NextResponse.json(updatedUser);
   } catch (error) {
-    console.error("Error updating user profile:", error)
+    console.error("Error updating user profile:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
-    )
+    );
   }
-} 
+}

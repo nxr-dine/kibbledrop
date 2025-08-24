@@ -42,7 +42,9 @@ export async function POST(request: NextRequest) {
     // Get subscription ID from order metadata
     let subscriptionId;
     try {
-      const orderMetadata = order.metadata ? JSON.parse(order.metadata as string) : null;
+      const orderMetadata = order.metadata
+        ? JSON.parse(order.metadata as string)
+        : null;
       subscriptionId = orderMetadata?.subscriptionId;
     } catch (e) {
       console.error("Failed to parse order metadata:", e);
@@ -93,7 +95,10 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ subscription: activatedSubscription }, { status: 200 });
+    return NextResponse.json(
+      { subscription: activatedSubscription },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error completing subscription payment:", error);
     return NextResponse.json(

@@ -163,7 +163,10 @@ export default function DeliveryInformationPage() {
         // Store subscription data for completion after payment
         localStorage.setItem(
           "pendingSubscription",
-          JSON.stringify({ ...subscriptionData, subscriptionId: subscription.id })
+          JSON.stringify({
+            ...subscriptionData,
+            subscriptionId: subscription.id,
+          })
         );
 
         toast({
