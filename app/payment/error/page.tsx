@@ -84,17 +84,19 @@ function PaymentErrorContent() {
 
 export default function PaymentErrorPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-lg mx-auto p-6">
-          <Card>
-            <CardContent className="p-6">
-              <div className="text-center">Loading...</div>
-            </CardContent>
-          </Card>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50 py-8">
+          <div className="max-w-lg mx-auto p-6">
+            <Card>
+              <CardContent className="p-6">
+                <div className="text-center">Loading...</div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      </div>
-    }>
+      }
+    >
       <PaymentErrorContent />
     </Suspense>
   );

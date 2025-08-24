@@ -54,15 +54,17 @@ function OAuthSuccessContent() {
 
 export default function OAuthSuccessPage() {
   return (
-    <Suspense fallback={
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-center">Loading...</div>
-          </CardContent>
-        </Card>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="max-w-2xl mx-auto px-4 py-8">
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-center">Loading...</div>
+            </CardContent>
+          </Card>
+        </div>
+      }
+    >
       <OAuthSuccessContent />
     </Suspense>
   );

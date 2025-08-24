@@ -27,25 +27,85 @@ interface TokenResponse {
  */
 export async function POST(request: NextRequest) {
   try {
+    console.log("🔑 Starting TradeSafe OAuth token request...");
+    
     // Get credentials and URLs from environment-based configuration
+    console.log("📋 Step 1: Getting TradeSafe configuration...");
     const { clientId, clientSecret } = getTradeSafeCredentials();
     const { authUrl } = getTradeSafeUrls();
 
-    console.log("🔑 Requesting OAuth access token from TradeSafe...");
+    console.log("🌐 OAuth URL:", authUrl);
+    console.log("🔑 Client ID:", clientId ? `${clientId.substring(0, 8)}...` : "MISSING");
+    console.log("🔐 Client Secret:", clientSecret ? `${clientSecret.length} chars` : "MISSING");
 
-    // Make OAuth token request to TradeSafe auth server
-    const tokenResponse = await fetch(authUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Accept: "application/json",
-      },
-      body: new URLSearchParams({
-        grant_type: "client_credentials", // OAuth 2.0 client credentials flow
-        client_id: clientId,
-        client_secret: clientSecret,
-      }),
+    if (!clientId || !clientSecret) {
+      console.error("❌ Missing TradeSafe credentials");
+      return NextResponse.json(
+        { error: "TradeSafe credentials not configured" },
+        { status: 500 }
+      );
+    }
+
+    console.log("📡 Step 2: Making OAuth request to TradeSafe...");
+    console.log("⏱️  Request started at:", new Date().toISOString());
+
+    const requestBody = new URLSearchParams({
+      grant_type: "client_credentials",
+      client_id: clientId,
+      client_secret: clientSecret,
     });
+
+    console.log("📝 Request body:", {
+      grant_type: "client_credentials",
+      client_id: `${clientId.substring(0, 8)}...`,
+      client_secret: `${clientSecret.substring(0, 8)}...`
+    });
+
+    // Add timeout and better error handling
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+
+    let tokenResponse;
+    try {
+      tokenResponse = await fetch(authUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Accept: "application/json",
+          "User-Agent": "KibbleDrop/1.0"
+        },
+        body: requestBody,
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      console.log("✅ Request completed successfully");
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      console.error("❌ Network error during OAuth request:", fetchError);
+      
+      if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+        return NextResponse.json(
+          { error: "Request timeout", message: "TradeSafe OAuth request timed out after 15 seconds" },
+          { status: 504 }
+        );
+      }
+      
+      return NextResponse.json(
+        { 
+          error: "Network error", 
+          message: fetchError instanceof Error ? fetchError.message : "Failed to connect to TradeSafe",
+          details: {
+            name: fetchError instanceof Error ? fetchError.name : "Unknown",
+            code: (fetchError as any)?.code || "Unknown"
+          }
+        },
+        { status: 503 }
+      );
+    }
+
+    console.log("📊 Response status:", tokenResponse.status);
+    console.log("📊 Response headers:", Object.fromEntries(tokenResponse.headers.entries()));
+    console.log("⏱️  Response received at:", new Date().toISOString());
 
     // Check if the authentication was successful
     if (!tokenResponse.ok) {

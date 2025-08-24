@@ -60,15 +60,30 @@ export function getTradeSafeUrls(): TradeSafeUrls {
  * @throws Error if credentials are not configured
  */
 export function getTradeSafeCredentials() {
+  console.log("🔍 Checking TradeSafe credentials in environment...");
+  
   const clientId = process.env.TRADESAFE_CLIENT_ID;
   const clientSecret = process.env.TRADESAFE_CLIENT_SECRET;
 
+  console.log("📊 Environment variables status:", {
+    TRADESAFE_CLIENT_ID: clientId ? `${clientId.substring(0, 8)}... (${clientId.length} chars)` : "❌ MISSING",
+    TRADESAFE_CLIENT_SECRET: clientSecret ? `${clientSecret.substring(0, 8)}... (${clientSecret.length} chars)` : "❌ MISSING",
+    NODE_ENV: process.env.NODE_ENV,
+    TRADESAFE_ENVIRONMENT: process.env.TRADESAFE_ENVIRONMENT
+  });
+
   if (!clientId || !clientSecret) {
+    const missingVars = [];
+    if (!clientId) missingVars.push("TRADESAFE_CLIENT_ID");
+    if (!clientSecret) missingVars.push("TRADESAFE_CLIENT_SECRET");
+    
+    console.error("❌ Missing TradeSafe credentials:", missingVars.join(", "));
     throw new Error(
-      "TRADESAFE_CLIENT_ID and TRADESAFE_CLIENT_SECRET must be set in environment variables"
+      `Missing TradeSafe credentials: ${missingVars.join(", ")} must be set in environment variables`
     );
   }
 
+  console.log("✅ TradeSafe credentials found and valid");
   return {
     clientId,
     clientSecret,

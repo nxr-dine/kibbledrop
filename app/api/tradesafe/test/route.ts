@@ -18,12 +18,15 @@ export async function GET() {
     console.log("🚀 Testing TradeSafe API integration...");
 
     // Skip external API calls during build time
-    if (process.env.NODE_ENV === 'production' && !process.env.NEXTAUTH_URL?.includes('localhost')) {
+    if (
+      process.env.NODE_ENV === "production" &&
+      !process.env.NEXTAUTH_URL?.includes("localhost")
+    ) {
       return NextResponse.json({
         success: true,
-        message: 'TradeSafe API integration test skipped during build',
+        message: "TradeSafe API integration test skipped during build",
         build_mode: true,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
 
