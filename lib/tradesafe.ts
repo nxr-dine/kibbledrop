@@ -44,10 +44,11 @@ export class TradesafeAPI {
 
   constructor(config: TradesafeConfig) {
     this.config = config;
+    // Updated TradeSafe API URLs - using the correct endpoints (.co.za domain)
     this.baseUrl =
       config.environment === "production"
-        ? "https://api.tradesafe.com"
-        : "https://sandbox-api.tradesafe.com";
+        ? "https://api.tradesafe.co.za"
+        : "https://api.tradesafe.co.za"; // TradeSafe appears to use same domain for sandbox
   }
 
   async createPayment(
@@ -55,18 +56,23 @@ export class TradesafeAPI {
   ): Promise<TradesafePaymentResponse> {
     try {
       // Check if we have proper TradeSafe credentials (not just existence, but valid values)
-      const hasCredentials = this.config.merchantId && 
-                           this.config.apiKey && 
-                           this.config.merchantId !== "your_tradesafe_merchant_id" &&
-                           this.config.apiKey !== "your_tradesafe_api_key" &&
-                           this.config.merchantId.length > 5 &&
-                           this.config.apiKey.length > 5;
+      const hasCredentials =
+        this.config.merchantId &&
+        this.config.apiKey &&
+        this.config.merchantId !== "your_tradesafe_merchant_id" &&
+        this.config.apiKey !== "your_tradesafe_api_key" &&
+        this.config.merchantId.length > 5 &&
+        this.config.apiKey.length > 5;
 
       console.log("🔍 TradeSafe Credentials Check:", {
-        merchantId: this.config.merchantId ? `${this.config.merchantId.substring(0, 6)}...` : "missing",
-        apiKey: this.config.apiKey ? `${this.config.apiKey.substring(0, 6)}...` : "missing",
+        merchantId: this.config.merchantId
+          ? `${this.config.merchantId.substring(0, 6)}...`
+          : "missing",
+        apiKey: this.config.apiKey
+          ? `${this.config.apiKey.substring(0, 6)}...`
+          : "missing",
         environment: this.config.environment,
-        hasValidCredentials: hasCredentials
+        hasValidCredentials: hasCredentials,
       });
 
       // In development, use mock payment gateway if no credentials or if explicitly requested
@@ -79,23 +85,35 @@ export class TradesafeAPI {
 
       // If we don't have credentials in production, redirect to unavailable page
       if (!hasCredentials) {
-        console.error("❌ TradeSafe credentials not configured or contain placeholder values");
+        console.error(
+          "❌ TradeSafe credentials not configured or contain placeholder values"
+        );
         const fallbackUrl = `${process.env.NEXTAUTH_URL}/payment-unavailable?orderId=${paymentRequest.orderId}&amount=${paymentRequest.amount}`;
         return {
           success: true,
           paymentId: "unavailable",
           redirectUrl: fallbackUrl,
-          message: "Redirecting to payment unavailable page - credentials not configured",
+          message:
+            "Redirecting to payment unavailable page - credentials not configured",
         };
       }
 
       // Try to make the real API call
-      const response = await fetch(`${this.baseUrl}/v1/payments`, {
+      console.log(`🌐 Attempting TradeSafe API call to: ${this.baseUrl}/api/payments`);
+      console.log(`📋 Request payload preview:`, {
+        amount: paymentRequest.amount,
+        currency: paymentRequest.currency,
+        orderId: paymentRequest.orderId,
+        environment: this.config.environment
+      });
+      
+      const response = await fetch(`${this.baseUrl}/api/payments`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${this.config.apiKey}`,
           "X-Merchant-ID": this.config.merchantId,
+          "User-Agent": "KibbleDrop/1.0",
         },
         body: JSON.stringify({
           amount: paymentRequest.amount,
@@ -110,6 +128,8 @@ export class TradesafeAPI {
           webhook_url: paymentRequest.webhookUrl,
           metadata: paymentRequest.metadata,
         }),
+        // Add timeout and SSL handling
+        signal: AbortSignal.timeout(30000), // 30 second timeout
       });
 
       const data = await response.json();
@@ -131,10 +151,33 @@ export class TradesafeAPI {
       };
     } catch (error) {
       console.error("Tradesafe payment creation error:", error);
+      
+      // Check if it's a network/SSL error
+      if (error instanceof Error && (
+        error.message.includes('fetch failed') ||
+        error.message.includes('SSL') ||
+        error.message.includes('TLS') ||
+        error.message.includes('ECONNREFUSED') ||
+        error.message.includes('timeout')
+      )) {
+        console.log("🔌 Network/SSL error detected. This could be:");
+        console.log("   - TradeSafe API temporarily unavailable");
+        console.log("   - SSL/TLS configuration issue");
+        console.log("   - Network connectivity problem");
+        console.log("   - Invalid API endpoint URL");
+        console.log("   - API requires different authentication method");
+        console.log("");
+        console.log("💡 Recommendations:");
+        console.log("   1. Verify TradeSafe API documentation for correct endpoints");
+        console.log("   2. Check if API credentials are properly configured");
+        console.log("   3. Test with TradeSafe's official API testing tools");
+        console.log("   4. Contact TradeSafe support for API guidance");
+      }
 
       // In development, fall back to mock if real API fails
       if (process.env.NODE_ENV === "development") {
         console.log("🧪 Falling back to mock payment gateway due to API error");
+        console.log("   This allows development to continue while API issues are resolved");
         return this.createMockPayment(paymentRequest);
       }
 

@@ -27,6 +27,7 @@ This will guide you through the configuration process interactively.
 ### Option 2: Manual Setup
 
 1. Copy the environment template:
+
    ```bash
    cp env.example .env.local
    ```
@@ -42,11 +43,13 @@ This will guide you through the configuration process interactively.
 ## Getting TradeSafe Credentials
 
 ### 1. Sign Up
+
 - Visit [TradeSafe](https://tradesafe.co.za)
 - Create a business account
 - Complete verification process
 
 ### 2. Access Dashboard
+
 - Log into your TradeSafe dashboard
 - Navigate to API settings
 - Generate your credentials:
@@ -57,11 +60,13 @@ This will guide you through the configuration process interactively.
 ### 3. Environment Setup
 
 **For Development/Testing:**
+
 ```env
 TRADESAFE_ENVIRONMENT="sandbox"
 ```
 
 **For Production:**
+
 ```env
 TRADESAFE_ENVIRONMENT="production"
 ```
@@ -79,6 +84,7 @@ Or visit: `http://localhost:3000/api/tradesafe/config-status`
 ## Payment Flow
 
 ### With Mock Payments (Current)
+
 1. User initiates payment
 2. System detects missing credentials
 3. Redirects to mock payment page
@@ -86,6 +92,7 @@ Or visit: `http://localhost:3000/api/tradesafe/config-status`
 5. Subscription activated on success
 
 ### With TradeSafe Configured
+
 1. User initiates payment
 2. System creates TradeSafe payment
 3. User redirected to TradeSafe checkout
@@ -95,18 +102,19 @@ Or visit: `http://localhost:3000/api/tradesafe/config-status`
 
 ## Environment Variables
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `TRADESAFE_MERCHANT_ID` | Your TradeSafe merchant identifier | Yes |
-| `TRADESAFE_API_KEY` | Your TradeSafe API key | Yes |
-| `TRADESAFE_ENVIRONMENT` | `sandbox` or `production` | Yes |
-| `TRADESAFE_WEBHOOK_SECRET` | Secret for webhook validation | Yes |
+| Variable                   | Description                        | Required |
+| -------------------------- | ---------------------------------- | -------- |
+| `TRADESAFE_MERCHANT_ID`    | Your TradeSafe merchant identifier | Yes      |
+| `TRADESAFE_API_KEY`        | Your TradeSafe API key             | Yes      |
+| `TRADESAFE_ENVIRONMENT`    | `sandbox` or `production`          | Yes      |
+| `TRADESAFE_WEBHOOK_SECRET` | Secret for webhook validation      | Yes      |
 
 ## Troubleshooting
 
 ### Issue: Still seeing mock payments after configuration
 
 **Check:**
+
 1. Restart your development server: `npm run dev`
 2. Verify credentials are not placeholder values
 3. Check console logs for configuration warnings
@@ -115,6 +123,7 @@ Or visit: `http://localhost:3000/api/tradesafe/config-status`
 ### Issue: TradeSafe API errors
 
 **Solutions:**
+
 1. Verify credentials are correct
 2. Check TradeSafe account status
 3. Ensure environment (sandbox/production) matches your credentials
@@ -123,6 +132,7 @@ Or visit: `http://localhost:3000/api/tradesafe/config-status`
 ### Issue: Webhooks not working
 
 **Check:**
+
 1. Webhook URL is publicly accessible
 2. HTTPS is properly configured
 3. Webhook secret matches TradeSafe dashboard
@@ -131,12 +141,14 @@ Or visit: `http://localhost:3000/api/tradesafe/config-status`
 ## Development vs Production
 
 ### Development
+
 - Use sandbox credentials
 - Mock payments as fallback
 - Extensive logging enabled
 - Test with fake payment data
 
 ### Production
+
 - Use production credentials
 - No mock payment fallback
 - Error handling for payment failures

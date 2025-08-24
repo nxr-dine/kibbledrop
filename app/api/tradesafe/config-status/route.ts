@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { TradesafeConfigChecker } from "@/lib/tradesafe-checker";
 
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     // You might want to add admin role checking here
 
     const configStatus = TradesafeConfigChecker.checkConfiguration();
-    
+
     return NextResponse.json({
       success: true,
       status: configStatus,
