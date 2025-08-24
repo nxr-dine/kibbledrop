@@ -1,8 +1,26 @@
+/**
+ * TradeSafe Payment Gateway Integration
+ *
+ * This implementation uses OAuth 2.0 client credentials flow for authentication.
+ *
+ * Authentication Flow:
+ * 1. Client credentials (clientId + clientSecret) are used to get access token
+ * 2. Access token is used for subsequent API calls
+ * 3. Token is automatically refreshed when it expires
+ *
+ * Configuration:
+ * - TRADESAFE_CLIENT_ID: OAuth Client ID (from TradeSafe OAuth app)
+ * - TRADESAFE_CLIENT_SECRET: OAuth Client Secret (from TradeSafe OAuth app)
+ * - TRADESAFE_ENVIRONMENT: sandbox | production
+ * - TRADESAFE_WEBHOOK_SECRET: For webhook signature verification
+ */
+
 export interface TradesafeConfig {
-  merchantId: string;
-  apiKey: string;
+  clientId: string;
+  clientSecret: string;
   environment: "sandbox" | "production";
   webhookSecret: string;
+  redirectUrl?: string;
 }
 
 export interface TradesafePaymentRequest {
@@ -41,6 +59,8 @@ export interface TradesafeWebhookPayload {
 export class TradesafeAPI {
   private config: TradesafeConfig;
   private baseUrl: string;
+  private accessToken: string | null = null;
+  private tokenExpiry: Date | null = null;
 
   constructor(config: TradesafeConfig) {
     this.config = config;
@@ -51,25 +71,67 @@ export class TradesafeAPI {
         : "https://api.tradesafe.co.za"; // TradeSafe appears to use same domain for sandbox
   }
 
+  // OAuth 2.0 token acquisition
+  private async getAccessToken(): Promise<string> {
+    if (this.accessToken && this.tokenExpiry && new Date() < this.tokenExpiry) {
+      return this.accessToken;
+    }
+
+    try {
+      console.log("🔑 Acquiring OAuth access token from TradeSafe...");
+      const response = await fetch(`${this.baseUrl}/oauth/token`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          "User-Agent": "KibbleDrop/1.0",
+        },
+        body: new URLSearchParams({
+          grant_type: "client_credentials",
+          client_id: this.config.clientId,
+          client_secret: this.config.clientSecret,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `OAuth token request failed: ${response.status} ${response.statusText}`
+        );
+      }
+
+      const tokenData = await response.json();
+      this.accessToken = tokenData.access_token;
+
+      // Set token expiry (usually expires_in is in seconds)
+      const expiresInMs = (tokenData.expires_in || 3600) * 1000;
+      this.tokenExpiry = new Date(Date.now() + expiresInMs - 60000); // Refresh 1 minute early
+
+      console.log("✅ OAuth access token acquired successfully");
+      return this.accessToken!; // We know it's not null at this point
+    } catch (error) {
+      console.error("❌ Failed to acquire OAuth access token:", error);
+      throw new Error("OAuth authentication failed");
+    }
+  }
+
   async createPayment(
     paymentRequest: TradesafePaymentRequest
   ): Promise<TradesafePaymentResponse> {
     try {
       // Check if we have proper TradeSafe credentials (not just existence, but valid values)
       const hasCredentials =
-        this.config.merchantId &&
-        this.config.apiKey &&
-        this.config.merchantId !== "your_tradesafe_merchant_id" &&
-        this.config.apiKey !== "your_tradesafe_api_key" &&
-        this.config.merchantId.length > 5 &&
-        this.config.apiKey.length > 5;
+        this.config.clientId &&
+        this.config.clientSecret &&
+        this.config.clientId !== "your_tradesafe_merchant_id" &&
+        this.config.clientSecret !== "your_tradesafe_api_key" &&
+        this.config.clientId.length > 5 &&
+        this.config.clientSecret.length > 5;
 
       console.log("🔍 TradeSafe Credentials Check:", {
-        merchantId: this.config.merchantId
-          ? `${this.config.merchantId.substring(0, 6)}...`
+        clientId: this.config.clientId
+          ? `${this.config.clientId.substring(0, 6)}...`
           : "missing",
-        apiKey: this.config.apiKey
-          ? `${this.config.apiKey.substring(0, 6)}...`
+        clientSecret: this.config.clientSecret
+          ? `${this.config.clientSecret.substring(0, 6)}...`
           : "missing",
         environment: this.config.environment,
         hasValidCredentials: hasCredentials,
@@ -99,20 +161,24 @@ export class TradesafeAPI {
       }
 
       // Try to make the real API call
-      console.log(`🌐 Attempting TradeSafe API call to: ${this.baseUrl}/api/payments`);
+      console.log(
+        `🌐 Attempting TradeSafe API call to: ${this.baseUrl}/api/payments`
+      );
       console.log(`📋 Request payload preview:`, {
         amount: paymentRequest.amount,
         currency: paymentRequest.currency,
         orderId: paymentRequest.orderId,
-        environment: this.config.environment
+        environment: this.config.environment,
       });
-      
+
+      // Get OAuth access token
+      const accessToken = await this.getAccessToken();
+
       const response = await fetch(`${this.baseUrl}/api/payments`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${this.config.apiKey}`,
-          "X-Merchant-ID": this.config.merchantId,
+          Authorization: `Bearer ${accessToken}`,
           "User-Agent": "KibbleDrop/1.0",
         },
         body: JSON.stringify({
@@ -151,15 +217,16 @@ export class TradesafeAPI {
       };
     } catch (error) {
       console.error("Tradesafe payment creation error:", error);
-      
+
       // Check if it's a network/SSL error
-      if (error instanceof Error && (
-        error.message.includes('fetch failed') ||
-        error.message.includes('SSL') ||
-        error.message.includes('TLS') ||
-        error.message.includes('ECONNREFUSED') ||
-        error.message.includes('timeout')
-      )) {
+      if (
+        error instanceof Error &&
+        (error.message.includes("fetch failed") ||
+          error.message.includes("SSL") ||
+          error.message.includes("TLS") ||
+          error.message.includes("ECONNREFUSED") ||
+          error.message.includes("timeout"))
+      ) {
         console.log("🔌 Network/SSL error detected. This could be:");
         console.log("   - TradeSafe API temporarily unavailable");
         console.log("   - SSL/TLS configuration issue");
@@ -168,7 +235,9 @@ export class TradesafeAPI {
         console.log("   - API requires different authentication method");
         console.log("");
         console.log("💡 Recommendations:");
-        console.log("   1. Verify TradeSafe API documentation for correct endpoints");
+        console.log(
+          "   1. Verify TradeSafe API documentation for correct endpoints"
+        );
         console.log("   2. Check if API credentials are properly configured");
         console.log("   3. Test with TradeSafe's official API testing tools");
         console.log("   4. Contact TradeSafe support for API guidance");
@@ -177,7 +246,9 @@ export class TradesafeAPI {
       // In development, fall back to mock if real API fails
       if (process.env.NODE_ENV === "development") {
         console.log("🧪 Falling back to mock payment gateway due to API error");
-        console.log("   This allows development to continue while API issues are resolved");
+        console.log(
+          "   This allows development to continue while API issues are resolved"
+        );
         return this.createMockPayment(paymentRequest);
       }
 
@@ -216,11 +287,12 @@ export class TradesafeAPI {
 
   async getPaymentStatus(paymentId: string): Promise<TradesafePaymentResponse> {
     try {
+      const accessToken = await this.getAccessToken();
       const response = await fetch(`${this.baseUrl}/v1/payments/${paymentId}`, {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${this.config.apiKey}`,
-          "X-Merchant-ID": this.config.merchantId,
+          Authorization: `Bearer ${accessToken}`,
+          "User-Agent": "KibbleDrop/1.0",
         },
       });
 
@@ -267,10 +339,12 @@ export class TradesafeAPI {
   }
 }
 
-// Initialize Tradesafe with environment variables
+// Initialize Tradesafe with environment variables (OAuth configuration)
 export const tradesafe = new TradesafeAPI({
-  merchantId: process.env.TRADESAFE_MERCHANT_ID || "",
-  apiKey: process.env.TRADESAFE_API_KEY || "",
+  clientId:
+    process.env.TRADESAFE_CLIENT_ID || process.env.TRADESAFE_MERCHANT_ID || "", // Prefer OAuth client ID, fallback to merchant ID
+  clientSecret:
+    process.env.TRADESAFE_CLIENT_SECRET || process.env.TRADESAFE_API_KEY || "", // Prefer OAuth client secret, fallback to API key
   environment:
     (process.env.TRADESAFE_ENVIRONMENT as "sandbox" | "production") ||
     "sandbox",

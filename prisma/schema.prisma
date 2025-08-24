@@ -233,3 +233,20 @@ model CartItem {
 
   @@unique([cartId, productId])
 }
+
+model Trade {
+  id          String   @id @default(cuid())
+  tradeId     String   @unique // TradeSafe transaction ID
+  status      String   @default("CREATED") // CREATED, FUNDS_RECEIVED, COMPLETED, CANCELLED, REFUNDED
+  buyerEmail  String
+  sellerEmail String
+  amount      Float?   // Trade amount in cents
+  currency    String   @default("ZAR")
+  title       String?  // Trade title/description
+  reference   String?  // TradeSafe reference
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([tradeId])
+  @@index([status])
+}
