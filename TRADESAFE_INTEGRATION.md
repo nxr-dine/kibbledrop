@@ -48,6 +48,7 @@ TRADESAFE_GRAPHQL_URL="https://api-developer.tradesafe.dev/graphql"  # sandbox
 ### Environment Setup
 
 1. **Development (.env.local)**:
+
    ```bash
    TRADESAFE_ENVIRONMENT="sandbox"
    TRADESAFE_GRAPHQL_URL="https://api-developer.tradesafe.dev/graphql"
@@ -67,7 +68,7 @@ TRADESAFE_GRAPHQL_URL="https://api-developer.tradesafe.dev/graphql"  # sandbox
 
 ```typescript
 // Example: Get access token
-const response = await fetch('/api/tradesafe/token');
+const response = await fetch("/api/tradesafe/token");
 const { access_token } = await response.json();
 ```
 
@@ -198,25 +199,25 @@ https://yourapp.com/api/tradesafe/callback/your_webhook_secret
 ### Create User Tokens
 
 ```typescript
-import { tradesafeGraphQL } from '@/lib/tradesafe-graphql-client';
+import { tradesafeGraphQL } from "@/lib/tradesafe-graphql-client";
 
 // Create buyer token
 const buyerToken = await tradesafeGraphQL.createUserToken({
-  givenName: 'John',
-  familyName: 'Doe',
-  email: 'john@example.com',
-  mobile: '+27123456789'
+  givenName: "John",
+  familyName: "Doe",
+  email: "john@example.com",
+  mobile: "+27123456789",
 });
 
 // Create seller token with organization
 const sellerToken = await tradesafeGraphQL.createUserToken({
-  givenName: 'Jane',
-  familyName: 'Smith',
-  email: 'jane@company.com',
-  mobile: '+27987654321',
-  organizationName: 'Company Name',
-  tradeName: 'Trading Name',
-  organizationType: 'PRIVATE'
+  givenName: "Jane",
+  familyName: "Smith",
+  email: "jane@company.com",
+  mobile: "+27987654321",
+  organizationName: "Company Name",
+  tradeName: "Trading Name",
+  organizationType: "PRIVATE",
 });
 ```
 
@@ -225,22 +226,22 @@ const sellerToken = await tradesafeGraphQL.createUserToken({
 ```typescript
 // Create transaction
 const transaction = await tradesafeGraphQL.createTransaction({
-  title: 'Order #12345',
-  description: 'Premium pet food delivery',
-  industry: 'GENERAL_GOODS_SERVICES',
-  currency: 'ZAR',
-  feeAllocation: 'SELLER',
+  title: "Order #12345",
+  description: "Premium pet food delivery",
+  industry: "GENERAL_GOODS_SERVICES",
+  currency: "ZAR",
+  feeAllocation: "SELLER",
   buyerTokenId: buyerToken.id,
   sellerTokenId: sellerToken.id,
   allocations: [
     {
-      title: 'Product Delivery',
-      description: 'Delivery of ordered products',
-      value: 250.00,
+      title: "Product Delivery",
+      description: "Delivery of ordered products",
+      value: 250.0,
       daysToDeliver: 7,
-      daysToInspect: 3
-    }
-  ]
+      daysToInspect: 3,
+    },
+  ],
 });
 
 // Create payment link
@@ -288,6 +289,7 @@ TRADESAFE_WEBHOOK_SECRET="prod_webhook_secret"
 ### 3. Webhook Configuration
 
 Configure your TradeSafe application to send webhooks to:
+
 ```
 https://yourapp.com/api/tradesafe/callback?secret=your_webhook_secret
 ```
@@ -298,19 +300,21 @@ https://yourapp.com/api/tradesafe/callback?secret=your_webhook_secret
 
 ```typescript
 // Check console logs for detailed operation tracking
-console.log('🔑 Acquiring OAuth access token...');
-console.log('✅ Transaction created:', transaction.id);
-console.log('🔔 Webhook received:', webhook.data.state);
+console.log("🔑 Acquiring OAuth access token...");
+console.log("✅ Transaction created:", transaction.id);
+console.log("🔔 Webhook received:", webhook.data.state);
 ```
 
 ### Common Issues
 
 1. **Authentication Errors**:
+
    - Verify client ID and secret
    - Check environment configuration
    - Ensure OAuth application is active
 
 2. **GraphQL Errors**:
+
    - Validate query syntax
    - Check required fields
    - Verify token permissions

@@ -1,11 +1,11 @@
 /**
  * Trade Button Demo Page
- * 
+ *
  * A simple page to demonstrate the TradeButton component
  * Navigate to /trade-demo to test the component
  */
 
-import TradeButton from '@/components/trade-button';
+import TradeButton from "@/components/trade-button";
 
 export default function TradeDemoPage() {
   return (
@@ -19,9 +19,9 @@ export default function TradeDemoPage() {
             Test the TradeButton component and TradeSafe API integration
           </p>
         </div>
-        
+
         <TradeButton />
-        
+
         <div className="mt-12 max-w-2xl mx-auto">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
             Component Features
@@ -41,6 +41,6 @@ export default function TradeDemoPage() {
 }
 
 export const metadata = {
-  title: 'Trade Button Demo | KibbleDrop',
-  description: 'Test the TradeSafe integration with the TradeButton component',
+  title: "Trade Button Demo | KibbleDrop",
+  description: "Test the TradeSafe integration with the TradeButton component",
 };

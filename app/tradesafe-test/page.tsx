@@ -1,11 +1,11 @@
 /**
  * TradeSafe Integration Test Page
- * 
+ *
  * This page provides a complete testing interface for the TradeSafe GraphQL API integration.
  * Navigate to /tradesafe-test to use this page.
  */
 
-import TradesafeIntegrationDemo from '@/components/tradesafe-integration-demo';
+import TradesafeIntegrationDemo from "@/components/tradesafe-integration-demo";
 
 export default function TradesafeTestPage() {
   return (
@@ -16,6 +16,6 @@ export default function TradesafeTestPage() {
 }
 
 export const metadata = {
-  title: 'TradeSafe Integration Test | KibbleDrop',
-  description: 'Test the TradeSafe GraphQL API integration',
+  title: "TradeSafe Integration Test | KibbleDrop",
+  description: "Test the TradeSafe GraphQL API integration",
 };

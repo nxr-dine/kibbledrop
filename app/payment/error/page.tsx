@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, AlertCircle } from "lucide-react";
 import Link from "next/link";
 
-export default function PaymentErrorPage() {
+function PaymentErrorContent() {
   const searchParams = useSearchParams();
   const [error, setError] = useState<string>("");
   const [message, setMessage] = useState<string>("");
@@ -79,5 +79,23 @@ export default function PaymentErrorPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function PaymentErrorPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-lg mx-auto p-6">
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-center">Loading...</div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    }>
+      <PaymentErrorContent />
+    </Suspense>
   );
 }

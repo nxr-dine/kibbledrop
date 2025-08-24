@@ -18,12 +18,14 @@ NEXTAUTH_URL="https://kibbledrop.com"
 ```
 
 **Important:** The API URLs are now automatically determined by `TRADESAFE_ENVIRONMENT`:
+
 - `sandbox` → Uses TradeSafe's developer/sandbox endpoints
 - `production` → Uses TradeSafe's production endpoints
 
 ### 2. Webhook Configuration
 
 1. **In your TradeSafe Dashboard:**
+
    - Go to your application settings
    - Set webhook URL to: `https://kibbledrop.com/api/tradesafe/callback?secret=your_webhook_secret`
    - Copy the webhook secret and update `TRADESAFE_WEBHOOK_SECRET`
@@ -45,6 +47,7 @@ Your production site will have these TradeSafe endpoints:
 ### 4. Testing in Production
 
 1. **Visit the test page:**
+
    ```
    https://kibbledrop.com/tradesafe-test
    ```
@@ -56,13 +59,13 @@ Your production site will have these TradeSafe endpoints:
 
 ### 5. Production Differences from Sandbox
 
-| Feature | Sandbox | Production |
-|---------|---------|------------|
-| Environment Variable | `TRADESAFE_ENVIRONMENT="sandbox"` | `TRADESAFE_ENVIRONMENT="production"` |
-| Auth URL | https://auth.tradesafe.co.za/oauth/token | https://auth.tradesafe.co.za/oauth/token |
-| GraphQL URL | https://api-developer.tradesafe.dev/graphql | https://api.tradesafe.co.za/graphql |
-| Transactions | Test only | Real money |
-| Webhooks | Optional secret | Required secret verification |
+| Feature              | Sandbox                                     | Production                               |
+| -------------------- | ------------------------------------------- | ---------------------------------------- |
+| Environment Variable | `TRADESAFE_ENVIRONMENT="sandbox"`           | `TRADESAFE_ENVIRONMENT="production"`     |
+| Auth URL             | https://auth.tradesafe.co.za/oauth/token    | https://auth.tradesafe.co.za/oauth/token |
+| GraphQL URL          | https://api-developer.tradesafe.dev/graphql | https://api.tradesafe.co.za/graphql      |
+| Transactions         | Test only                                   | Real money                               |
+| Webhooks             | Optional secret                             | Required secret verification             |
 
 ### 6. Configuration Benefits
 
@@ -94,9 +97,9 @@ You can now integrate the TradeSafe functionality into your existing KibbleDrop 
 ```typescript
 // Example: In your checkout page
 const createTradeSafeTransaction = async (orderData) => {
-  const response = await fetch('/api/tradesafe/trade', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  const response = await fetch("/api/tradesafe/trade", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       title: orderData.productName,
       description: orderData.description,
@@ -106,7 +109,7 @@ const createTradeSafeTransaction = async (orderData) => {
       // ... other fields
     }),
   });
-  
+
   return response.json();
 };
 ```

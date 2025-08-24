@@ -1,13 +1,13 @@
 /**
  * TradeButton Component
- * 
+ *
  * A simple React component that creates a TradeSafe trade by calling
  * the /api/tradesafe/trade endpoint and displays the results.
  */
 
 "use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 
 // TypeScript interface for the API response
 interface TradeResponse {
@@ -45,18 +45,18 @@ export default function TradeButton() {
     // Reset previous state
     setError(null);
     setTradeData(null);
-    
+
     // Set loading state to true
     setIsLoading(true);
 
     try {
-      console.log('🚀 Creating trade...');
+      console.log("🚀 Creating trade...");
 
       // Call the API route /api/tradesafe/trade using fetch
-      const response = await fetch('/api/tradesafe/trade', {
-        method: 'POST',
+      const response = await fetch("/api/tradesafe/trade", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         // No body needed as the API uses default sample data
       });
@@ -64,26 +64,28 @@ export default function TradeButton() {
       // Parse the JSON response
       const result: TradeResponse = await response.json();
 
-      console.log('📋 Trade result:', result);
+      console.log("📋 Trade result:", result);
 
       // Check if the request was successful
       if (!response.ok) {
-        throw new Error(result.error || `HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(
+          result.error || `HTTP ${response.status}: ${response.statusText}`
+        );
       }
 
       // Handle API-level errors
       if (!result.success) {
-        throw new Error(result.error || 'Trade creation failed');
+        throw new Error(result.error || "Trade creation failed");
       }
 
       // Store the successful trade data
       setTradeData(result);
-      console.log('✅ Trade created successfully');
-
+      console.log("✅ Trade created successfully");
     } catch (err) {
       // Handle and display errors if the request fails
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-      console.error('❌ Error creating trade:', errorMessage);
+      const errorMessage =
+        err instanceof Error ? err.message : "Unknown error occurred";
+      console.error("❌ Error creating trade:", errorMessage);
       setError(errorMessage);
     } finally {
       // Always stop loading state
@@ -92,8 +94,9 @@ export default function TradeButton() {
   };
 
   // Extract trade details for display
-  const transactionDetails = tradeData?.transactionData?.transactionCreate || 
-                            tradeData?.graphqlResponse?.data?.transactionCreate;
+  const transactionDetails =
+    tradeData?.transactionData?.transactionCreate ||
+    tradeData?.graphqlResponse?.data?.transactionCreate;
 
   return (
     <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
@@ -108,9 +111,10 @@ export default function TradeButton() {
         disabled={isLoading}
         className={`
           w-full px-4 py-2 rounded-md font-medium transition-colors
-          ${isLoading 
-            ? 'bg-gray-400 cursor-not-allowed' 
-            : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800'
+          ${
+            isLoading
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-blue-600 hover:bg-blue-700 active:bg-blue-800"
           }
           text-white
         `}
@@ -118,30 +122,30 @@ export default function TradeButton() {
         {isLoading ? (
           // Show loading state while request is in progress
           <span className="flex items-center justify-center">
-            <svg 
-              className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" 
-              xmlns="http://www.w3.org/2000/svg" 
-              fill="none" 
+            <svg
+              className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
               viewBox="0 0 24 24"
             >
-              <circle 
-                className="opacity-25" 
-                cx="12" 
-                cy="12" 
-                r="10" 
-                stroke="currentColor" 
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
                 strokeWidth="4"
               />
-              <path 
-                className="opacity-75" 
-                fill="currentColor" 
+              <path
+                className="opacity-75"
+                fill="currentColor"
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               />
             </svg>
             Creating Trade...
           </span>
         ) : (
-          'Create Trade'
+          "Create Trade"
         )}
       </button>
 
@@ -180,9 +184,7 @@ export default function TradeButton() {
           <h3 className="text-lg font-semibold text-red-800 mb-2">
             ❌ Error Creating Trade
           </h3>
-          <p className="text-sm text-red-700">
-            {error}
-          </p>
+          <p className="text-sm text-red-700">{error}</p>
           <button
             onClick={() => setError(null)}
             className="mt-2 text-xs text-red-600 hover:text-red-800 underline"
@@ -196,8 +198,8 @@ export default function TradeButton() {
       {!tradeData && !error && !isLoading && (
         <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-md">
           <p className="text-xs text-gray-600">
-            💡 Click "Create Trade" to test the TradeSafe integration. 
-            This will create a sample transaction using the configured API.
+            💡 Click "Create Trade" to test the TradeSafe integration. This will
+            create a sample transaction using the configured API.
           </p>
         </div>
       )}

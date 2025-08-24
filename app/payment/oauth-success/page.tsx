@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle } from "lucide-react";
 import Link from "next/link";
 
-export default function OAuthSuccessPage() {
+function OAuthSuccessContent() {
   const searchParams = useSearchParams();
   const [state, setState] = useState<string>("");
 
@@ -49,5 +49,21 @@ export default function OAuthSuccessPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function OAuthSuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="max-w-2xl mx-auto px-4 py-8">
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center">Loading...</div>
+          </CardContent>
+        </Card>
+      </div>
+    }>
+      <OAuthSuccessContent />
+    </Suspense>
   );
 }

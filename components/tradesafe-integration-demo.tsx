@@ -1,19 +1,25 @@
 /**
  * TradeSafe Integration Demo Component
- * 
+ *
  * This React component demonstrates how to create trades using the TradeSafe API.
  * It provides a simple interface to test the complete integration flow.
  */
 
 "use client";
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Loader2 } from 'lucide-react';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Loader2 } from "lucide-react";
 
 // TypeScript interface for trade response
 interface TradeResponse {
@@ -45,27 +51,27 @@ export default function TradesafeIntegrationDemo() {
   // State for loading and trade result
   const [isLoading, setIsLoading] = useState(false);
   const [tradeResult, setTradeResult] = useState<TradeResponse | null>(null);
-  
+
   // State for form inputs
   const [formData, setFormData] = useState({
-    title: 'Premium Pet Food Subscription',
-    description: 'Monthly delivery of premium kibble and treats',
-    amount: 250.00,
-    currency: 'ZAR',
-    buyerName: 'John Doe',
-    buyerEmail: 'john.doe@example.com',
-    buyerMobile: '+27123456789',
-    sellerName: 'Jane Smith',
-    sellerEmail: 'jane.smith@kibbledrop.com',
-    sellerMobile: '+27987654321',
-    sellerCompany: 'KibbleDrop',
+    title: "Premium Pet Food Subscription",
+    description: "Monthly delivery of premium kibble and treats",
+    amount: 250.0,
+    currency: "ZAR",
+    buyerName: "John Doe",
+    buyerEmail: "john.doe@example.com",
+    buyerMobile: "+27123456789",
+    sellerName: "Jane Smith",
+    sellerEmail: "jane.smith@kibbledrop.com",
+    sellerMobile: "+27987654321",
+    sellerCompany: "KibbleDrop",
   });
 
   /**
    * Handle form input changes
    */
   const handleInputChange = (field: string, value: string | number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -79,33 +85,32 @@ export default function TradesafeIntegrationDemo() {
     setTradeResult(null);
 
     try {
-      console.log('🚀 Creating trade with data:', formData);
+      console.log("🚀 Creating trade with data:", formData);
 
       // Call our /api/tradesafe/trade endpoint
-      const response = await fetch('/api/tradesafe/trade', {
-        method: 'POST',
+      const response = await fetch("/api/tradesafe/trade", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
       });
 
       const result: TradeResponse = await response.json();
-      
-      console.log('📋 Trade result:', result);
+
+      console.log("📋 Trade result:", result);
       setTradeResult(result);
 
       if (result.success) {
-        console.log('✅ Trade created successfully:', result.data?.tradeId);
+        console.log("✅ Trade created successfully:", result.data?.tradeId);
       } else {
-        console.error('❌ Trade creation failed:', result.error);
+        console.error("❌ Trade creation failed:", result.error);
       }
-
     } catch (error) {
-      console.error('❌ Error creating trade:', error);
+      console.error("❌ Error creating trade:", error);
       setTradeResult({
         success: false,
-        error: 'Failed to create trade. Please check the console for details.',
+        error: "Failed to create trade. Please check the console for details.",
       });
     } finally {
       setIsLoading(false);
@@ -129,7 +134,8 @@ export default function TradesafeIntegrationDemo() {
         <CardHeader>
           <CardTitle>Create Trade</CardTitle>
           <CardDescription>
-            Fill in the details below to create a sample trade using TradeSafe's GraphQL API
+            Fill in the details below to create a sample trade using TradeSafe's
+            GraphQL API
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -140,7 +146,7 @@ export default function TradesafeIntegrationDemo() {
               <Input
                 id="title"
                 value={formData.title}
-                onChange={(e) => handleInputChange('title', e.target.value)}
+                onChange={(e) => handleInputChange("title", e.target.value)}
                 placeholder="Enter trade title"
               />
             </div>
@@ -151,7 +157,9 @@ export default function TradesafeIntegrationDemo() {
                 type="number"
                 step="0.01"
                 value={formData.amount}
-                onChange={(e) => handleInputChange('amount', parseFloat(e.target.value))}
+                onChange={(e) =>
+                  handleInputChange("amount", parseFloat(e.target.value))
+                }
                 placeholder="Enter amount"
               />
             </div>
@@ -162,7 +170,7 @@ export default function TradesafeIntegrationDemo() {
             <Textarea
               id="description"
               value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
+              onChange={(e) => handleInputChange("description", e.target.value)}
               placeholder="Enter trade description"
               rows={3}
             />
@@ -179,7 +187,9 @@ export default function TradesafeIntegrationDemo() {
                 <Input
                   id="buyerName"
                   value={formData.buyerName}
-                  onChange={(e) => handleInputChange('buyerName', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("buyerName", e.target.value)
+                  }
                   placeholder="Buyer name"
                 />
               </div>
@@ -189,7 +199,9 @@ export default function TradesafeIntegrationDemo() {
                   id="buyerEmail"
                   type="email"
                   value={formData.buyerEmail}
-                  onChange={(e) => handleInputChange('buyerEmail', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("buyerEmail", e.target.value)
+                  }
                   placeholder="buyer@example.com"
                 />
               </div>
@@ -198,7 +210,9 @@ export default function TradesafeIntegrationDemo() {
                 <Input
                   id="buyerMobile"
                   value={formData.buyerMobile}
-                  onChange={(e) => handleInputChange('buyerMobile', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("buyerMobile", e.target.value)
+                  }
                   placeholder="+27123456789"
                 />
               </div>
@@ -216,7 +230,9 @@ export default function TradesafeIntegrationDemo() {
                 <Input
                   id="sellerName"
                   value={formData.sellerName}
-                  onChange={(e) => handleInputChange('sellerName', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("sellerName", e.target.value)
+                  }
                   placeholder="Seller name"
                 />
               </div>
@@ -225,7 +241,9 @@ export default function TradesafeIntegrationDemo() {
                 <Input
                   id="sellerCompany"
                   value={formData.sellerCompany}
-                  onChange={(e) => handleInputChange('sellerCompany', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("sellerCompany", e.target.value)
+                  }
                   placeholder="Company name"
                 />
               </div>
@@ -235,7 +253,9 @@ export default function TradesafeIntegrationDemo() {
                   id="sellerEmail"
                   type="email"
                   value={formData.sellerEmail}
-                  onChange={(e) => handleInputChange('sellerEmail', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("sellerEmail", e.target.value)
+                  }
                   placeholder="seller@company.com"
                 />
               </div>
@@ -244,7 +264,9 @@ export default function TradesafeIntegrationDemo() {
                 <Input
                   id="sellerMobile"
                   value={formData.sellerMobile}
-                  onChange={(e) => handleInputChange('sellerMobile', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("sellerMobile", e.target.value)
+                  }
                   placeholder="+27987654321"
                 />
               </div>
@@ -253,8 +275,8 @@ export default function TradesafeIntegrationDemo() {
 
           {/* Create Trade Button */}
           <div className="pt-4">
-            <Button 
-              onClick={createTrade} 
+            <Button
+              onClick={createTrade}
               disabled={isLoading}
               className="w-full"
               size="lg"
@@ -265,7 +287,7 @@ export default function TradesafeIntegrationDemo() {
                   Creating Trade...
                 </>
               ) : (
-                'Create Trade'
+                "Create Trade"
               )}
             </Button>
           </div>
@@ -276,8 +298,14 @@ export default function TradesafeIntegrationDemo() {
       {tradeResult && (
         <Card>
           <CardHeader>
-            <CardTitle className={tradeResult.success ? 'text-green-600' : 'text-red-600'}>
-              {tradeResult.success ? '✅ Trade Created Successfully!' : '❌ Trade Creation Failed'}
+            <CardTitle
+              className={
+                tradeResult.success ? "text-green-600" : "text-red-600"
+              }
+            >
+              {tradeResult.success
+                ? "✅ Trade Created Successfully!"
+                : "❌ Trade Creation Failed"}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -286,16 +314,37 @@ export default function TradesafeIntegrationDemo() {
                 {/* Success Details */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div>
-                    <p><strong>Trade ID:</strong> {tradeResult.data.tradeId}</p>
-                    <p><strong>Reference:</strong> {tradeResult.data.reference}</p>
-                    <p><strong>State:</strong> <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">{tradeResult.data.state}</span></p>
-                    <p><strong>Currency:</strong> {tradeResult.data.currency}</p>
+                    <p>
+                      <strong>Trade ID:</strong> {tradeResult.data.tradeId}
+                    </p>
+                    <p>
+                      <strong>Reference:</strong> {tradeResult.data.reference}
+                    </p>
+                    <p>
+                      <strong>State:</strong>{" "}
+                      <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                        {tradeResult.data.state}
+                      </span>
+                    </p>
+                    <p>
+                      <strong>Currency:</strong> {tradeResult.data.currency}
+                    </p>
                   </div>
                   <div>
-                    <p><strong>Buyer:</strong> {tradeResult.data.buyer.name}</p>
-                    <p><strong>Buyer Email:</strong> {tradeResult.data.buyer.email}</p>
-                    <p><strong>Seller:</strong> {tradeResult.data.seller.name}</p>
-                    <p><strong>Seller Email:</strong> {tradeResult.data.seller.email}</p>
+                    <p>
+                      <strong>Buyer:</strong> {tradeResult.data.buyer.name}
+                    </p>
+                    <p>
+                      <strong>Buyer Email:</strong>{" "}
+                      {tradeResult.data.buyer.email}
+                    </p>
+                    <p>
+                      <strong>Seller:</strong> {tradeResult.data.seller.name}
+                    </p>
+                    <p>
+                      <strong>Seller Email:</strong>{" "}
+                      {tradeResult.data.seller.email}
+                    </p>
                   </div>
                 </div>
 
@@ -305,7 +354,7 @@ export default function TradesafeIntegrationDemo() {
                     Complete API Response:
                   </Label>
                   <pre className="mt-2 p-4 bg-gray-100 rounded-md text-xs overflow-auto max-h-64">
-{JSON.stringify(tradeResult, null, 2)}
+                    {JSON.stringify(tradeResult, null, 2)}
                   </pre>
                 </div>
               </div>
@@ -313,14 +362,14 @@ export default function TradesafeIntegrationDemo() {
               <div className="space-y-4">
                 {/* Error Details */}
                 <p className="text-red-600">{tradeResult.error}</p>
-                
+
                 {/* Raw Error Response */}
                 <div>
                   <Label className="text-sm font-semibold text-gray-700">
                     Error Response:
                   </Label>
                   <pre className="mt-2 p-4 bg-red-50 rounded-md text-xs overflow-auto max-h-64">
-{JSON.stringify(tradeResult, null, 2)}
+                    {JSON.stringify(tradeResult, null, 2)}
                   </pre>
                 </div>
               </div>
@@ -335,16 +384,35 @@ export default function TradesafeIntegrationDemo() {
           <CardTitle className="text-sm">Integration Info</CardTitle>
         </CardHeader>
         <CardContent className="text-xs text-gray-600 space-y-2">
-          <p><strong>Environment:</strong> {process.env.NEXT_PUBLIC_TRADESAFE_ENVIRONMENT || process.env.TRADESAFE_ENVIRONMENT || 'sandbox'} (Safe for testing)</p>
-          <p><strong>API Endpoints:</strong></p>
+          <p>
+            <strong>Environment:</strong>{" "}
+            {process.env.NEXT_PUBLIC_TRADESAFE_ENVIRONMENT ||
+              process.env.TRADESAFE_ENVIRONMENT ||
+              "sandbox"}{" "}
+            (Safe for testing)
+          </p>
+          <p>
+            <strong>API Endpoints:</strong>
+          </p>
           <ul className="ml-4 list-disc space-y-1">
-            <li><code>/api/tradesafe/token</code> - OAuth authentication</li>
-            <li><code>/api/tradesafe/trade</code> - Trade creation</li>
-            <li><code>/api/tradesafe/callback?secret=your_secret</code> - Webhook handling</li>
+            <li>
+              <code>/api/tradesafe/token</code> - OAuth authentication
+            </li>
+            <li>
+              <code>/api/tradesafe/trade</code> - Trade creation
+            </li>
+            <li>
+              <code>/api/tradesafe/callback?secret=your_secret</code> - Webhook
+              handling
+            </li>
           </ul>
-          <p><strong>URLs determined by environment:</strong> Automatically configured based on TRADESAFE_ENVIRONMENT</p>
+          <p>
+            <strong>URLs determined by environment:</strong> Automatically
+            configured based on TRADESAFE_ENVIRONMENT
+          </p>
           <p className="text-xs text-gray-500 mt-2">
-            💡 Open your browser's developer console to see detailed API logs during trade creation.
+            💡 Open your browser's developer console to see detailed API logs
+            during trade creation.
           </p>
         </CardContent>
       </Card>
