@@ -72,7 +72,7 @@ model PetProfile {
   type        String // e.g., Dog, Cat
   breed       String
   birthday    DateTime? // Pet's birthday (temporarily optional for migration)
-  weight      Float
+  weight      Float?
   image       String? // Pet's image URL
   vaccineCardUrl String? // URL (data URL or external) to vaccine card PDF/image
   healthTags  String[] // e.g., ["allergies", "special diet"]
