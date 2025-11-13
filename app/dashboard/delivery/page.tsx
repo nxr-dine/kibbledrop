@@ -13,19 +13,21 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/contexts/cart-context";
-import { useTradesafe } from "@/hooks/use-tradesafe";
 import { useSession } from "next-auth/react";
 import { CreditCard } from "lucide-react";
+import { useTradesafeCheckout } from "@/hooks/use-tradesafe-checkout";
+import { formatZAR } from "@/lib/currency";
 
 export default function DeliveryInformationPage() {
   const { state, dispatch } = useCart();
   const router = useRouter();
   const { toast } = useToast();
-  const { createCheckout, isLoading: paymentLoading } = useTradesafe();
   const { data: session } = useSession();
+  const { createCheckout, redirectToPayment, isLoading, error, clearError } =
+    useTradesafeCheckout();
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -119,6 +121,9 @@ export default function DeliveryInformationPage() {
         throw new Error("User session required for payment");
       }
 
+      // Clear any previous errors
+      clearError();
+
       // First create a pending subscription
       const subscriptionResponse = await fetch("/api/subscription", {
         method: "POST",
@@ -135,7 +140,7 @@ export default function DeliveryInformationPage() {
 
       const subscription = await subscriptionResponse.json();
 
-      // Now process payment with subscription ID
+      // Now process payment with TradeSafe for ZAR currency
       const result = await createCheckout({
         customerInfo: {
           name: formData.fullName,
@@ -150,42 +155,38 @@ export default function DeliveryInformationPage() {
           isSubscriptionPayment: true,
           subscriptionId: subscription.id,
           deliveryInfo: {
-            street: formData.address,
+            address: formData.address,
             city: formData.city,
             postalCode: formData.postalCode,
             instructions: formData.instructions,
           },
-          subscriptionData: subscriptionData,
         },
       });
 
-      if (result.success && result.redirectUrl) {
-        // Store subscription data for completion after payment
-        localStorage.setItem(
-          "pendingSubscription",
-          JSON.stringify({
-            ...subscriptionData,
-            subscriptionId: subscription.id,
-          })
-        );
-
+      if (result.success && result.paymentUrl) {
         toast({
-          title: "Redirecting to Payment",
-          description:
-            "You will be redirected to TradeSafe for payment processing.",
+          title: "Payment Created Successfully",
+          description: "Redirecting to secure payment gateway...",
         });
 
+        // Clear cart since we're proceeding with payment
+        dispatch({ type: "CLEAR_CART" });
+
         // Redirect to TradeSafe payment page
-        window.location.href = result.redirectUrl;
+        redirectToPayment(result.paymentUrl);
       } else {
-        throw new Error(result.error || "Payment initialization failed");
+        throw new Error(result.error || "Failed to create payment");
       }
     } catch (error) {
-      throw new Error(
-        `Payment processing failed: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
+      console.error("Payment checkout error:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to process payment";
+
+      toast({
+        title: "Payment Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
     }
   };
 

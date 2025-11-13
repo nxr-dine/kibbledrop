@@ -30,7 +30,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useCart } from "@/contexts/cart-context";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
+import { formatZAR } from "@/lib/currency";
 
 interface Product {
   id: string;
@@ -87,7 +88,7 @@ export default function ProductPage() {
       return product.weightVariants
         .map((variant) => ({
           value: variant.weight,
-          label: `${variant.weight} - $${variant.price.toFixed(2)}`,
+          label: `${variant.weight} - ${formatZAR(variant.price)}`,
           priceMultiplier: variant.price / product.price, // Calculate multiplier for compatibility
           actualPrice: variant.price,
           inStock: variant.inStock,
@@ -102,17 +103,17 @@ export default function ProductPage() {
       baseWeights.push(
         {
           value: "300g",
-          label: "300g - $" + product.price.toFixed(2),
+          label: "300g - " + formatZAR(product.price),
           priceMultiplier: 1,
         },
         {
           value: "500g",
-          label: "500g - $" + (product.price * 1.6).toFixed(2),
+          label: "500g - " + formatZAR(product.price * 1.6),
           priceMultiplier: 1.6,
         },
         {
           value: "1kg",
-          label: "1kg - $" + (product.price * 2.8).toFixed(2),
+          label: "1kg - " + formatZAR(product.price * 2.8),
           priceMultiplier: 2.8,
         }
       );

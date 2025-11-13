@@ -1,20 +1,33 @@
-"use client"
+"use client";
 
-import { SessionProvider } from "next-auth/react"
-import { AuthProvider } from "@/contexts/auth-context"
-import { CartProvider } from "@/contexts/cart-context"
-import { ToastProvider } from "@/hooks/use-toast"
+import { SessionProvider } from "next-auth/react";
+import { ReactNode } from "react";
+import { AuthProvider } from "@/contexts/auth-context";
+import { CartProvider } from "@/contexts/cart-context";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/toaster";
 
-export function Providers({ children }: { children: React.ReactNode }) {
+interface ProvidersProps {
+  children: ReactNode;
+  session?: any;
+}
+
+export function Providers({ children, session }: ProvidersProps) {
   return (
-    <SessionProvider>
+    <SessionProvider session={session}>
       <AuthProvider>
         <CartProvider>
-          <ToastProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
             {children}
-          </ToastProvider>
+            <Toaster />
+          </ThemeProvider>
         </CartProvider>
       </AuthProvider>
     </SessionProvider>
-  )
-} 
+  );
+}

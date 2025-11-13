@@ -43,8 +43,9 @@ import {
   Play,
   RefreshCw,
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { format } from "date-fns";
+import { formatZAR } from "@/lib/currency";
 
 interface Subscription {
   id: string;
@@ -438,10 +439,9 @@ export default function AdminSubscriptionsPage() {
                       </TableCell>
                       <TableCell>
                         <div className="font-medium">
-                          $
-                          {calculateSubscriptionValue(
-                            subscription.items
-                          ).toFixed(2)}
+                          {formatZAR(
+                            calculateSubscriptionValue(subscription.items)
+                          )}
                         </div>
                       </TableCell>
                       <TableCell>

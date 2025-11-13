@@ -25,9 +25,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, MapPin, Clock, Truck, CreditCard } from "lucide-react";
 import { useCart } from "@/contexts/cart-context";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { useSession } from "next-auth/react";
-import { TradesafeCheckout } from "@/components/tradesafe-checkout";
+import { formatZAR } from "@/lib/currency";
 
 interface DeliveryInfo {
   firstName: string;
@@ -48,7 +48,6 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [showTradesafeCheckout, setShowTradesafeCheckout] = useState(false);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -159,10 +158,6 @@ export default function CheckoutPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleTradesafeCheckout = () => {
-    setShowTradesafeCheckout(true);
   };
 
   const handleTradesafeSuccess = (orderId: string) => {
@@ -419,7 +414,7 @@ export default function CheckoutPage() {
                       </p>
                     </div>
                     <p className="font-medium text-sm">
-                      ${(item.price * item.quantity).toFixed(2)}
+                      {formatZAR(item.price * item.quantity)}
                     </p>
                   </div>
                 ))}
@@ -429,64 +424,31 @@ export default function CheckoutPage() {
               <div className="border-t pt-4 space-y-2">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span>${subtotal.toFixed(2)}</span>
+                  <span>{formatZAR(subtotal)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Shipping</span>
-                  <span>${shipping.toFixed(2)}</span>
+                  <span>{formatZAR(shipping)}</span>
                 </div>
                 <div className="border-t pt-2">
                   <div className="flex justify-between font-medium text-lg">
                     <span>Total</span>
-                    <span>${total.toFixed(2)}</span>
+                    <span>{formatZAR(total)}</span>
                   </div>
                 </div>
               </div>
 
-              {!showTradesafeCheckout ? (
-                <div className="space-y-3">
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    size="lg"
-                    disabled={loading}
-                  >
-                    <CreditCard className="h-4 w-4 mr-2" />
-                    {loading ? "Processing..." : "Place Order (Pay Later)"}
-                  </Button>
-
-                  <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-white px-2 text-gray-500">Or</span>
-                    </div>
-                  </div>
-
-                  <Button
-                    type="button"
-                    onClick={handleTradesafeCheckout}
-                    variant="outline"
-                    className="w-full"
-                    size="lg"
-                  >
-                    <CreditCard className="h-4 w-4 mr-2" />
-                    Pay Now with Tradesafe
-                  </Button>
-                </div>
-              ) : (
-                <TradesafeCheckout
-                  items={cartState.items.map((item) => ({
-                    productId: item.productId,
-                    quantity: item.quantity,
-                    name: item.name,
-                    price: item.price,
-                  }))}
-                  onSuccess={handleTradesafeSuccess}
-                  onError={handleTradesafeError}
-                />
-              )}
+              <div className="space-y-3">
+                <Button
+                  type="submit"
+                  className="w-full"
+                  size="lg"
+                  disabled={loading}
+                >
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  {loading ? "Processing..." : "Place Order (Pay Later)"}
+                </Button>
+              </div>
 
               <p className="text-xs text-gray-500 text-center">
                 By placing your order, you agree to our terms and conditions.

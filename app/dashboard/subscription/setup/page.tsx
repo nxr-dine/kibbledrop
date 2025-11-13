@@ -13,6 +13,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { formatZAR } from "@/lib/currency";
 import { Separator } from "@/components/ui/separator";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -25,7 +26,7 @@ import { format } from "date-fns";
 import Link from "next/link";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 
 export default function SubscriptionSetupPage() {
@@ -156,14 +157,14 @@ export default function SubscriptionSetupPage() {
                     </p>
                   </div>
                   <p className="font-semibold text-sm sm:text-base ml-2">
-                    ${(item.price * item.quantity).toFixed(2)}
+                    {formatZAR(item.price * item.quantity)}
                   </p>
                 </div>
               ))}
               <Separator />
               <div className="flex justify-between text-base sm:text-lg font-bold">
                 <span>Monthly Subtotal:</span>
-                <span className="text-orange-600">${subtotal.toFixed(2)}</span>
+                <span className="text-orange-600">{formatZAR(subtotal)}</span>
               </div>
               <Button
                 asChild
@@ -308,7 +309,7 @@ export default function SubscriptionSetupPage() {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span>Subtotal:</span>
-                  <span>${subtotal.toFixed(2)}</span>
+                  <span>{formatZAR(subtotal)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Shipping:</span>
@@ -316,13 +317,13 @@ export default function SubscriptionSetupPage() {
                 </div>
                 <div className="flex justify-between">
                   <span>Tax:</span>
-                  <span>${tax.toFixed(2)}</span>
+                  <span>{formatZAR(tax)}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between text-base sm:text-lg font-bold">
                   <span>Estimated Total:</span>
                   <span className="text-orange-600">
-                    ${finalTotal.toFixed(2)}/{getFrequencyDisplay()}
+                    {formatZAR(finalTotal)}/{getFrequencyDisplay()}
                   </span>
                 </div>
                 <p className="text-sm text-gray-600">

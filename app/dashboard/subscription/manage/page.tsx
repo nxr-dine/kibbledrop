@@ -25,7 +25,7 @@ import {
   AlertCircle,
   CreditCard,
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
@@ -43,6 +43,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { formatZAR, getSubscriptionFrequencyText } from "@/lib/currency";
 
 interface Subscription {
   id: string;
@@ -383,17 +384,18 @@ export default function ManageSubscriptionPage() {
                         </div>
                         <div className="text-right">
                           <p className="text-xl sm:text-2xl font-bold text-orange-600">
-                            $
-                            {subscription.items
-                              .reduce(
+                            {formatZAR(
+                              subscription.items.reduce(
                                 (total, item) =>
                                   total + item.product.price * item.quantity,
                                 0
                               )
-                              .toFixed(2)}
+                            )}
                           </p>
                           <p className="text-sm text-gray-600">
-                            per {subscription.frequency}
+                            {getSubscriptionFrequencyText(
+                              subscription.frequency
+                            )}
                           </p>
                         </div>
                       </div>
@@ -766,7 +768,7 @@ export default function ManageSubscriptionPage() {
                               {item.product.name} x{item.quantity}
                             </span>
                             <span>
-                              ${(item.product.price * item.quantity).toFixed(2)}
+                              {formatZAR(item.product.price * item.quantity)}
                             </span>
                           </div>
                         ))}

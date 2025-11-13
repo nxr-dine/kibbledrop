@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { formatZAR } from "@/lib/currency";
 
 interface Product {
   id: string;
@@ -64,7 +65,7 @@ export function ProductCard({ product }: ProductCardProps) {
           </p>
           <div className="mt-auto">
             <p className="text-2xl font-bold text-orange-600">
-              ${product.price.toFixed(2)}
+              {formatZAR(product.price)}
             </p>
             <p className="text-sm text-gray-500">per item</p>
           </div>

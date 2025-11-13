@@ -15,7 +15,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Trash2, Plus, Minus, ShoppingCart, ArrowLeft } from "lucide-react";
 import { useCart, CartItem } from "@/contexts/cart-context";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
+import { formatZAR } from "@/lib/currency";
 
 export default function CartPage() {
   const { state: cartState, dispatch } = useCart();
@@ -147,7 +148,7 @@ export default function CartPage() {
                       </Badge>
                     </div>
                     <p className="text-sm text-gray-600 mt-1">
-                      ${item.price.toFixed(2)} each
+                      {formatZAR(item.price)} each
                     </p>
                   </div>
 
@@ -190,7 +191,7 @@ export default function CartPage() {
 
                     <div className="flex items-center gap-2 sm:flex-col sm:items-end">
                       <p className="font-medium">
-                        ${(item.price * item.quantity).toFixed(2)}
+                        {formatZAR(item.price * item.quantity)}
                       </p>
                       <Button
                         variant="ghost"
@@ -219,18 +220,16 @@ export default function CartPage() {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span>Subtotal ({cartState.items.length} items)</span>
-                  <span>${subtotal.toFixed(2)}</span>
+                  <span>{formatZAR(subtotal)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Shipping</span>
-                  <span>
-                    {shipping > 0 ? `$${shipping.toFixed(2)}` : "Free"}
-                  </span>
+                  <span>{shipping > 0 ? formatZAR(shipping) : "Free"}</span>
                 </div>
                 <div className="border-t pt-2">
                   <div className="flex justify-between font-medium text-lg">
                     <span>Total</span>
-                    <span>${total.toFixed(2)}</span>
+                    <span>{formatZAR(total)}</span>
                   </div>
                 </div>
               </div>
@@ -244,7 +243,7 @@ export default function CartPage() {
               </div>
 
               <p className="text-xs text-gray-500 text-center">
-                Save 10% with subscription • Free shipping on orders over $50
+                Save 10% with subscription • Free shipping on orders over R900
               </p>
             </CardContent>
           </Card>

@@ -9,6 +9,7 @@ import {
   useCart,
   type CartItem as CartItemType,
 } from "@/contexts/cart-context";
+import { formatZAR } from "@/lib/currency";
 
 interface CartItemProps {
   item: CartItemType;
@@ -63,7 +64,7 @@ export function CartItem({ item }: CartItemProps) {
               </div>
             </div>
             <p className="text-orange-600 font-semibold">
-              ${item.price.toFixed(2)}
+              {formatZAR(item.price)}
             </p>
           </div>
 
@@ -106,7 +107,7 @@ export function CartItem({ item }: CartItemProps) {
           <div className="flex justify-between items-center">
             <span className="text-sm text-gray-600">Item total:</span>
             <span className="font-semibold">
-              ${(item.price * item.quantity).toFixed(2)}/month
+              {formatZAR(item.price * item.quantity)}/month
             </span>
           </div>
         </div>
