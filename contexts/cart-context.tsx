@@ -14,7 +14,7 @@ export interface CartItem {
   quantity: number;
   weight?: string; // Optional weight/package size field
 }
-
+// test
 interface CartState {
   items: CartItem[];
   total: number;
