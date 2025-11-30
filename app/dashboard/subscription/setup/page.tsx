@@ -75,8 +75,8 @@ export default function SubscriptionSetupPage() {
   }
 
   const subtotal = state.total;
-  const tax = subtotal * 0.08; // 8% tax
-  const finalTotal = subtotal + tax;
+  // Tax removed as per requirement
+  const finalTotal = subtotal;
 
   const handleProceedToDelivery = () => {
     // Save the selected frequency and custom options to localStorage for the next step
@@ -313,30 +313,26 @@ export default function SubscriptionSetupPage() {
                 </div>
                 <div className="flex justify-between">
                   <span>Shipping:</span>
-                  <span className="text-green-600">Free</span>
+                  <span>Included in total</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Tax:</span>
-                  <span>{formatZAR(tax)}</span>
-                </div>
+
                 <Separator />
                 <div className="flex justify-between text-base sm:text-lg font-bold">
                   <span>Estimated Total:</span>
                   <span className="text-orange-600">
-                    {formatZAR(finalTotal)}/{getFrequencyDisplay()}
+                    {formatZAR(finalTotal)}
                   </span>
                 </div>
-                <p className="text-sm text-gray-600">
-                  {deliveryFrequency === "custom-date"
-                    ? `Next delivery: ${
-                        customDate ? format(customDate, "PPP") : "Select date"
-                      }`
-                    : `Billed ${
-                        deliveryFrequency === "custom-weeks"
-                          ? `every ${customWeeks} weeks`
-                          : deliveryFrequency
-                      }`}
-                </p>
+                <div className="space-y-1 mt-2">
+                  <div className="flex justify-between text-sm text-gray-600">
+                    <span>Billed:</span>
+                    <span className="font-medium capitalize">{deliveryFrequency === "monthly" ? "Monthly" : getFrequencyDisplay()}</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-gray-600">
+                    <span>Delivery:</span>
+                    <span className="font-medium capitalize">{getFrequencyDisplay()}</span>
+                  </div>
+                </div>
               </div>
 
               <Button

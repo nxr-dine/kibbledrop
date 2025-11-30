@@ -86,6 +86,11 @@ export default function EditProductPage({
     calories: "",
     omega6: "",
     ingredients: "",
+    brand: "",
+    lifeStage: "",
+    productType: "",
+    foodType: "",
+    keyFeatures: "",
   });
 
   // Custom weight variants state
@@ -222,6 +227,11 @@ export default function EditProductPage({
           calories: productData.calories || "",
           omega6: productData.omega6 || "",
           ingredients: productData.ingredients || "",
+          brand: productData.brand || "",
+          lifeStage: productData.lifeStage || "",
+          productType: productData.productType || "",
+          foodType: productData.foodType || "",
+          keyFeatures: productData.keyFeatures || "",
         });
         // Set image preview if image exists
         if (productData.image) {
@@ -293,6 +303,19 @@ export default function EditProductPage({
             weight: variant.weight,
             price: parseFloat(variant.price),
           })),
+          // Only send nutrition facts if they have values
+          protein: formData.protein || null,
+          fat: formData.fat || null,
+          fiber: formData.fiber || null,
+          moisture: formData.moisture || null,
+          calories: formData.calories || null,
+          omega6: formData.omega6 || null,
+          ingredients: formData.ingredients || null,
+          keyFeatures: formData.keyFeatures || null,
+          brand: formData.brand || null,
+          foodType: formData.foodType || null,
+          lifeStage: formData.lifeStage || null,
+          productType: formData.productType || null,
         }),
       });
 
@@ -321,10 +344,20 @@ export default function EditProductPage({
   };
 
   const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setFormData((prev) => {
+      const newData = {
+        ...prev,
+        [field]: value,
+      };
+
+      // Clear lifeStage and productType when petType changes to "Both" or empty
+      if (field === "petType" && (value === "Both" || !value)) {
+        newData.lifeStage = "";
+        newData.productType = "";
+      }
+
+      return newData;
+    });
   };
 
   if (fetching) {
@@ -610,6 +643,117 @@ export default function EditProductPage({
               </div>
             </div>
 
+            {/* Product Details Section */}
+            <div className="space-y-4">
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold mb-4">Product Details</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="brand">Brand</Label>
+                    <Input
+                      id="brand"
+                      value={formData.brand}
+                      onChange={(e) => handleInputChange("brand", e.target.value)}
+                      placeholder="e.g., Royal Canin"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="foodType">Food Type</Label>
+                    <Select
+                      value={formData.foodType}
+                      onValueChange={(value) =>
+                        handleInputChange("foodType", value)
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select food type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="dry">Dry</SelectItem>
+                        <SelectItem value="wet">Wet</SelectItem>
+                        <SelectItem value="raw">Raw</SelectItem>
+                        <SelectItem value="freeze-dried">Freeze-Dried</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="lifeStage">Life Stage</Label>
+                    <Select
+                      value={formData.lifeStage}
+                      onValueChange={(value) =>
+                        handleInputChange("lifeStage", value)
+                      }
+                      disabled={!formData.petType || formData.petType === "Both"}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={formData.petType === "Both" ? "Select specific pet type first" : "Select life stage"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {formData.petType === "Cat" && (
+                          <>
+                            <SelectItem value="kitten">Kitten</SelectItem>
+                            <SelectItem value="adult">Adult</SelectItem>
+                            <SelectItem value="senior">Senior</SelectItem>
+                          </>
+                        )}
+                        {formData.petType === "Dog" && (
+                          <>
+                            <SelectItem value="puppy">Puppy</SelectItem>
+                            <SelectItem value="adult">Adult</SelectItem>
+                            <SelectItem value="senior">Senior</SelectItem>
+                          </>
+                        )}
+                        {(!formData.petType || formData.petType === "Both") && (
+                          <SelectItem value="" disabled>Select pet type first</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="productType">Product Type</Label>
+                    <Select
+                      value={formData.productType}
+                      onValueChange={(value) =>
+                        handleInputChange("productType", value)
+                      }
+                      disabled={!formData.petType || formData.petType === "Both"}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={formData.petType === "Both" ? "Select specific pet type first" : "Select product type"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {formData.petType === "Cat" && (
+                          <>
+                            <SelectItem value="Cat Treat">Cat Treat</SelectItem>
+                            <SelectItem value="Dry Cat Food">Dry Cat Food</SelectItem>
+                            <SelectItem value="Wet Cat Food">Wet Cat Food</SelectItem>
+                            <SelectItem value="Litter">Litter</SelectItem>
+                            <SelectItem value="Tick & Flea Cats">Tick & Flea Cats</SelectItem>
+                            <SelectItem value="Hygiene">Hygiene</SelectItem>
+                          </>
+                        )}
+                        {formData.petType === "Dog" && (
+                          <>
+                            <SelectItem value="Dog Treat">Dog Treat</SelectItem>
+                            <SelectItem value="Dry Dog Food">Dry Dog Food</SelectItem>
+                            <SelectItem value="Wet Dog Food">Wet Dog Food</SelectItem>
+                            <SelectItem value="Tick & Flea Dogs">Tick & Flea Dogs</SelectItem>
+                            <SelectItem value="Hygiene">Hygiene</SelectItem>
+                          </>
+                        )}
+                        {(!formData.petType || formData.petType === "Both") && (
+                          <SelectItem value="" disabled>Select pet type first</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Nutrition Facts Section */}
             <div className="space-y-4">
               <div className="border-t pt-6">
@@ -699,6 +843,25 @@ export default function EditProductPage({
                   }
                   placeholder="List all ingredients separated by commas..."
                   rows={4}
+                />
+              </div>
+            </div>
+
+            {/* Key Features Section */}
+            <div className="space-y-4">
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold mb-4">Key Features</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Add key features that will be displayed on the product page (one per line)
+                </p>
+                <Textarea
+                  id="keyFeatures"
+                  value={formData.keyFeatures}
+                  onChange={(e) =>
+                    handleInputChange("keyFeatures", e.target.value)
+                  }
+                  placeholder="Premium natural ingredients&#10;Veterinarian approved formula&#10;No artificial preservatives&#10;Free delivery on subscription"
+                  rows={6}
                 />
               </div>
             </div>

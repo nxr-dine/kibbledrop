@@ -243,7 +243,7 @@ export default function CartPage() {
               </div>
 
               <p className="text-xs text-gray-500 text-center">
-                Save 10% with subscription • Free shipping on orders over R900
+                Save 10% with subscription • Shipping included in total cost
               </p>
             </CardContent>
           </Card>

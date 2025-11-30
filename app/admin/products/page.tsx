@@ -13,6 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Trash2, Eye, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { formatZAR } from "@/lib/currency";
 
 interface Product {
   id: string;
@@ -204,19 +205,22 @@ export default function AdminProductsPage() {
                               {product.weightVariants.length} variants
                             </div>
                             <div className="text-xs text-gray-600">
-                              $
-                              {Math.min(
-                                ...product.weightVariants.map((v) => v.price)
-                              ).toFixed(2)}{" "}
-                              - $
-                              {Math.max(
-                                ...product.weightVariants.map((v) => v.price)
-                              ).toFixed(2)}
+                              {formatZAR(
+                                Math.min(
+                                  ...product.weightVariants.map((v) => v.price)
+                                )
+                              )}{" "}
+                              -{" "}
+                              {formatZAR(
+                                Math.max(
+                                  ...product.weightVariants.map((v) => v.price)
+                                )
+                              )}
                             </div>
                           </div>
                         ) : (
                           <span className="font-medium">
-                            ${product.price.toFixed(2)}
+                            {formatZAR(product.price)}
                           </span>
                         )}
                       </td>

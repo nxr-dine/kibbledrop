@@ -26,7 +26,7 @@ export default function DeliveryInformationPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { data: session } = useSession();
-  const { createCheckout, redirectToPayment, isLoading, error, clearError } =
+  const { createCheckout, redirectToPayment, isLoading: paymentLoading, error, clearError } =
     useTradesafeCheckout();
 
   const [formData, setFormData] = useState({
@@ -330,7 +330,7 @@ export default function DeliveryInformationPage() {
                     className="h-4 w-4"
                   />
                   <Label htmlFor="pay-now" className="text-sm font-normal">
-                    Pay now with TradeSafe (${state.total.toFixed(2)})
+                    Pay now with TradeSafe ({formatZAR(state.total)})
                   </Label>
                 </div>
               </div>
@@ -345,8 +345,8 @@ export default function DeliveryInformationPage() {
               {loading || paymentLoading
                 ? "Processing..."
                 : paymentMethod === "now"
-                ? `Pay $${state.total.toFixed(2)} & Create Subscription`
-                : "Create Subscription"}
+                  ? `Pay ${formatZAR(state.total)} & Create Subscription`
+                  : "Create Subscription"}
             </Button>
           </form>
         </CardContent>

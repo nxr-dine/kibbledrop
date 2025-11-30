@@ -21,7 +21,10 @@ export async function PUT(
     const birthday = formData.get("birthday") as string
     const weight = parseFloat(formData.get("weight") as string)
     const healthTags = JSON.parse(formData.get("healthTags") as string || "[]")
+    const activityLevel = formData.get("activityLevel") ? parseInt(formData.get("activityLevel") as string) : null
+    const feedFrequencyPerDay = formData.get("feedFrequencyPerDay") ? parseInt(formData.get("feedFrequencyPerDay") as string) : null
     const imageFile = formData.get("image") as File | null
+    const vaccineCardFile = formData.get("vaccineCard") as File | null
 
     // Verify the pet belongs to the user
     const existingPet = await prisma.petProfile.findFirst({
@@ -46,6 +49,16 @@ export async function PUT(
       imageUrl = `data:${mimeType};base64,${base64}`
     }
 
+    // Handle vaccine card upload
+    let vaccineCardUrl = existingPet.vaccineCardUrl // Keep existing vaccine card if no new one
+    if (vaccineCardFile) {
+      const bytes = await vaccineCardFile.arrayBuffer()
+      const buffer = Buffer.from(bytes)
+      const base64 = buffer.toString('base64')
+      const mimeType = vaccineCardFile.type
+      vaccineCardUrl = `data:${mimeType};base64,${base64}`
+    }
+
     const updatedPet = await prisma.petProfile.update({
       where: {
         id: params.id
@@ -57,7 +70,10 @@ export async function PUT(
         birthday: new Date(birthday),
         weight,
         image: imageUrl,
-        healthTags: healthTags || []
+        vaccineCardUrl: vaccineCardUrl,
+        healthTags: healthTags || [],
+        activityLevel: activityLevel || null,
+        feedFrequencyPerDay: feedFrequencyPerDay || null
       }
     })
 

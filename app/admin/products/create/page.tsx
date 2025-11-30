@@ -52,16 +52,17 @@ export default function CreateProductPage() {
     lifeStage: "",
     productType: "",
     foodType: "",
-    // Nutrition Facts
-    protein: "Min 28%",
-    fat: "Min 15%",
-    fiber: "Max 4%",
-    moisture: "Max 10%",
-    calories: "3,500 kcal/kg",
-    omega6: "Min 1.4%",
+    // Nutrition Facts (no defaults)
+    protein: "",
+    fat: "",
+    fiber: "",
+    moisture: "",
+    calories: "",
+    omega6: "",
     // Ingredients
-    ingredients:
-      "Deboned chicken as the first ingredient, Sweet potatoes and peas for digestible carbohydrates, Chicken meal and salmon meal for added protein, Flaxseed for omega fatty acids, Blueberries and cranberries for antioxidants, No corn, wheat, soy, or artificial preservatives",
+    ingredients: "",
+    // Key Features
+    keyFeatures: "",
   });
 
   // Custom weight variants state
@@ -193,6 +194,15 @@ export default function CreateProductPage() {
             weight: variant.weight,
             price: parseFloat(variant.price),
           })),
+          // Only send nutrition facts if they have values
+          protein: formData.protein || null,
+          fat: formData.fat || null,
+          fiber: formData.fiber || null,
+          moisture: formData.moisture || null,
+          calories: formData.calories || null,
+          omega6: formData.omega6 || null,
+          ingredients: formData.ingredients || null,
+          keyFeatures: formData.keyFeatures || null,
         }),
       });
 
@@ -228,8 +238,15 @@ export default function CreateProductPage() {
       };
 
       // Automatically set species when petType changes
-      if (field === "petType" && (value === "Dog" || value === "Cat")) {
-        newData.species = value as string;
+      if (field === "petType") {
+        if (value === "Dog" || value === "Cat") {
+          newData.species = value as string;
+        } else {
+          // Clear lifeStage and productType when petType is "Both" or empty
+          newData.lifeStage = "";
+          newData.productType = "";
+          newData.species = "";
+        }
       }
 
       return newData;
@@ -572,15 +589,29 @@ export default function CreateProductPage() {
                       onValueChange={(value) =>
                         handleInputChange("lifeStage", value)
                       }
+                      disabled={!formData.petType || formData.petType === "Both"}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select life stage" />
+                        <SelectValue placeholder={formData.petType === "Both" ? "Select specific pet type first" : "Select life stage"} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="kitten">Kitten</SelectItem>
-                        <SelectItem value="puppy">Puppy</SelectItem>
-                        <SelectItem value="adult">Adult</SelectItem>
-                        <SelectItem value="senior">Senior</SelectItem>
+                        {formData.petType === "Cat" && (
+                          <>
+                            <SelectItem value="kitten">Kitten</SelectItem>
+                            <SelectItem value="adult">Adult</SelectItem>
+                            <SelectItem value="senior">Senior</SelectItem>
+                          </>
+                        )}
+                        {formData.petType === "Dog" && (
+                          <>
+                            <SelectItem value="puppy">Puppy</SelectItem>
+                            <SelectItem value="adult">Adult</SelectItem>
+                            <SelectItem value="senior">Senior</SelectItem>
+                          </>
+                        )}
+                        {(!formData.petType || formData.petType === "Both") && (
+                          <SelectItem value="" disabled>Select pet type first</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -592,33 +623,34 @@ export default function CreateProductPage() {
                       onValueChange={(value) =>
                         handleInputChange("productType", value)
                       }
+                      disabled={!formData.petType || formData.petType === "Both"}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select product type" />
+                        <SelectValue placeholder={formData.petType === "Both" ? "Select specific pet type first" : "Select product type"} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Cat Treat">Cat Treat</SelectItem>
-                        <SelectItem value="Dog Treat">Dog Treat</SelectItem>
-                        <SelectItem value="Dry Cat Food">
-                          Dry Cat Food
-                        </SelectItem>
-                        <SelectItem value="Dry Dog Food">
-                          Dry Dog Food
-                        </SelectItem>
-                        <SelectItem value="Wet Cat Food">
-                          Wet Cat Food
-                        </SelectItem>
-                        <SelectItem value="Wet Dog Food">
-                          Wet Dog Food
-                        </SelectItem>
-                        <SelectItem value="Hygiene">Hygiene</SelectItem>
-                        <SelectItem value="Litter">Litter</SelectItem>
-                        <SelectItem value="Tick & Flea Cats">
-                          Tick & Flea Cats
-                        </SelectItem>
-                        <SelectItem value="Tick & Flea Dogs">
-                          Tick & Flea Dogs
-                        </SelectItem>
+                        {formData.petType === "Cat" && (
+                          <>
+                            <SelectItem value="Cat Treat">Cat Treat</SelectItem>
+                            <SelectItem value="Dry Cat Food">Dry Cat Food</SelectItem>
+                            <SelectItem value="Wet Cat Food">Wet Cat Food</SelectItem>
+                            <SelectItem value="Litter">Litter</SelectItem>
+                            <SelectItem value="Tick & Flea Cats">Tick & Flea Cats</SelectItem>
+                            <SelectItem value="Hygiene">Hygiene</SelectItem>
+                          </>
+                        )}
+                        {formData.petType === "Dog" && (
+                          <>
+                            <SelectItem value="Dog Treat">Dog Treat</SelectItem>
+                            <SelectItem value="Dry Dog Food">Dry Dog Food</SelectItem>
+                            <SelectItem value="Wet Dog Food">Wet Dog Food</SelectItem>
+                            <SelectItem value="Tick & Flea Dogs">Tick & Flea Dogs</SelectItem>
+                            <SelectItem value="Hygiene">Hygiene</SelectItem>
+                          </>
+                        )}
+                        {(!formData.petType || formData.petType === "Both") && (
+                          <SelectItem value="" disabled>Select pet type first</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -718,6 +750,25 @@ export default function CreateProductPage() {
                     List ingredients in order of weight, separated by commas.
                   </p>
                 </div>
+              </div>
+            </div>
+
+            {/* Key Features Section */}
+            <div className="space-y-4">
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold mb-4">Key Features</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Add key features that will be displayed on the product page (one per line)
+                </p>
+                <Textarea
+                  id="keyFeatures"
+                  value={formData.keyFeatures}
+                  onChange={(e) =>
+                    handleInputChange("keyFeatures", e.target.value)
+                  }
+                  placeholder="Premium natural ingredients&#10;Veterinarian approved formula&#10;No artificial preservatives&#10;Free delivery on subscription"
+                  rows={6}
+                />
               </div>
             </div>
 

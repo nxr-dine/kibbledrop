@@ -1,8 +1,11 @@
 import Stripe from "stripe";
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-12-18.acacia",
-});
+// Initialize Stripe with error handling for missing keys
+export const stripe = process.env.STRIPE_SECRET_KEY
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: "2024-12-18.acacia",
+    })
+  : null;
 
 export async function createSubscriptionSession(
   subscriptionId: string,
@@ -15,6 +18,10 @@ export async function createSubscriptionSession(
   }>,
   frequency: string
 ) {
+  if (!stripe) {
+    throw new Error("Stripe is not configured. Please set STRIPE_SECRET_KEY in your environment variables.");
+  }
+
   try {
     // Create or retrieve customer
     const customers = await stripe.customers.list({
@@ -75,14 +82,39 @@ export async function createOneTimePaymentSession(
     quantity: number;
     price: number;
     name: string;
-  }>
+  }>,
+  orderId?: string,
+  customerEmail?: string
 ) {
+  if (!stripe) {
+    throw new Error("Stripe is not configured. Please set STRIPE_SECRET_KEY in your environment variables.");
+  }
+
   try {
+    // Create or retrieve customer if email provided
+    let customerId: string | undefined;
+    if (customerEmail) {
+      const customers = await stripe.customers.list({
+        email: customerEmail,
+        limit: 1,
+      });
+
+      if (customers.data.length > 0) {
+        customerId = customers.data[0].id;
+      } else {
+        const customer = await stripe.customers.create({
+          email: customerEmail,
+        });
+        customerId = customer.id;
+      }
+    }
+
     const session = await stripe.checkout.sessions.create({
+      ...(customerId && { customer: customerId }),
       payment_method_types: ["card"],
       line_items: items.map((item) => ({
         price_data: {
-          currency: "zar", // Changed from 'usd' to 'zar' for South African Rands
+          currency: "zar", // South African Rands
           product_data: {
             name: item.name,
           },
@@ -91,8 +123,11 @@ export async function createOneTimePaymentSession(
         quantity: item.quantity,
       })),
       mode: "payment",
-      success_url: `${process.env.NEXTAUTH_URL}/dashboard?success=true`,
-      cancel_url: `${process.env.NEXTAUTH_URL}/cart?canceled=true`,
+      success_url: `${process.env.NEXTAUTH_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}${orderId ? `&order_id=${orderId}` : ''}`,
+      cancel_url: `${process.env.NEXTAUTH_URL}/payment/cancelled`,
+      metadata: {
+        ...(orderId && { orderId }),
+      },
     });
 
     return session;

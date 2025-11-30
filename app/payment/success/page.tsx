@@ -15,15 +15,31 @@ import Link from "next/link";
 
 function PaymentSuccessContent() {
   const searchParams = useSearchParams();
-  const orderId = searchParams.get("orderId");
+  const sessionId = searchParams.get("session_id");
+  const orderId = searchParams.get("order_id");
   const [orderDetails, setOrderDetails] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Payment status check functionality would go here
-    // For now, we'll just simulate success
-    if (orderId) {
-      setOrderDetails({ id: orderId, status: "completed" });
-    }
+    const fetchOrderDetails = async () => {
+      if (orderId) {
+        try {
+          const response = await fetch(`/api/orders/${orderId}`);
+          if (response.ok) {
+            const order = await response.json();
+            setOrderDetails(order);
+          }
+        } catch (error) {
+          console.error("Error fetching order:", error);
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setLoading(false);
+      }
+    };
+
+    fetchOrderDetails();
   }, [orderId]);
 
   return (
@@ -44,24 +60,28 @@ function PaymentSuccessContent() {
         <CardContent className="space-y-4">
           {orderDetails && (
             <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-              <div className="flex justify-between">
-                <span className="font-medium">Order ID:</span>
-                <span className="font-mono text-sm">
-                  {orderDetails.orderId}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Amount:</span>
-                <span className="font-medium">
-                  R{orderDetails.total?.toFixed(2)}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Status:</span>
-                <span className="capitalize text-green-600">
-                  {orderDetails.status}
-                </span>
-              </div>
+              {orderDetails && (
+                <>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Order ID:</span>
+                    <span className="font-mono text-sm">
+                      {orderDetails.id?.slice(0, 8)}...
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Amount:</span>
+                    <span className="font-medium">
+                      R{orderDetails.total?.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Status:</span>
+                    <span className="capitalize text-green-600">
+                      {orderDetails.status}
+                    </span>
+                  </div>
+                </>
+              )}
             </div>
           )}
 

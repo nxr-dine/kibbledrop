@@ -60,10 +60,11 @@ export async function POST(request: NextRequest) {
     const breed = formData.get("breed") as string;
     const birthday = formData.get("birthday") as string;
     const weight = parseFloat(formData.get("weight") as string);
-    const healthTags = JSON.parse(
-      (formData.get("healthTags") as string) || "[]"
-    );
+    const healthTags = JSON.parse(formData.get("healthTags") as string || "[]");
+    const activityLevel = formData.get("activityLevel") ? parseInt(formData.get("activityLevel") as string) : null;
+    const feedFrequencyPerDay = formData.get("feedFrequencyPerDay") ? parseInt(formData.get("feedFrequencyPerDay") as string) : null;
     const imageFile = formData.get("image") as File | null;
+    const vaccineCardFile = formData.get("vaccineCard") as File | null;
 
     if (!name || !type || !breed || !birthday) {
       return NextResponse.json(
@@ -83,6 +84,16 @@ export async function POST(request: NextRequest) {
       imageUrl = `data:${mimeType};base64,${base64}`;
     }
 
+    // Handle vaccine card upload
+    let vaccineCardUrl = null;
+    if (vaccineCardFile) {
+      const bytes = await vaccineCardFile.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      const base64 = buffer.toString('base64');
+      const mimeType = vaccineCardFile.type;
+      vaccineCardUrl = `data:${mimeType};base64,${base64}`;
+    }
+
     console.log("Creating pet profile for user:", session.user.id);
     console.log("Pet data:", { name, type, breed, birthday, weight });
 
@@ -95,8 +106,11 @@ export async function POST(request: NextRequest) {
         birthday: new Date(birthday),
         weight,
         image: imageUrl,
+        vaccineCardUrl: vaccineCardUrl,
         healthTags: healthTags || [],
-      },
+        activityLevel: activityLevel || null,
+        feedFrequencyPerDay: feedFrequencyPerDay || null
+      }
     });
 
     console.log("Pet created successfully:", pet);

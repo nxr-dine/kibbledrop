@@ -151,14 +151,15 @@ export async function POST(request: NextRequest) {
           lifeStage,
           productType,
           foodType,
-          // Nutrition facts
-          protein,
-          fat,
-          fiber,
-          moisture,
-          calories,
-          omega6,
-          ingredients,
+          // Nutrition facts (only set if provided)
+          protein: protein || null,
+          fat: fat || null,
+          fiber: fiber || null,
+          moisture: moisture || null,
+          calories: calories || null,
+          omega6: omega6 || null,
+          ingredients: ingredients || null,
+          keyFeatures: body.keyFeatures || null,
         },
       });
 

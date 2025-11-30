@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { ArrowLeft, Loader2, User, Mail, Calendar, Package, MapPin, Save } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 
@@ -29,9 +31,13 @@ export default function AdminUserDetailPage({ params }: { params: { id: string }
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [formData, setFormData] = useState({
-    status: "",
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
     role: ""
   })
+  const [isEditing, setIsEditing] = useState(false)
   const { toast } = useToast()
 
   useEffect(() => {
@@ -47,8 +53,11 @@ export default function AdminUserDetailPage({ params }: { params: { id: string }
       const userData = await response.json()
       setUser(userData)
       setFormData({
-        status: userData.status,
-        role: userData.role
+        name: userData.name || "",
+        email: userData.email || "",
+        phone: userData.phone || "",
+        address: userData.address || "",
+        role: userData.role || "customer"
       })
     } catch (error) {
       console.error("Error fetching user:", error)
@@ -62,14 +71,6 @@ export default function AdminUserDetailPage({ params }: { params: { id: string }
     }
   }
 
-  const getStatusColor = (status?: string) => {
-    if (!status) return "bg-gray-100 text-gray-800"
-    switch (status) {
-      case "active": return "bg-green-100 text-green-800"
-      case "suspended": return "bg-red-100 text-red-800"
-      default: return "bg-gray-100 text-gray-800"
-    }
-  }
 
   const getRoleColor = (role?: string) => {
     if (!role) return "bg-gray-100 text-gray-800"
@@ -104,18 +105,20 @@ export default function AdminUserDetailPage({ params }: { params: { id: string }
       if (response.ok) {
         const updatedUser = await response.json()
         setUser(updatedUser)
+        setIsEditing(false)
         toast({
           title: "User Updated",
           description: "User details have been updated successfully.",
         })
       } else {
-        throw new Error("Failed to update user")
+        const error = await response.json()
+        throw new Error(error.error || "Failed to update user")
       }
     } catch (error) {
       console.error("Error updating user:", error)
       toast({
         title: "Error",
-        description: "Failed to update user details.",
+        description: error instanceof Error ? error.message : "Failed to update user details.",
         variant: "destructive",
       })
     } finally {
@@ -180,28 +183,120 @@ export default function AdminUserDetailPage({ params }: { params: { id: string }
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="font-medium">Name</span>
-                <span>{user.name}</span>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-500 mb-1 block">Name</label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-md"
+                    />
+                  ) : (
+                    <p className="text-gray-900">{user.name || "N/A"}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500 mb-1 block">Email</label>
+                  {isEditing ? (
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-md"
+                    />
+                  ) : (
+                    <p className="text-gray-900 flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-gray-400" />
+                      {user.email}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500 mb-1 block">Phone</label>
+                  {isEditing ? (
+                    <input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-md"
+                      placeholder="Optional"
+                    />
+                  ) : (
+                    <p className="text-gray-900">{user.phone || "N/A"}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500 mb-1 block">Address</label>
+                  {isEditing ? (
+                    <textarea
+                      value={formData.address}
+                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-md"
+                      rows={2}
+                      placeholder="Optional"
+                    />
+                  ) : (
+                    <p className="text-gray-900">{user.address || "N/A"}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500 mb-1 block">Role</label>
+                  {isEditing ? (
+                    <Select 
+                      value={formData.role} 
+                      onValueChange={(value) => setFormData({ ...formData, role: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="customer">Customer</SelectItem>
+                        <SelectItem value="admin">Admin</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Badge className={getRoleColor(user.role)}>
+                      {user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Unknown'}
+                    </Badge>
+                  )}
+                </div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="font-medium">Email</span>
-                <span className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-gray-400" />
-                  {user.email}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="font-medium">Status</span>
-                <Badge className={getStatusColor(user.status)}>
-                  {user.status ? user.status.charAt(0).toUpperCase() + user.status.slice(1) : 'Unknown'}
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="font-medium">Role</span>
-                <Badge className={getRoleColor(user.role)}>
-                  {user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Unknown'}
-                </Badge>
+              <div className="pt-4 border-t">
+                {!isEditing ? (
+                  <Button onClick={() => setIsEditing(true)} className="w-full">
+                    Edit Information
+                  </Button>
+                ) : (
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={() => {
+                        setIsEditing(false)
+                        // Reset form data
+                        setFormData({
+                          name: user.name || "",
+                          email: user.email || "",
+                          phone: user.phone || "",
+                          address: user.address || "",
+                          role: user.role || "customer"
+                        })
+                      }} 
+                      variant="outline" 
+                      className="flex-1"
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={handleSave} 
+                      className="flex-1"
+                      disabled={saving}
+                    >
+                      <Save className="h-4 w-4 mr-2" />
+                      {saving ? "Saving..." : "Save"}
+                    </Button>
+                  </div>
+                )}
               </div>
               <div className="flex items-center justify-between">
                 <span className="font-medium">Member Since</span>
@@ -235,8 +330,8 @@ export default function AdminUserDetailPage({ params }: { params: { id: string }
                         <p className="text-sm text-gray-600">{formatDate(order.createdAt)}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-medium">${order.total.toFixed(2)}</p>
-                        <Badge className={getStatusColor(order.status)}>
+                        <p className="font-medium">R{order.total.toFixed(2)}</p>
+                        <Badge variant="outline">
                           {order.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1) : 'Unknown'}
                         </Badge>
                       </div>
@@ -255,48 +350,9 @@ export default function AdminUserDetailPage({ params }: { params: { id: string }
               <CardTitle>User Management</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Status Update */}
-              <div>
-                <label className="text-sm font-medium mb-2 block">Status</label>
-                <Select 
-                  value={formData.status} 
-                  onValueChange={(value) => setFormData({ ...formData, status: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="suspended">Suspended</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Role Update */}
-              <div>
-                <label className="text-sm font-medium mb-2 block">Role</label>
-                <Select 
-                  value={formData.role} 
-                  onValueChange={(value) => setFormData({ ...formData, role: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="customer">Customer</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <Button 
-                onClick={handleSave} 
-                className="w-full" 
-                disabled={saving}
-              >
-                <Save className="h-4 w-4 mr-2" />
-                {saving ? "Saving..." : "Save Changes"}
-              </Button>
+              <p className="text-sm text-gray-600">
+                Use the "Edit Information" button in the Basic Information section to update user details.
+              </p>
             </CardContent>
           </Card>
 
@@ -321,7 +377,7 @@ export default function AdminUserDetailPage({ params }: { params: { id: string }
               
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="text-center">
-                  <p className="text-2xl font-bold">${totalSpent.toFixed(2)}</p>
+                  <p className="text-2xl font-bold">R{totalSpent.toFixed(2)}</p>
                   <p className="text-sm text-gray-600">Total Spent</p>
                 </div>
               </div>
@@ -329,7 +385,7 @@ export default function AdminUserDetailPage({ params }: { params: { id: string }
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="text-center">
                   <p className="text-2xl font-bold">
-                    {user.orders.length > 0 ? (totalSpent / user.orders.length).toFixed(2) : "0.00"}
+                    R{user.orders.length > 0 ? (totalSpent / user.orders.length).toFixed(2) : "0.00"}
                   </p>
                   <p className="text-sm text-gray-600">Average Order Value</p>
                 </div>

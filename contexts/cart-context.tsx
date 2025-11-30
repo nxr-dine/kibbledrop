@@ -13,6 +13,8 @@ export interface CartItem {
   image: string;
   quantity: number;
   weight?: string; // Optional weight/package size field
+  purchaseType?: "one-time" | "subscription";
+  frequency?: string;
 }
 // test
 interface CartState {

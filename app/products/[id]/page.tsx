@@ -19,7 +19,6 @@ import {
   Share2,
   Shield,
   Truck,
-  RotateCcw,
   Award,
   ArrowLeft,
   Minus,
@@ -31,7 +30,8 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useCart } from "@/contexts/cart-context";
 import { useToast } from "@/components/ui/use-toast";
-import { formatZAR } from "@/lib/currency";
+import { formatZAR, getSubscriptionFrequencyText } from "@/lib/currency";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface Product {
   id: string;
@@ -60,6 +60,8 @@ interface Product {
   omega6?: string;
   // Ingredients
   ingredients?: string;
+  // Key Features
+  keyFeatures?: string;
   // Weight variants
   weightVariants?: Array<{
     id: string;
@@ -80,6 +82,8 @@ export default function ProductPage() {
   const [quantity, setQuantity] = useState(1);
   const [selectedWeight, setSelectedWeight] = useState<string>("");
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [purchaseType, setPurchaseType] = useState<"one-time" | "subscription">("subscription");
+  const [frequency, setFrequency] = useState<string>("monthly");
 
   // Define available weight options based on product type
   const getWeightOptions = (product: Product) => {
@@ -121,27 +125,27 @@ export default function ProductPage() {
       baseWeights.push(
         {
           value: "1kg",
-          label: "1kg - $" + product.price.toFixed(2),
+          label: "1kg - " + formatZAR(product.price),
           priceMultiplier: 1,
         },
         {
           value: "2kg",
-          label: "2kg - $" + (product.price * 1.8).toFixed(2),
+          label: "2kg - " + formatZAR(product.price * 1.8),
           priceMultiplier: 1.8,
         },
         {
           value: "5kg",
-          label: "5kg - $" + (product.price * 4.2).toFixed(2),
+          label: "5kg - " + formatZAR(product.price * 4.2),
           priceMultiplier: 4.2,
         },
         {
           value: "10kg",
-          label: "10kg - $" + (product.price * 7.8).toFixed(2),
+          label: "10kg - " + formatZAR(product.price * 7.8),
           priceMultiplier: 7.8,
         },
         {
           value: "20kg",
-          label: "20kg - $" + (product.price * 14.5).toFixed(2),
+          label: "20kg - " + formatZAR(product.price * 14.5),
           priceMultiplier: 14.5,
         }
       );
@@ -149,17 +153,17 @@ export default function ProductPage() {
       baseWeights.push(
         {
           value: "5kg",
-          label: "5kg - $" + product.price.toFixed(2),
+          label: "5kg - " + formatZAR(product.price),
           priceMultiplier: 1,
         },
         {
           value: "10kg",
-          label: "10kg - $" + (product.price * 1.7).toFixed(2),
+          label: "10kg - " + formatZAR(product.price * 1.7),
           priceMultiplier: 1.7,
         },
         {
           value: "20kg",
-          label: "20kg - $" + (product.price * 3.2).toFixed(2),
+          label: "20kg - " + formatZAR(product.price * 3.2),
           priceMultiplier: 3.2,
         }
       );
@@ -167,7 +171,7 @@ export default function ProductPage() {
       // Default for other products
       baseWeights.push({
         value: "Regular",
-        label: "Regular Size - $" + product.price.toFixed(2),
+        label: "Regular Size - " + formatZAR(product.price),
         priceMultiplier: 1,
       });
     }
@@ -183,6 +187,11 @@ export default function ProductPage() {
     ? selectedWeightOption.actualPrice ||
       product!.price * selectedWeightOption.priceMultiplier
     : product?.price || 0;
+
+  // Calculate final price based on purchase type
+  const finalPrice = purchaseType === "subscription" 
+    ? currentPrice * 0.9 // 10% discount for subscription
+    : currentPrice;
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -234,6 +243,9 @@ export default function ProductPage() {
             category: product.category,
             image: product.image,
             weight: selectedWeight,
+            purchaseType,
+            frequency: purchaseType === "subscription" ? frequency : undefined,
+          },
           },
         });
       }
@@ -361,8 +373,13 @@ export default function ProductPage() {
               </h1>
               <div className="flex items-center gap-4 mb-6">
                 <span className="text-3xl font-light text-gray-900">
-                  ${currentPrice.toFixed(2)}
+                  {formatZAR(finalPrice)}
                 </span>
+                {purchaseType === "subscription" && (
+                  <Badge className="bg-green-100 text-green-800">
+                    Save 10%
+                  </Badge>
+                )}
                 <Badge className="bg-orange-100 text-orange-800">
                   {product.petType}
                 </Badge>
@@ -379,27 +396,22 @@ export default function ProductPage() {
             </p>
 
             {/* Key Features */}
-            <div>
-              <h3 className="text-lg font-medium mb-3">Key Features</h3>
-              <ul className="space-y-2">
-                <li className="flex items-center text-gray-600">
-                  <div className="w-2 h-2 bg-orange-500 rounded-full mr-3" />
-                  Premium natural ingredients
-                </li>
-                <li className="flex items-center text-gray-600">
-                  <div className="w-2 h-2 bg-orange-500 rounded-full mr-3" />
-                  Veterinarian approved formula
-                </li>
-                <li className="flex items-center text-gray-600">
-                  <div className="w-2 h-2 bg-orange-500 rounded-full mr-3" />
-                  No artificial preservatives
-                </li>
-                <li className="flex items-center text-gray-600">
-                  <div className="w-2 h-2 bg-orange-500 rounded-full mr-3" />
-                  Free delivery on subscription
-                </li>
-              </ul>
-            </div>
+            {product.keyFeatures && (
+              <div>
+                <h3 className="text-lg font-medium mb-3">Key Features</h3>
+                <ul className="space-y-2">
+                  {product.keyFeatures
+                    .split("\n")
+                    .filter((line) => line.trim())
+                    .map((feature, index) => (
+                      <li key={index} className="flex items-center text-gray-600">
+                        <div className="w-2 h-2 bg-orange-500 rounded-full mr-3" />
+                        {feature.trim()}
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            )}
 
             {/* Actions */}
             <div className="space-y-4">
@@ -427,6 +439,42 @@ export default function ProductPage() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              {/* Purchase Type Selection */}
+              <div className="space-y-4 border rounded-lg p-4">
+                <RadioGroup value={purchaseType} onValueChange={(v) => setPurchaseType(v as "one-time" | "subscription")}>
+                  <div className="flex items-center justify-between space-x-2 mb-2">
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="subscription" id="subscription" />
+                      <Label htmlFor="subscription" className="font-medium">Subscribe & Save</Label>
+                    </div>
+                    <span className="text-green-600 font-medium">-10%</span>
+                  </div>
+                  
+                  {purchaseType === "subscription" && (
+                    <div className="ml-6 mb-4">
+                      <Select value={frequency} onValueChange={setFrequency}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select frequency" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="weekly">Weekly</SelectItem>
+                          <SelectItem value="bi-weekly">Every 2 Weeks</SelectItem>
+                          <SelectItem value="monthly">Monthly</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-gray-500 mt-2">
+                        Auto-delivery {getSubscriptionFrequencyText(frequency)}. Cancel anytime.
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="one-time" id="one-time" />
+                    <Label htmlFor="one-time" className="font-medium">One-time Purchase</Label>
+                  </div>
+                </RadioGroup>
               </div>
 
               <div className="flex items-center gap-4">
@@ -472,7 +520,7 @@ export default function ProductPage() {
             </div>
 
             {/* Trust Badges */}
-            <div className="grid grid-cols-2 gap-4 pt-6 border-t border-gray-200">
+            <div className="grid grid-cols-3 gap-4 pt-6 border-t border-gray-200">
               <div className="flex items-center space-x-3">
                 <Shield className="h-6 w-6 text-orange-500" />
                 <div>
@@ -483,17 +531,8 @@ export default function ProductPage() {
               <div className="flex items-center space-x-3">
                 <Truck className="h-6 w-6 text-orange-500" />
                 <div>
-                  <p className="font-medium text-sm">Free Shipping</p>
-                  <p className="text-xs text-gray-600">On orders over $50</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <RotateCcw className="h-6 w-6 text-orange-500" />
-                <div>
-                  <p className="font-medium text-sm">30-Day Returns</p>
-                  <p className="text-xs text-gray-600">
-                    Satisfaction guaranteed
-                  </p>
+                  <p className="font-medium text-sm">Shipping</p>
+                  <p className="text-xs text-gray-600">Included in total cost</p>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
@@ -522,19 +561,19 @@ export default function ProductPage() {
                     <div className="flex justify-between py-2 border-b border-gray-100">
                       <span className="font-medium text-gray-900">Protein</span>
                       <span className="text-gray-600">
-                        {product.protein || "Min 28%"}
+                        {product.protein || "N/A"}
                       </span>
                     </div>
                     <div className="flex justify-between py-2 border-b border-gray-100">
                       <span className="font-medium text-gray-900">Fat</span>
                       <span className="text-gray-600">
-                        {product.fat || "Min 15%"}
+                        {product.fat || "N/A"}
                       </span>
                     </div>
                     <div className="flex justify-between py-2 border-b border-gray-100">
                       <span className="font-medium text-gray-900">Fiber</span>
                       <span className="text-gray-600">
-                        {product.fiber || "Max 4%"}
+                        {product.fiber || "N/A"}
                       </span>
                     </div>
                     <div className="flex justify-between py-2 border-b border-gray-100">
@@ -542,7 +581,7 @@ export default function ProductPage() {
                         Moisture
                       </span>
                       <span className="text-gray-600">
-                        {product.moisture || "Max 10%"}
+                        {product.moisture || "N/A"}
                       </span>
                     </div>
                     <div className="flex justify-between py-2 border-b border-gray-100">
@@ -550,13 +589,13 @@ export default function ProductPage() {
                         Calories
                       </span>
                       <span className="text-gray-600">
-                        {product.calories || "3,500 kcal/kg"}
+                        {product.calories || "N/A"}
                       </span>
                     </div>
                     <div className="flex justify-between py-2 border-b border-gray-100">
                       <span className="font-medium text-gray-900">Omega-6</span>
                       <span className="text-gray-600">
-                        {product.omega6 || "Min 1.4%"}
+                        {product.omega6 || "N/A"}
                       </span>
                     </div>
                   </div>
@@ -581,25 +620,8 @@ export default function ProductPage() {
                               </li>
                             ))}
                         </ul>
-                      ) : (
-                        <ul className="space-y-3">
-                          <li>• Deboned chicken as the first ingredient</li>
-                          <li>
-                            • Sweet potatoes and peas for digestible
-                            carbohydrates
-                          </li>
-                          <li>
-                            • Chicken meal and salmon meal for added protein
-                          </li>
-                          <li>• Flaxseed for omega fatty acids</li>
-                          <li>
-                            • Blueberries and cranberries for antioxidants
-                          </li>
-                          <li>
-                            • No corn, wheat, soy, or artificial preservatives
-                          </li>
-                        </ul>
                       )}
+                    </div>
                     </div>
                   </div>
                 </CardContent>

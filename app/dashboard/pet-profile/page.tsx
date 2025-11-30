@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { useToast } from "@/components/ui/use-toast"
-import { Camera, Upload, X, AlertTriangle } from "lucide-react"
+import { Camera, Upload, X, AlertTriangle, Loader2 } from "lucide-react"
 
 interface PetProfile {
   id: string
@@ -24,6 +24,8 @@ interface PetProfile {
   image?: string
   vaccineCardUrl?: string | null
   healthTags: string[]
+  activityLevel?: number | null
+  feedFrequencyPerDay?: number | null
   createdAt: string
   updatedAt: string
 }
@@ -37,6 +39,13 @@ export default function PetProfilePage() {
   const [imagePreview, setImagePreview] = useState<string>("")
   const [vaccineCardFile, setVaccineCardFile] = useState<File | null>(null)
   const [petToDelete, setPetToDelete] = useState<PetProfile | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [formValues, setFormValues] = useState({
+    type: "dog",
+    activityLevel: "",
+    feedFrequencyPerDay: ""
+  })
   const { toast } = useToast()
 
   // Fetch pet profiles on component mount
@@ -93,15 +102,19 @@ export default function PetProfilePage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
+    setSaving(true)
+    
     const formData = new FormData(e.currentTarget as HTMLFormElement)
     
     const petData = {
       name: formData.get("name") as string,
-      type: formData.get("type") as string,
+      type: formValues.type,
       breed: formData.get("breed") as string,
       birthday: formData.get("birthday") as string,
       weight: Number.parseFloat(formData.get("weight") as string),
-      healthTags: (formData.get("healthNotes") as string).split(',').map(tag => tag.trim()).filter(tag => tag)
+      healthTags: (formData.get("healthNotes") as string).split(',').map(tag => tag.trim()).filter(tag => tag),
+      activityLevel: formValues.activityLevel ? parseInt(formValues.activityLevel) : null,
+      feedFrequencyPerDay: formValues.feedFrequencyPerDay ? parseInt(formValues.feedFrequencyPerDay) : null
     }
 
     // Create a new FormData for file upload
@@ -112,6 +125,12 @@ export default function PetProfilePage() {
     uploadData.append('birthday', petData.birthday)
     uploadData.append('weight', petData.weight.toString())
     uploadData.append('healthTags', JSON.stringify(petData.healthTags))
+    if (petData.activityLevel) {
+      uploadData.append('activityLevel', petData.activityLevel.toString())
+    }
+    if (petData.feedFrequencyPerDay) {
+      uploadData.append('feedFrequencyPerDay', petData.feedFrequencyPerDay.toString())
+    }
     
     if (selectedImage) {
       uploadData.append('image', selectedImage)
@@ -130,9 +149,18 @@ export default function PetProfilePage() {
         
         if (response.ok) {
           await fetchPetProfiles() // Refresh the list
-          toast({ title: "Pet profile updated!" })
+          toast({ 
+            title: "Success!",
+            description: "Pet profile updated successfully."
+          })
+          setShowForm(false)
+          setEditingPet(null)
+          setSelectedImage(null)
+          setImagePreview("")
+          setVaccineCardFile(null)
         } else {
-          throw new Error('Failed to update pet profile')
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.error || 'Failed to update pet profile')
         }
       } else {
         // Create new pet
@@ -143,24 +171,29 @@ export default function PetProfilePage() {
         
         if (response.ok) {
           await fetchPetProfiles() // Refresh the list
-          toast({ title: "New pet profile created!" })
+          toast({ 
+            title: "Success!",
+            description: "New pet profile created successfully."
+          })
+          setShowForm(false)
+          setEditingPet(null)
+          setSelectedImage(null)
+          setImagePreview("")
+          setVaccineCardFile(null)
         } else {
-          throw new Error('Failed to create pet profile')
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.error || 'Failed to create pet profile')
         }
       }
-      
-      setShowForm(false)
-      setEditingPet(null)
-      setSelectedImage(null)
-      setImagePreview("")
-      setVaccineCardFile(null)
     } catch (error) {
       console.error('Error saving pet profile:', error)
       toast({
         title: "Error",
-        description: "Failed to save pet profile",
+        description: error instanceof Error ? error.message : "Failed to save pet profile",
         variant: "destructive"
       })
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -169,11 +202,21 @@ export default function PetProfilePage() {
     setEditingPet(null)
     setSelectedImage(null)
     setImagePreview("")
+    setFormValues({
+      type: "dog",
+      activityLevel: "",
+      feedFrequencyPerDay: ""
+    })
   }
 
   const handleEdit = (pet: PetProfile) => {
     setEditingPet(pet)
     setImagePreview(pet.image || "")
+    setFormValues({
+      type: pet.type || "dog",
+      activityLevel: pet.activityLevel?.toString() || "",
+      feedFrequencyPerDay: pet.feedFrequencyPerDay?.toString() || ""
+    })
     setShowForm(true)
   }
 
@@ -184,28 +227,37 @@ export default function PetProfilePage() {
   const confirmDelete = async () => {
     if (!petToDelete) return
 
+    setDeleting(true)
+    const petName = petToDelete.name
+
     try {
       const response = await fetch(`/api/pets/${petToDelete.id}`, {
         method: 'DELETE'
       })
       
       if (response.ok) {
-        await fetchPetProfiles() // Refresh the list
+        // Optimistically update the list
+        setPetProfiles(prev => prev.filter(pet => pet.id !== petToDelete.id))
+        setPetToDelete(null)
         toast({ 
           title: "Pet profile deleted",
-          description: `${petToDelete.name}'s profile has been permanently removed.`
+          description: `${petName}'s profile has been permanently removed.`
         })
       } else {
-        throw new Error('Failed to delete pet profile')
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Failed to delete pet profile')
       }
     } catch (error) {
       console.error('Error deleting pet profile:', error)
+      // Refresh list to ensure consistency
+      await fetchPetProfiles()
       toast({
         title: "Error",
-        description: "Failed to delete pet profile",
+        description: error instanceof Error ? error.message : "Failed to delete pet profile",
         variant: "destructive"
       })
     } finally {
+      setDeleting(false)
       setPetToDelete(null)
     }
   }
@@ -215,7 +267,17 @@ export default function PetProfilePage() {
       <h1 className="text-3xl font-bold mb-8">Your Pet Profiles</h1>
 
       {!showForm && (
-        <Button onClick={() => setShowForm(true)} className="mb-6">
+        <Button 
+          onClick={() => {
+            setShowForm(true)
+            setFormValues({
+              type: "dog",
+              activityLevel: "",
+              feedFrequencyPerDay: ""
+            })
+          }} 
+          className="mb-6"
+        >
           Add New Pet
         </Button>
       )}
@@ -286,7 +348,10 @@ export default function PetProfilePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="type">Type</Label>
-                  <Select name="type" defaultValue={editingPet?.type || "dog"}>
+                  <Select 
+                    value={formValues.type}
+                    onValueChange={(value) => setFormValues({ ...formValues, type: value })}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select pet type" />
                     </SelectTrigger>
@@ -361,9 +426,63 @@ export default function PetProfilePage() {
                   placeholder="e.g., Allergic to chicken, needs grain-free food"
                 />
               </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="activityLevel">Activity Level (1-10)</Label>
+                  <Select 
+                    value={formValues.activityLevel}
+                    onValueChange={(value) => setFormValues({ ...formValues, activityLevel: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select activity level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => (
+                        <SelectItem key={level} value={level.toString()}>
+                          {level} {level === 1 ? '(Low)' : level === 10 ? '(Very High)' : ''}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-gray-500 mt-1">1 = Low, 10 = Very High</p>
+                </div>
+                
+                <div>
+                  <Label htmlFor="feedFrequencyPerDay">Feed Frequency Per Day</Label>
+                  <Select 
+                    value={formValues.feedFrequencyPerDay}
+                    onValueChange={(value) => setFormValues({ ...formValues, feedFrequencyPerDay: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select frequency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 time per day</SelectItem>
+                      <SelectItem value="2">2 times per day</SelectItem>
+                      <SelectItem value="3">3 times per day</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
               <div className="flex gap-2">
-                <Button type="submit">Save Profile</Button>
-                <Button type="button" variant="outline" onClick={handleCancel}>
+                <Button type="submit" disabled={saving}>
+                  {saving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    "Save Profile"
+                  )}
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={handleCancel}
+                  disabled={saving}
+                >
                   Cancel
                 </Button>
               </div>
@@ -403,6 +522,8 @@ export default function PetProfilePage() {
                       </CardTitle>
                       <CardDescription className="mt-1">
                         {pet.breed} • {calculateAge(pet.birthday)} years old • {pet.weight} lbs
+                        {pet.activityLevel && ` • Activity: ${pet.activityLevel}/10`}
+                        {pet.feedFrequencyPerDay && ` • Feeds: ${pet.feedFrequencyPerDay}x/day`}
                       </CardDescription>
                     </div>
                   </div>
@@ -427,12 +548,20 @@ export default function PetProfilePage() {
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
                           <AlertDialogAction 
                             onClick={() => handleDelete(pet)}
                             className="bg-red-600 hover:bg-red-700"
+                            disabled={deleting}
                           >
-                            Delete Profile
+                            {deleting ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                Deleting...
+                              </>
+                            ) : (
+                              "Delete Profile"
+                            )}
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
@@ -475,12 +604,20 @@ export default function PetProfilePage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction 
               onClick={confirmDelete}
               className="bg-red-600 hover:bg-red-700"
+              disabled={deleting}
             >
-              Delete Profile
+              {deleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete Profile"
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Heart, Truck, Calendar, Star } from "lucide-react"
 import { prisma } from "@/lib/prisma"
+import { formatZAR } from "@/lib/currency"
 
 async function getFeaturedProducts() {
   try {
@@ -123,7 +124,7 @@ export default async function HomePage() {
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <CardTitle className="text-lg">{product.name}</CardTitle>
-                    <span className="text-2xl font-bold text-orange-600">${product.price}</span>
+                    <span className="text-2xl font-bold text-orange-600">{formatZAR(product.price)}</span>
                   </div>
                   <CardDescription>{product.description}</CardDescription>
                 </CardHeader>
@@ -162,11 +163,11 @@ export default async function HomePage() {
             <Card className="text-center">
               <CardHeader>
                 <Truck className="h-12 w-12 text-orange-600 mx-auto mb-4" />
-                <CardTitle>Free Delivery</CardTitle>
+                <CardTitle>Delivery Included</CardTitle>
               </CardHeader>
               <CardContent>
                 <CardDescription>
-                  Fresh food delivered right to your doorstep every month with no shipping fees
+                  Fresh food delivered right to your doorstep every month. Shipping included in total cost.
                 </CardDescription>
               </CardContent>
             </Card>

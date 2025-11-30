@@ -25,7 +25,16 @@ export async function GET(
 
     const user = await prisma.user.findUnique({
       where: { id: params.id },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        address: true,
+        role: true,
+        emailVerified: true,
+        createdAt: true,
+        updatedAt: true,
         orders: {
           select: {
             id: true,
@@ -73,7 +82,7 @@ export async function PUT(
     }
 
     const body = await request.json()
-    const { status, role } = body
+    const { name, email, phone, address, role } = body
 
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
@@ -84,14 +93,39 @@ export async function PUT(
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
+    // Check if email is being changed and if it's already taken
+    if (email && email !== existingUser.email) {
+      const emailExists = await prisma.user.findUnique({
+        where: { email }
+      })
+      if (emailExists) {
+        return NextResponse.json(
+          { error: "Email already in use" },
+          { status: 400 }
+        )
+      }
+    }
+
     // Update user
     const user = await prisma.user.update({
       where: { id: params.id },
       data: {
-        status: status || existingUser.status,
-        role: role || existingUser.role,
+        ...(name !== undefined && { name }),
+        ...(email !== undefined && { email }),
+        ...(phone !== undefined && { phone }),
+        ...(address !== undefined && { address }),
+        ...(role !== undefined && { role }),
       },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        address: true,
+        role: true,
+        emailVerified: true,
+        createdAt: true,
+        updatedAt: true,
         orders: {
           select: {
             id: true,
@@ -143,12 +177,15 @@ export async function DELETE(
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
-    // Check if user has active subscriptions
-    const subscriptions = await prisma.subscription.findMany({
-      where: { userId: params.id }
+    // Check if user has ACTIVE subscriptions
+    const activeSubscriptions = await prisma.subscription.findMany({
+      where: { 
+        userId: params.id,
+        status: "active"
+      }
     })
 
-    if (subscriptions.length > 0) {
+    if (activeSubscriptions.length > 0) {
       return NextResponse.json(
         { error: "Cannot delete user with active subscriptions" },
         { status: 400 }

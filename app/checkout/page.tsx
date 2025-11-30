@@ -83,7 +83,15 @@ export default function CheckoutPage() {
   });
 
   const subtotal = cartState.total;
-  const shipping = deliveryInfo.deliveryMethod === "express" ? 12.99 : 5.99;
+
+  // Check if cart has any subscription items
+  const hasSubscription = cartState.items.some(item => item.purchaseType === "subscription");
+
+  // Free shipping for subscriptions, otherwise standard rates
+  const shipping = hasSubscription
+    ? 0
+    : (deliveryInfo.deliveryMethod === "express" ? 12.99 : 5.99);
+
   const total = subtotal + shipping;
 
   const handleInputChange = (field: keyof DeliveryInfo, value: string) => {
@@ -98,23 +106,20 @@ export default function CheckoutPage() {
     setLoading(true);
 
     try {
-      console.log("Submitting order with data:", {
-        items: cartState.items,
-        deliveryInfo,
-        subtotal,
-        shipping,
-        total,
-      });
+      // Validate delivery info
+      if (!deliveryInfo.firstName || !deliveryInfo.lastName || !deliveryInfo.email || !deliveryInfo.address || !deliveryInfo.city || !deliveryInfo.state || !deliveryInfo.postalCode) {
+        throw new Error("Please fill in all required fields.");
+      }
 
-      // Create order
-      const response = await fetch("/api/orders", {
+      // First create order in pending status
+      const orderResponse = await fetch("/api/orders", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           items: cartState.items.map((item) => ({
-            productId: item.productId, // Use the actual product ID
+            productId: item.productId,
             quantity: item.quantity,
             price: item.price,
           })),
@@ -125,37 +130,60 @@ export default function CheckoutPage() {
         }),
       });
 
-      if (!response.ok) {
-        const errorData = await response
+      if (!orderResponse.ok) {
+        const errorData = await orderResponse
           .json()
           .catch(() => ({ error: "Unknown error" }));
-        console.error("Order creation failed:", errorData);
         throw new Error(errorData.error || "Failed to create order");
       }
 
-      const order = await response.json();
-      console.log("Order created successfully:", order);
+      const order = await orderResponse.json();
 
-      toast({
-        title: "Order Placed!",
-        description: `Order #${order.id} has been created successfully.`,
+      // Create Stripe checkout session
+      const checkoutResponse = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          items: cartState.items.map((item) => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            price: item.price,
+            name: item.name,
+            purchaseType: item.purchaseType,
+            frequency: item.frequency,
+          })),
+          orderId: order.id,
+          customerEmail: session?.user?.email,
+        }),
       });
 
-      // Clear cart and redirect to order confirmation
-      dispatch({ type: "CLEAR_CART" });
-      router.push(`/orders/${order.id}`);
+      if (!checkoutResponse.ok) {
+        const errorData = await checkoutResponse.json();
+        throw new Error(errorData.error || "Failed to create payment session");
+      }
+
+      const { sessionId } = await checkoutResponse.json();
+
+      // Redirect to Stripe Checkout
+      if (sessionId) {
+        // Use Stripe's redirect URL
+        window.location.href = `https://checkout.stripe.com/c/pay/${sessionId}`;
+      } else {
+        throw new Error("No session ID received");
+      }
     } catch (error) {
-      console.error("Error creating order:", error);
+      console.error("Error processing checkout:", error);
       const errorMessage =
         error instanceof Error
           ? error.message
-          : "Failed to place order. Please try again.";
+          : "Failed to process checkout. Please try again.";
       toast({
         title: "Error",
         description: errorMessage,
         variant: "destructive",
       });
-    } finally {
       setLoading(false);
     }
   };
@@ -362,13 +390,13 @@ export default function CheckoutPage() {
                   <SelectItem value="standard">
                     <div className="flex items-center justify-between w-full">
                       <span>Standard Delivery</span>
-                      <span className="text-sm text-gray-500">$5.99</span>
+                      <span className="text-sm text-gray-500">{hasSubscription ? "Free" : formatZAR(5.99)}</span>
                     </div>
                   </SelectItem>
                   <SelectItem value="express">
                     <div className="flex items-center justify-between w-full">
                       <span>Express Delivery</span>
-                      <span className="text-sm text-gray-500">$12.99</span>
+                      <span className="text-sm text-gray-500">{hasSubscription ? "Free" : formatZAR(12.99)}</span>
                     </div>
                   </SelectItem>
                 </SelectContent>
@@ -428,7 +456,7 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between">
                   <span>Shipping</span>
-                  <span>{formatZAR(shipping)}</span>
+                  <span>{shipping === 0 ? "Free" : formatZAR(shipping)}</span>
                 </div>
                 <div className="border-t pt-2">
                   <div className="flex justify-between font-medium text-lg">
@@ -446,8 +474,11 @@ export default function CheckoutPage() {
                   disabled={loading}
                 >
                   <CreditCard className="h-4 w-4 mr-2" />
-                  {loading ? "Processing..." : "Place Order (Pay Later)"}
+                  {loading ? "Processing..." : "Proceed to Payment"}
                 </Button>
+                <p className="text-xs text-gray-500 text-center">
+                  Secure payment powered by Stripe
+                </p>
               </div>
 
               <p className="text-xs text-gray-500 text-center">

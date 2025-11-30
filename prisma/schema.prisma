@@ -76,6 +76,8 @@ model PetProfile {
   image       String? // Pet's image URL
   vaccineCardUrl String? // URL (data URL or external) to vaccine card PDF/image
   healthTags  String[] // e.g., ["allergies", "special diet"]
+  activityLevel Int? // Activity level from 1-10
+  feedFrequencyPerDay Int? // Feed frequency per day: 1, 2, or 3
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
@@ -101,16 +103,19 @@ model Product {
   productType String? // Cat Treat, Dog Treat, Dry Cat Food, etc.
   foodType    String? // dry, wet
   
-  // Nutrition Facts
-  protein     String?  @default("Min 28%")
-  fat         String?  @default("Min 15%")
-  fiber       String?  @default("Max 4%")
-  moisture    String?  @default("Max 10%")
-  calories    String?  @default("3,500 kcal/kg")
-  omega6      String?  @default("Min 1.4%")
+  // Nutrition Facts (no defaults - only show if explicitly set)
+  protein     String?
+  fat         String?
+  fiber       String?
+  moisture    String?
+  calories    String?
+  omega6      String?
   
   // Ingredients
-  ingredients String?  @default("Deboned chicken as the first ingredient, Sweet potatoes and peas for digestible carbohydrates, Chicken meal and salmon meal for added protein, Flaxseed for omega fatty acids, Blueberries and cranberries for antioxidants, No corn, wheat, soy, or artificial preservatives")
+  ingredients String?
+  
+  // Key Features (displayed on product page)
+  keyFeatures String?  @db.Text
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

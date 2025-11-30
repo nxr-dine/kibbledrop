@@ -32,6 +32,31 @@ pnpm db:setup
 pnpm dev
 ```
 
+## 💳 Payment Gateway Setup
+
+To test orders, subscriptions, and analytics, you need to set up Stripe:
+
+1. **Get Stripe API Keys** (Test Mode):
+   - Sign up at [stripe.com](https://stripe.com)
+   - Go to Developers → API keys
+   - Copy your test keys (start with `sk_test_` and `pk_test_`)
+
+2. **Add to `.env.local`**:
+   ```bash
+   STRIPE_SECRET_KEY=sk_test_your_key_here
+   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your_key_here
+   STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
+   ```
+
+3. **Set up Webhooks** (for automatic order updates):
+   - Install Stripe CLI: `brew install stripe/stripe-cli/stripe`
+   - Run: `stripe listen --forward-to localhost:3000/api/stripe/webhook`
+   - Copy the webhook secret to `.env.local`
+
+4. **Test with test card**: `4242 4242 4242 4242`
+
+📖 **Full setup guide**: See [docs/STRIPE_SETUP.md](./docs/STRIPE_SETUP.md)
+
 **Live Demo:** https://kibbledrop-7vd7z8pnc-nxr-deens-projects.vercel.app
 
 ## 📚 Documentation
