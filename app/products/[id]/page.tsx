@@ -246,7 +246,6 @@ export default function ProductPage() {
             purchaseType,
             frequency: purchaseType === "subscription" ? frequency : undefined,
           },
-          },
         });
       }
       toast({
