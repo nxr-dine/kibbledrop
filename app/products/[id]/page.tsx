@@ -619,8 +619,9 @@ export default function ProductPage() {
                               </li>
                             ))}
                         </ul>
+                      ) : (
+                        <p>No ingredients listed</p>
                       )}
-                    </div>
                     </div>
                   </div>
                 </CardContent>
