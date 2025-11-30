@@ -44,7 +44,7 @@ export async function createSubscriptionSession(
       payment_method_types: ["card"],
       line_items: items.map((item) => ({
         price_data: {
-          currency: "zar", // Changed from 'usd' to 'zar' for South African Rands
+          currency: "usd",
           product_data: {
             name: item.name,
           },
@@ -114,7 +114,7 @@ export async function createOneTimePaymentSession(
       payment_method_types: ["card"],
       line_items: items.map((item) => ({
         price_data: {
-          currency: "zar", // South African Rands
+          currency: "usd",
           product_data: {
             name: item.name,
           },

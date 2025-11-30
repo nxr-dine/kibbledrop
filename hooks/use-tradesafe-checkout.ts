@@ -2,7 +2,7 @@
  * TradeSafe Checkout Hook for Subscription Payments
  *
  * This hook handles the creation of TradeSafe trades for subscription payments
- * with ZAR currency and recurring billing setup.
+ * with USD currency and recurring billing setup.
  */
 
 import { useState } from "react";
@@ -93,7 +93,7 @@ export function useTradesafeCheckout() {
             price: item.price,
           })),
           totalAmount,
-          currency: "ZAR",
+          currency: "USD",
           customerInfo: request.customerInfo,
           metadata: JSON.stringify(request.metadata),
         }),
@@ -116,7 +116,7 @@ export function useTradesafeCheckout() {
           orderId: order.id,
           subscriptionId: request.metadata.subscriptionId,
           totalAmount,
-          currency: "ZAR",
+          currency: "USD",
           customer: request.customerInfo,
           items: productDetails,
           deliveryInfo: request.metadata.deliveryInfo,

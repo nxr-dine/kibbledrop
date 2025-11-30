@@ -1,10 +1,10 @@
 /**
- * Currency formatting utilities for South African Rands (ZAR)
+ * Currency formatting utilities for US Dollars (USD)
  */
 
 /**
- * Format a price in ZAR currency
- * @param amount - The amount to format (in ZAR)
+ * Format a price in USD currency
+ * @param amount - The amount to format (in USD)
  * @param options - Formatting options
  * @returns Formatted currency string
  */
@@ -24,9 +24,9 @@ export function formatZAR(
     maximumFractionDigits = 2,
   } = options;
 
-  const formatter = new Intl.NumberFormat("en-ZA", {
+  const formatter = new Intl.NumberFormat("en-US", {
     style: showSymbol ? "currency" : "decimal",
-    currency: "ZAR",
+    currency: "USD",
     minimumFractionDigits,
     maximumFractionDigits,
   });
@@ -35,14 +35,14 @@ export function formatZAR(
 
   // If showing code, append it
   if (showCode && !showSymbol) {
-    return `${formatted} ZAR`;
+    return `${formatted} USD`;
   }
 
   return formatted;
 }
 
 /**
- * Format a price range in ZAR
+ * Format a price range in USD
  * @param minAmount - Minimum amount
  * @param maxAmount - Maximum amount
  * @returns Formatted price range string
@@ -55,29 +55,29 @@ export function formatZARRange(minAmount: number, maxAmount: number): string {
 }
 
 /**
- * Parse a ZAR string back to number
- * @param zarString - String like "R 123.45" or "123.45"
+ * Parse a USD string back to number
+ * @param zarString - String like "$123.45" or "123.45"
  * @returns Parsed number or null if invalid
  */
 export function parseZAR(zarString: string): number | null {
   // Remove currency symbols and whitespace
-  const cleanString = zarString.replace(/[R\s,]/g, "");
+  const cleanString = zarString.replace(/[$\s,]/g, "");
   const number = parseFloat(cleanString);
 
   return isNaN(number) ? null : number;
 }
 
 /**
- * Convert USD prices to ZAR (rough conversion - should be updated with real exchange rates)
- * @param usdAmount - Amount in USD
- * @param exchangeRate - Current USD to ZAR exchange rate (default: 18.5)
- * @returns Amount in ZAR
+ * Convert ZAR prices to USD (rough conversion - should be updated with real exchange rates)
+ * @param zarAmount - Amount in ZAR
+ * @param exchangeRate - Current ZAR to USD exchange rate (default: 0.054)
+ * @returns Amount in USD
  */
 export function convertUSDToZAR(
-  usdAmount: number,
-  exchangeRate: number = 18.5
+  zarAmount: number,
+  exchangeRate: number = 0.054
 ): number {
-  return Math.round(usdAmount * exchangeRate * 100) / 100; // Round to 2 decimal places
+  return Math.round(zarAmount * exchangeRate * 100) / 100; // Round to 2 decimal places
 }
 
 /**

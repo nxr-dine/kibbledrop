@@ -2,7 +2,7 @@
  * TradeSafe Subscription Trade Creation API
  *
  * This endpoint creates a TradeSafe trade specifically for subscription payments
- * with ZAR currency and recurring billing metadata.
+ * with USD currency and recurring billing metadata.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -15,7 +15,7 @@ interface SubscriptionTradeRequest {
   orderId: string;
   subscriptionId: string;
   totalAmount: number;
-  currency: "ZAR";
+  currency: "USD";
   customer: {
     name: string;
     email: string;
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     } = body;
 
     console.log("🚀 Creating TradeSafe subscription trade...");
-    console.log("💰 Amount:", totalAmount, "ZAR");
+    console.log("💰 Amount:", totalAmount, "USD");
     console.log("📦 Subscription ID:", subscriptionId);
 
     // Step 1: Get access token
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
       }
     `;
 
-    // Convert amount to cents for TradeSafe (ZAR)
+    // Convert amount to cents for TradeSafe (USD)
     const amountInCents = Math.round(totalAmount * 100);
 
     const mutationVariables = {
@@ -118,13 +118,13 @@ export async function POST(request: NextRequest) {
         description: `${description}\n\nSubscription Details:\n${items
           .map(
             (item) =>
-              `- ${item.name} x${item.quantity} @ R${item.price.toFixed(2)}`
+              `- ${item.name} x${item.quantity} @ $${item.price.toFixed(2)}`
           )
           .join("\n")}\n\nDelivery: ${deliveryInfo.address}, ${
           deliveryInfo.city
         } ${deliveryInfo.postalCode}`,
         industry: "GENERAL_GOODS_SERVICES",
-        currency: "ZAR",
+        currency: "USD",
         feeAllocation: "BUYER", // Customer pays TradeSafe fees
         allocations: [
           {
@@ -236,7 +236,7 @@ export async function POST(request: NextRequest) {
       paymentUrl: transaction.paymentUrl,
       reference: transaction.reference,
       totalAmount,
-      currency: "ZAR",
+      currency: "USD",
     });
   } catch (error) {
     console.error("❌ Error creating TradeSafe subscription trade:", error);

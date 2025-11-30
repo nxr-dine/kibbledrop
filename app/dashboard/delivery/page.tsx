@@ -140,7 +140,7 @@ export default function DeliveryInformationPage() {
 
       const subscription = await subscriptionResponse.json();
 
-      // Now process payment with TradeSafe for ZAR currency
+      // Now process payment with TradeSafe for USD currency
       const result = await createCheckout({
         customerInfo: {
           name: formData.fullName,

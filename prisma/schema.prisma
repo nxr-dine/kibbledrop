@@ -246,7 +246,7 @@ model Trade {
   buyerEmail  String
   sellerEmail String
   amount      Float?   // Trade amount in cents
-  currency    String   @default("ZAR")
+  currency    String   @default("USD")
   title       String?  // Trade title/description
   reference   String?  // TradeSafe reference
   createdAt   DateTime @default(now())
