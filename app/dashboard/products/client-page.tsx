@@ -17,12 +17,12 @@ interface Product {
   createdAt: string;
   updatedAt: string;
   // New filtering fields
-  brand?: string;
-  weight?: string;
-  species?: string;
-  lifeStage?: string;
-  productType?: string;
-  foodType?: string;
+  brand?: string | null;
+  weight?: string | null;
+  species?: string | null;
+  lifeStage?: string | null;
+  productType?: string | null;
+  foodType?: string | null;
 }
 
 interface ClientProductsPageProps {

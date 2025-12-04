@@ -1,130 +1,162 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeft, Loader2, User, Mail, Calendar, Package, MapPin, Save } from "lucide-react"
-import { useToast } from "@/components/ui/use-toast"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  ArrowLeft,
+  Loader2,
+  User,
+  Mail,
+  Calendar,
+  Package,
+  MapPin,
+  Save,
+} from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 interface User {
-  id: string
-  name: string
-  email: string
-  status: string
-  role: string
-  createdAt: string
+  id: string;
+  name: string;
+  email: string;
+  phone?: string | null;
+  address?: string | null;
+  status: string;
+  role: string;
+  createdAt: string;
   orders: Array<{
-    id: string
-    status: string
-    total: number
-    createdAt: string
-  }>
+    id: string;
+    status: string;
+    total: number;
+    createdAt: string;
+  }>;
 }
 
-export default function AdminUserDetailPage({ params }: { params: { id: string } }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
+export default function AdminUserDetailPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
     address: "",
-    role: ""
-  })
-  const [isEditing, setIsEditing] = useState(false)
-  const { toast } = useToast()
+    role: "",
+  });
+  const [isEditing, setIsEditing] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
-    fetchUser()
-  }, [params.id])
+    fetchUser();
+  }, [params.id]);
 
   const fetchUser = async () => {
     try {
-      const response = await fetch(`/api/admin/users/${params.id}`)
+      const response = await fetch(`/api/admin/users/${params.id}`);
       if (!response.ok) {
-        throw new Error("User not found")
+        throw new Error("User not found");
       }
-      const userData = await response.json()
-      setUser(userData)
+      const userData = await response.json();
+      setUser(userData);
       setFormData({
         name: userData.name || "",
         email: userData.email || "",
         phone: userData.phone || "",
         address: userData.address || "",
-        role: userData.role || "customer"
-      })
+        role: userData.role || "customer",
+      });
     } catch (error) {
-      console.error("Error fetching user:", error)
+      console.error("Error fetching user:", error);
       toast({
         title: "Error",
         description: "Failed to load user details.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
-
+  };
 
   const getRoleColor = (role?: string) => {
-    if (!role) return "bg-gray-100 text-gray-800"
+    if (!role) return "bg-gray-100 text-gray-800";
     switch (role) {
-      case "admin": return "bg-purple-100 text-purple-800"
-      case "customer": return "bg-blue-100 text-blue-800"
-      default: return "bg-gray-100 text-gray-800"
+      case "admin":
+        return "bg-purple-100 text-purple-800";
+      case "customer":
+        return "bg-blue-100 text-blue-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   const handleSave = async () => {
-    setSaving(true)
+    setSaving(true);
     try {
       const response = await fetch(`/api/admin/users/${params.id}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
-      })
+      });
 
       if (response.ok) {
-        const updatedUser = await response.json()
-        setUser(updatedUser)
-        setIsEditing(false)
+        const updatedUser = await response.json();
+        setUser(updatedUser);
+        setIsEditing(false);
         toast({
           title: "User Updated",
           description: "User details have been updated successfully.",
-        })
+        });
       } else {
-        const error = await response.json()
-        throw new Error(error.error || "Failed to update user")
+        const error = await response.json();
+        throw new Error(error.error || "Failed to update user");
       }
     } catch (error) {
-      console.error("Error updating user:", error)
+      console.error("Error updating user:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update user details.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to update user details.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   if (loading) {
     return (
@@ -134,27 +166,31 @@ export default function AdminUserDetailPage({ params }: { params: { id: string }
           <span className="ml-2">Loading user details...</span>
         </div>
       </div>
-    )
+    );
   }
 
   if (!user) {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center py-12">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">User Not Found</h1>
-          <p className="text-gray-600 mb-6">The user you're looking for doesn't exist.</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            User Not Found
+          </h1>
+          <p className="text-gray-600 mb-6">
+            The user you're looking for doesn't exist.
+          </p>
           <Button asChild>
             <Link href="/admin/users">Back to Users</Link>
           </Button>
         </div>
       </div>
-    )
+    );
   }
 
-  const totalSpent = user.orders.reduce((sum, order) => sum + order.total, 0)
-  const activeOrders = user.orders.filter(order => 
+  const totalSpent = user.orders.reduce((sum, order) => sum + order.total, 0);
+  const activeOrders = user.orders.filter((order) =>
     ["pending", "processing", "shipped"].includes(order.status)
-  ).length
+  ).length;
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -185,12 +221,16 @@ export default function AdminUserDetailPage({ params }: { params: { id: string }
             <CardContent className="space-y-4">
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-500 mb-1 block">Name</label>
+                  <label className="text-sm font-medium text-gray-500 mb-1 block">
+                    Name
+                  </label>
                   {isEditing ? (
                     <input
                       type="text"
                       value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, name: e.target.value })
+                      }
                       className="w-full px-3 py-2 border rounded-md"
                     />
                   ) : (
@@ -198,12 +238,16 @@ export default function AdminUserDetailPage({ params }: { params: { id: string }
                   )}
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500 mb-1 block">Email</label>
+                  <label className="text-sm font-medium text-gray-500 mb-1 block">
+                    Email
+                  </label>
                   {isEditing ? (
                     <input
                       type="email"
                       value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, email: e.target.value })
+                      }
                       className="w-full px-3 py-2 border rounded-md"
                     />
                   ) : (
@@ -214,12 +258,16 @@ export default function AdminUserDetailPage({ params }: { params: { id: string }
                   )}
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500 mb-1 block">Phone</label>
+                  <label className="text-sm font-medium text-gray-500 mb-1 block">
+                    Phone
+                  </label>
                   {isEditing ? (
                     <input
                       type="tel"
                       value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, phone: e.target.value })
+                      }
                       className="w-full px-3 py-2 border rounded-md"
                       placeholder="Optional"
                     />
@@ -228,11 +276,15 @@ export default function AdminUserDetailPage({ params }: { params: { id: string }
                   )}
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500 mb-1 block">Address</label>
+                  <label className="text-sm font-medium text-gray-500 mb-1 block">
+                    Address
+                  </label>
                   {isEditing ? (
                     <textarea
                       value={formData.address}
-                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, address: e.target.value })
+                      }
                       className="w-full px-3 py-2 border rounded-md"
                       rows={2}
                       placeholder="Optional"
@@ -242,11 +294,15 @@ export default function AdminUserDetailPage({ params }: { params: { id: string }
                   )}
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500 mb-1 block">Role</label>
+                  <label className="text-sm font-medium text-gray-500 mb-1 block">
+                    Role
+                  </label>
                   {isEditing ? (
-                    <Select 
-                      value={formData.role} 
-                      onValueChange={(value) => setFormData({ ...formData, role: value })}
+                    <Select
+                      value={formData.role}
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, role: value })
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -258,7 +314,9 @@ export default function AdminUserDetailPage({ params }: { params: { id: string }
                     </Select>
                   ) : (
                     <Badge className={getRoleColor(user.role)}>
-                      {user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Unknown'}
+                      {user.role
+                        ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
+                        : "Unknown"}
                     </Badge>
                   )}
                 </div>
@@ -270,25 +328,25 @@ export default function AdminUserDetailPage({ params }: { params: { id: string }
                   </Button>
                 ) : (
                   <div className="flex gap-2">
-                    <Button 
+                    <Button
                       onClick={() => {
-                        setIsEditing(false)
+                        setIsEditing(false);
                         // Reset form data
                         setFormData({
                           name: user.name || "",
                           email: user.email || "",
                           phone: user.phone || "",
                           address: user.address || "",
-                          role: user.role || "customer"
-                        })
-                      }} 
-                      variant="outline" 
+                          role: user.role || "customer",
+                        });
+                      }}
+                      variant="outline"
                       className="flex-1"
                     >
                       Cancel
                     </Button>
-                    <Button 
-                      onClick={handleSave} 
+                    <Button
+                      onClick={handleSave}
                       className="flex-1"
                       disabled={saving}
                     >
@@ -319,20 +377,30 @@ export default function AdminUserDetailPage({ params }: { params: { id: string }
             <CardContent>
               {user.orders.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-gray-600">No orders found for this user.</p>
+                  <p className="text-gray-600">
+                    No orders found for this user.
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {user.orders.map((order) => (
-                    <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div
+                      key={order.id}
+                      className="flex items-center justify-between p-4 border rounded-lg"
+                    >
                       <div>
                         <h4 className="font-medium">Order #{order.id}</h4>
-                        <p className="text-sm text-gray-600">{formatDate(order.createdAt)}</p>
+                        <p className="text-sm text-gray-600">
+                          {formatDate(order.createdAt)}
+                        </p>
                       </div>
                       <div className="text-right">
                         <p className="font-medium">R{order.total.toFixed(2)}</p>
                         <Badge variant="outline">
-                          {order.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1) : 'Unknown'}
+                          {order.status
+                            ? order.status.charAt(0).toUpperCase() +
+                              order.status.slice(1)
+                            : "Unknown"}
                         </Badge>
                       </div>
                     </div>
@@ -351,7 +419,8 @@ export default function AdminUserDetailPage({ params }: { params: { id: string }
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-gray-600">
-                Use the "Edit Information" button in the Basic Information section to update user details.
+                Use the "Edit Information" button in the Basic Information
+                section to update user details.
               </p>
             </CardContent>
           </Card>
@@ -367,14 +436,14 @@ export default function AdminUserDetailPage({ params }: { params: { id: string }
                   <p className="text-sm text-gray-600">Total Orders</p>
                 </div>
               </div>
-              
+
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="text-center">
                   <p className="text-2xl font-bold">{activeOrders}</p>
                   <p className="text-sm text-gray-600">Active Orders</p>
                 </div>
               </div>
-              
+
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="text-center">
                   <p className="text-2xl font-bold">R{totalSpent.toFixed(2)}</p>
@@ -385,7 +454,10 @@ export default function AdminUserDetailPage({ params }: { params: { id: string }
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="text-center">
                   <p className="text-2xl font-bold">
-                    R{user.orders.length > 0 ? (totalSpent / user.orders.length).toFixed(2) : "0.00"}
+                    R
+                    {user.orders.length > 0
+                      ? (totalSpent / user.orders.length).toFixed(2)
+                      : "0.00"}
                   </p>
                   <p className="text-sm text-gray-600">Average Order Value</p>
                 </div>
@@ -395,5 +467,5 @@ export default function AdminUserDetailPage({ params }: { params: { id: string }
         </div>
       </div>
     </div>
-  )
-} 
+  );
+}

@@ -26,8 +26,13 @@ export default function DeliveryInformationPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { data: session } = useSession();
-  const { createCheckout, redirectToPayment, isLoading: paymentLoading, error, clearError } =
-    useTradesafeCheckout();
+  const {
+    createCheckout,
+    redirectToPayment,
+    isLoading: paymentLoading,
+    error,
+    clearError,
+  } = useTradesafeCheckout();
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -345,8 +350,8 @@ export default function DeliveryInformationPage() {
               {loading || paymentLoading
                 ? "Processing..."
                 : paymentMethod === "now"
-                  ? `Pay ${formatZAR(state.total)} & Create Subscription`
-                  : "Create Subscription"}
+                ? `Pay ${formatZAR(state.total)} & Create Subscription`
+                : "Create Subscription"}
             </Button>
           </form>
         </CardContent>

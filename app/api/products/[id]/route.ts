@@ -62,8 +62,6 @@ export async function PUT(
       calories,
       omega6,
       ingredients,
-      feedingGuideAdult,
-      feedingGuidePuppy,
     } = body;
 
     // Validate required fields
@@ -93,8 +91,6 @@ export async function PUT(
         calories,
         omega6,
         ingredients,
-        feedingGuideAdult,
-        feedingGuidePuppy,
       },
     });
 

@@ -1,11 +1,19 @@
 import { Resend } from "resend";
 import { formatZAR } from "./currency";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy initialization to avoid build-time errors when API key is not set
+let resend: Resend | null = null;
+
+function getResend(): Resend {
+  if (!resend) {
+    resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resend;
+}
 
 export async function sendWelcomeEmail(email: string, name: string) {
   try {
-    await resend.emails.send({
+    await getResend().emails.send({
       from: "KibbleDrop <noreply@kibbledrop.com>",
       to: email,
       subject: "Welcome to KibbleDrop! 🐾",
@@ -45,7 +53,7 @@ export async function sendSubscriptionConfirmationEmail(
       .map((item) => `${item.name} (Qty: ${item.quantity})`)
       .join("<br>");
 
-    await resend.emails.send({
+    await getResend().emails.send({
       from: "KibbleDrop <noreply@kibbledrop.com>",
       to: email,
       subject: "Your KibbleDrop Subscription is Active! 🎉",
@@ -91,7 +99,7 @@ export async function sendDeliveryReminderEmail(
       .map((item) => `${item.name} (Qty: ${item.quantity})`)
       .join("<br>");
 
-    await resend.emails.send({
+    await getResend().emails.send({
       from: "KibbleDrop <noreply@kibbledrop.com>",
       to: email,
       subject: "Your KibbleDrop Delivery is Coming! 📦",
@@ -147,7 +155,7 @@ export async function sendOrderStatusUpdateEmail(
       statusMessages[orderDetails.status as keyof typeof statusMessages] ||
       "Your order status has been updated.";
 
-    await resend.emails.send({
+    await getResend().emails.send({
       from: "KibbleDrop <noreply@kibbledrop.com>",
       to: email,
       subject: `Order #${orderDetails.orderId} Status Update - ${
@@ -217,7 +225,7 @@ export async function sendOrderConfirmationEmail(
       )
       .join("<br>");
 
-    await resend.emails.send({
+    await getResend().emails.send({
       from: "KibbleDrop <noreply@kibbledrop.com>",
       to: email,
       subject: `Order Confirmation #${orderDetails.orderId} - KibbleDrop`,
@@ -267,7 +275,7 @@ export async function sendRefundNotificationEmail(
   }
 ) {
   try {
-    await resend.emails.send({
+    await getResend().emails.send({
       from: "KibbleDrop <noreply@kibbledrop.com>",
       to: email,
       subject: `Refund Processed - Order #${refundDetails.orderId}`,
@@ -328,7 +336,7 @@ export async function sendSubscriptionStatusUpdateEmail(
         "Your next delivery has been skipped. Your next delivery will be on the following schedule.",
     };
 
-    await resend.emails.send({
+    await getResend().emails.send({
       from: "KibbleDrop <noreply@kibbledrop.com>",
       to: email,
       subject: `Your KibbleDrop Subscription - ${
@@ -393,7 +401,7 @@ export async function sendSkipDeliveryEmail(
       .map((item) => `${item.name} (Qty: ${item.quantity})`)
       .join("<br>");
 
-    await resend.emails.send({
+    await getResend().emails.send({
       from: "KibbleDrop <noreply@kibbledrop.com>",
       to: email,
       subject: "Your KibbleDrop Delivery Has Been Skipped 📦",

@@ -99,6 +99,7 @@ export async function GET(request: NextRequest) {
                   name: true,
                   category: true,
                   petType: true,
+                  price: true,
                 },
               },
             },

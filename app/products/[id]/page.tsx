@@ -82,7 +82,9 @@ export default function ProductPage() {
   const [quantity, setQuantity] = useState(1);
   const [selectedWeight, setSelectedWeight] = useState<string>("");
   const [isAddingToCart, setIsAddingToCart] = useState(false);
-  const [purchaseType, setPurchaseType] = useState<"one-time" | "subscription">("subscription");
+  const [purchaseType, setPurchaseType] = useState<"one-time" | "subscription">(
+    "subscription"
+  );
   const [frequency, setFrequency] = useState<string>("monthly");
 
   // Define available weight options based on product type
@@ -184,14 +186,15 @@ export default function ProductPage() {
     (option) => option.value === selectedWeight
   );
   const currentPrice = selectedWeightOption
-    ? selectedWeightOption.actualPrice ||
+    ? (selectedWeightOption as any).actualPrice ||
       product!.price * selectedWeightOption.priceMultiplier
     : product?.price || 0;
 
   // Calculate final price based on purchase type
-  const finalPrice = purchaseType === "subscription" 
-    ? currentPrice * 0.9 // 10% discount for subscription
-    : currentPrice;
+  const finalPrice =
+    purchaseType === "subscription"
+      ? currentPrice * 0.9 // 10% discount for subscription
+      : currentPrice;
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -403,7 +406,10 @@ export default function ProductPage() {
                     .split("\n")
                     .filter((line) => line.trim())
                     .map((feature, index) => (
-                      <li key={index} className="flex items-center text-gray-600">
+                      <li
+                        key={index}
+                        className="flex items-center text-gray-600"
+                      >
                         <div className="w-2 h-2 bg-orange-500 rounded-full mr-3" />
                         {feature.trim()}
                       </li>
@@ -442,15 +448,22 @@ export default function ProductPage() {
 
               {/* Purchase Type Selection */}
               <div className="space-y-4 border rounded-lg p-4">
-                <RadioGroup value={purchaseType} onValueChange={(v) => setPurchaseType(v as "one-time" | "subscription")}>
+                <RadioGroup
+                  value={purchaseType}
+                  onValueChange={(v) =>
+                    setPurchaseType(v as "one-time" | "subscription")
+                  }
+                >
                   <div className="flex items-center justify-between space-x-2 mb-2">
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="subscription" id="subscription" />
-                      <Label htmlFor="subscription" className="font-medium">Subscribe & Save</Label>
+                      <Label htmlFor="subscription" className="font-medium">
+                        Subscribe & Save
+                      </Label>
                     </div>
                     <span className="text-green-600 font-medium">-10%</span>
                   </div>
-                  
+
                   {purchaseType === "subscription" && (
                     <div className="ml-6 mb-4">
                       <Select value={frequency} onValueChange={setFrequency}>
@@ -459,19 +472,24 @@ export default function ProductPage() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="weekly">Weekly</SelectItem>
-                          <SelectItem value="bi-weekly">Every 2 Weeks</SelectItem>
+                          <SelectItem value="bi-weekly">
+                            Every 2 Weeks
+                          </SelectItem>
                           <SelectItem value="monthly">Monthly</SelectItem>
                         </SelectContent>
                       </Select>
                       <p className="text-xs text-gray-500 mt-2">
-                        Auto-delivery {getSubscriptionFrequencyText(frequency)}. Cancel anytime.
+                        Auto-delivery {getSubscriptionFrequencyText(frequency)}.
+                        Cancel anytime.
                       </p>
                     </div>
                   )}
 
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="one-time" id="one-time" />
-                    <Label htmlFor="one-time" className="font-medium">One-time Purchase</Label>
+                    <Label htmlFor="one-time" className="font-medium">
+                      One-time Purchase
+                    </Label>
                   </div>
                 </RadioGroup>
               </div>
@@ -531,7 +549,9 @@ export default function ProductPage() {
                 <Truck className="h-6 w-6 text-orange-500" />
                 <div>
                   <p className="font-medium text-sm">Shipping</p>
-                  <p className="text-xs text-gray-600">Included in total cost</p>
+                  <p className="text-xs text-gray-600">
+                    Included in total cost
+                  </p>
                 </div>
               </div>
               <div className="flex items-center space-x-3">

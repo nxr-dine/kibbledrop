@@ -3,7 +3,7 @@ import Stripe from "stripe";
 // Initialize Stripe with error handling for missing keys
 export const stripe = process.env.STRIPE_SECRET_KEY
   ? new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: "2024-12-18.acacia",
+      apiVersion: "2025-07-30.basil",
     })
   : null;
 
@@ -19,7 +19,9 @@ export async function createSubscriptionSession(
   frequency: string
 ) {
   if (!stripe) {
-    throw new Error("Stripe is not configured. Please set STRIPE_SECRET_KEY in your environment variables.");
+    throw new Error(
+      "Stripe is not configured. Please set STRIPE_SECRET_KEY in your environment variables."
+    );
   }
 
   try {
@@ -87,7 +89,9 @@ export async function createOneTimePaymentSession(
   customerEmail?: string
 ) {
   if (!stripe) {
-    throw new Error("Stripe is not configured. Please set STRIPE_SECRET_KEY in your environment variables.");
+    throw new Error(
+      "Stripe is not configured. Please set STRIPE_SECRET_KEY in your environment variables."
+    );
   }
 
   try {
@@ -123,7 +127,11 @@ export async function createOneTimePaymentSession(
         quantity: item.quantity,
       })),
       mode: "payment",
-      success_url: `${process.env.NEXTAUTH_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}${orderId ? `&order_id=${orderId}` : ''}`,
+      success_url: `${
+        process.env.NEXTAUTH_URL
+      }/payment/success?session_id={CHECKOUT_SESSION_ID}${
+        orderId ? `&order_id=${orderId}` : ""
+      }`,
       cancel_url: `${process.env.NEXTAUTH_URL}/payment/cancelled`,
       metadata: {
         ...(orderId && { orderId }),

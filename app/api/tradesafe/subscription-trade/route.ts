@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { getTradeSafeUrls } from "@/lib/tradesafe-config";
 import { prisma } from "@/lib/prisma";
 
@@ -206,18 +206,12 @@ export async function POST(request: NextRequest) {
     console.log("🆔 Transaction ID:", transaction.id);
     console.log("💳 Payment URL:", transaction.paymentUrl);
 
-    // Step 5: Update order with TradeSafe transaction ID
+    // Step 5: Update order with TradeSafe transaction ID (stored in trackingNumber as payment reference)
     await prisma.order.update({
       where: { id: orderId },
       data: {
-        paymentId: transaction.id,
-        status: "payment_pending",
-        metadata: JSON.stringify({
-          tradesafeTransactionId: transaction.id,
-          subscriptionId,
-          isRecurring: true,
-          paymentUrl: transaction.paymentUrl,
-        }),
+        trackingNumber: transaction.id, // Store TradeSafe transaction ID as tracking reference
+        status: "pending",
       },
     });
 

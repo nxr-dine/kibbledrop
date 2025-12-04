@@ -75,7 +75,7 @@ export default function SubscriptionSetupPage() {
   }
 
   const subtotal = state.total;
-  
+
   // Calculate frequency-based price adjustment
   const getFrequencyMultiplier = () => {
     switch (deliveryFrequency) {
@@ -86,20 +86,20 @@ export default function SubscriptionSetupPage() {
       case "tri-weekly":
         return 1.0; // Standard price
       case "monthly":
-        return 0.90; // 10% discount for monthly (best value)
+        return 0.9; // 10% discount for monthly (best value)
       case "custom-weeks":
         // Calculate based on custom weeks (more frequent = higher cost)
         if (customWeeks <= 1) return 1.15;
         if (customWeeks === 2) return 1.05;
         if (customWeeks === 3) return 1.0;
-        return 0.90; // 4+ weeks get monthly discount
+        return 0.9; // 4+ weeks get monthly discount
       case "custom-date":
         return 1.0; // Standard price for custom dates
       default:
-        return 0.90;
+        return 0.9;
     }
   };
-  
+
   const frequencyMultiplier = getFrequencyMultiplier();
   const adjustedSubtotal = subtotal * frequencyMultiplier;
   // Tax removed as per requirement
@@ -191,14 +191,19 @@ export default function SubscriptionSetupPage() {
               <Separator />
               <div className="flex justify-between text-base sm:text-lg font-bold">
                 <span>Monthly Subtotal:</span>
-                <span className="text-orange-600">{formatZAR(adjustedSubtotal)}</span>
+                <span className="text-orange-600">
+                  {formatZAR(adjustedSubtotal)}
+                </span>
               </div>
               {frequencyMultiplier !== 1.0 && (
                 <p className="text-xs text-gray-600">
-                  {frequencyMultiplier > 1.0 
-                    ? `+${((frequencyMultiplier - 1) * 100).toFixed(0)}% for ${getFrequencyDisplay()} delivery`
-                    : `${((1 - frequencyMultiplier) * 100).toFixed(0)}% discount for ${getFrequencyDisplay()} delivery`
-                  }
+                  {frequencyMultiplier > 1.0
+                    ? `+${((frequencyMultiplier - 1) * 100).toFixed(
+                        0
+                      )}% for ${getFrequencyDisplay()} delivery`
+                    : `${((1 - frequencyMultiplier) * 100).toFixed(
+                        0
+                      )}% discount for ${getFrequencyDisplay()} delivery`}
                 </p>
               )}
               <Button
@@ -229,30 +234,48 @@ export default function SubscriptionSetupPage() {
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="weekly" id="weekly" />
-                  <Label htmlFor="weekly" className="text-sm sm:text-base flex-1">
+                  <Label
+                    htmlFor="weekly"
+                    className="text-sm sm:text-base flex-1"
+                  >
                     Weekly Delivery
-                    <span className="block text-xs text-gray-500">+15% (more frequent shipping)</span>
+                    <span className="block text-xs text-gray-500">
+                      +15% (more frequent shipping)
+                    </span>
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="bi-weekly" id="bi-weekly" />
-                  <Label htmlFor="bi-weekly" className="text-sm sm:text-base flex-1">
+                  <Label
+                    htmlFor="bi-weekly"
+                    className="text-sm sm:text-base flex-1"
+                  >
                     Every 2 Weeks
                     <span className="block text-xs text-gray-500">+5%</span>
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="tri-weekly" id="tri-weekly" />
-                  <Label htmlFor="tri-weekly" className="text-sm sm:text-base flex-1">
+                  <Label
+                    htmlFor="tri-weekly"
+                    className="text-sm sm:text-base flex-1"
+                  >
                     Every 3 Weeks
-                    <span className="block text-xs text-gray-500">Standard price</span>
+                    <span className="block text-xs text-gray-500">
+                      Standard price
+                    </span>
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="monthly" id="monthly" />
-                  <Label htmlFor="monthly" className="text-sm sm:text-base flex-1">
+                  <Label
+                    htmlFor="monthly"
+                    className="text-sm sm:text-base flex-1"
+                  >
                     Monthly Delivery (Recommended)
-                    <span className="block text-xs text-green-600">Save 10% - Best value!</span>
+                    <span className="block text-xs text-green-600">
+                      Save 10% - Best value!
+                    </span>
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -353,7 +376,13 @@ export default function SubscriptionSetupPage() {
                 {frequencyMultiplier !== 1.0 && (
                   <div className="flex justify-between text-sm">
                     <span>Frequency Adjustment:</span>
-                    <span className={frequencyMultiplier > 1.0 ? "text-orange-600" : "text-green-600"}>
+                    <span
+                      className={
+                        frequencyMultiplier > 1.0
+                          ? "text-orange-600"
+                          : "text-green-600"
+                      }
+                    >
                       {frequencyMultiplier > 1.0 ? "+" : ""}
                       {formatZAR(adjustedSubtotal - subtotal)}
                     </span>
@@ -374,11 +403,17 @@ export default function SubscriptionSetupPage() {
                 <div className="space-y-1 mt-2">
                   <div className="flex justify-between text-sm text-gray-600">
                     <span>Billed:</span>
-                    <span className="font-medium capitalize">{deliveryFrequency === "monthly" ? "Monthly" : getFrequencyDisplay()}</span>
+                    <span className="font-medium capitalize">
+                      {deliveryFrequency === "monthly"
+                        ? "Monthly"
+                        : getFrequencyDisplay()}
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm text-gray-600">
                     <span>Delivery:</span>
-                    <span className="font-medium capitalize">{getFrequencyDisplay()}</span>
+                    <span className="font-medium capitalize">
+                      {getFrequencyDisplay()}
+                    </span>
                   </div>
                 </div>
               </div>
