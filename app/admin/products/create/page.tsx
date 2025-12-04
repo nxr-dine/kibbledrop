@@ -609,9 +609,6 @@ export default function CreateProductPage() {
                             <SelectItem value="senior">Senior</SelectItem>
                           </>
                         )}
-                        {(!formData.petType || formData.petType === "Both") && (
-                          <SelectItem value="" disabled>Select pet type first</SelectItem>
-                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -647,9 +644,6 @@ export default function CreateProductPage() {
                             <SelectItem value="Tick & Flea Dogs">Tick & Flea Dogs</SelectItem>
                             <SelectItem value="Hygiene">Hygiene</SelectItem>
                           </>
-                        )}
-                        {(!formData.petType || formData.petType === "Both") && (
-                          <SelectItem value="" disabled>Select pet type first</SelectItem>
                         )}
                       </SelectContent>
                     </Select>

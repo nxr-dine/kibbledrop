@@ -7,7 +7,6 @@ import {
   Package,
   Users,
   ShoppingCart,
-  BarChart3,
   Settings,
   Repeat,
 } from "lucide-react";
@@ -40,16 +39,6 @@ export default function AdminLayout({
                   <Link href="/admin" className="flex items-center space-x-2">
                     <LayoutDashboard className="h-4 w-4" />
                     <span>Dashboard</span>
-                  </Link>
-                </Button>
-
-                <Button asChild variant="ghost" size="sm">
-                  <Link
-                    href="/admin/analytics"
-                    className="flex items-center space-x-2"
-                  >
-                    <BarChart3 className="h-4 w-4" />
-                    <span>Analytics</span>
                   </Link>
                 </Button>
 
